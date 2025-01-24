@@ -11,6 +11,10 @@
         integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
 </head>
 
+<script>
+    window.print();
+</script>
+
 <body>
     <div class="row">
         <div class="col">
