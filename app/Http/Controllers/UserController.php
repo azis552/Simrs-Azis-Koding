@@ -22,6 +22,8 @@ class UserController extends Controller
         if (Auth::attempt($validate)) {
             $request->session()->regenerate();
             return redirect()->route('dashboard');
+        }else{
+            return redirect()->route('login')->with('error','Login anda gagal');
         }
     }
     public function logout()
