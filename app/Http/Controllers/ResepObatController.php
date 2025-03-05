@@ -67,20 +67,6 @@ class ResepObatController extends Controller
      */
     public function show(string $id)
     {
-        
-        $obat_umum = DB::table('databarang as db')
-        ->join('resep_dokter as resdok', 'resdok.kode_brng', '=', 'db.kode_brng')
-        ->join('kodesatuan as sat', 'db.kode_sat', '=', 'sat.kode_sat')
-        ->select('resdok.*', 'db.nama_brng','db.letak_barang', 'sat.satuan')
-        ->where('resdok.no_resep', $id)
-        ->get();
-
-        $obat_racik = DB::table('resep_dokter_racikan as resracik')
-        ->join('metode_racik as metracik', 'resracik.kd_racik', '=', 'metracik.kd_racik')
-        ->select('resracik.*', 'metracik.nm_racik')
-        ->where('resracik.no_resep', $id)
-        ->get();
-
         $telaah = DB::table('resep_obat as res')
         ->join('reg_periksa as reg', 'res.no_rawat', '=', 'reg.no_rawat')
         ->join('pasien as pas', 'reg.no_rkm_medis', '=', 'pas.no_rkm_medis')
@@ -89,6 +75,22 @@ class ResepObatController extends Controller
         ->select('res.*', 'reg.no_rawat', 'pas.*', 'tel.id as telaah', 'tel.*')
         ->where('res.no_resep',  $id )
         ->first();
+
+        $obat_umum = DB::select("
+        SELECT detail_pemberian_obat.tgl_perawatan, detail_pemberian_obat.jam,
+               detail_pemberian_obat.no_rawat, reg_periksa.no_rkm_medis, pasien.nm_pasien, databarang.kode_sat,
+               detail_pemberian_obat.kode_brng, databarang.nama_brng, detail_pemberian_obat.embalase, detail_pemberian_obat.tuslah,
+               detail_pemberian_obat.jml, detail_pemberian_obat.biaya_obat, detail_pemberian_obat.total, detail_pemberian_obat.h_beli,
+               detail_pemberian_obat.kd_bangsal, detail_pemberian_obat.no_batch, detail_pemberian_obat.no_faktur , (SELECT satuan FROM kodesatuan WHERE kode_sat = databarang.kode_sat) AS satuan
+               ,(SELECT aturan_pakai FROM `resep_dokter` 
+			LEFT JOIN `resep_obat` ON `resep_dokter`.`no_resep` = `resep_obat`.`no_resep` 
+			WHERE `resep_dokter`.`kode_brng` = `databarang`.`kode_brng` AND `resep_obat`.`no_rawat` = `detail_pemberian_obat`.`no_rawat`) AS aturan_pakai
+        FROM detail_pemberian_obat 
+        INNER JOIN reg_periksa ON detail_pemberian_obat.no_rawat = reg_periksa.no_rawat 
+        INNER JOIN pasien ON reg_periksa.no_rkm_medis = pasien.no_rkm_medis 
+        INNER JOIN databarang ON detail_pemberian_obat.kode_brng = databarang.kode_brng
+        WHERE detail_pemberian_obat.no_rawat = ?", [$telaah->no_rawat]);
+
 
         $pemberiobat = DB::table('resep_obat as res')
         ->join('dokter as dok', 'res.kd_dokter', '=', 'dok.kd_dokter')
@@ -107,7 +109,7 @@ class ResepObatController extends Controller
         $perusahaan = DB::table('setting')
         ->select('*')
         ->get();
-        return view('DataObat.telaahcetak', compact('obat_umum', 'obat_racik', 'telaah', 'pasien', 'perusahaan', 'pemberiobat'));
+        return view('DataObat.telaahcetak', compact('obat_umum', 'telaah', 'pasien', 'perusahaan', 'pemberiobat'));
     }
 
     /**
