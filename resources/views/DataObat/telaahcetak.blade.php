@@ -99,7 +99,7 @@
                 @foreach ($obat_umum as $item)
                     <tr>
                         <td>R/</td>
-                        <td> {{ $item->nama_brng }} </td>
+                        <td> {{ $item->letak_barang }} </td>
                         <td>{{ $item->jml }} {{ $item->satuan }}</td>
 
                     </tr>

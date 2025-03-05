@@ -71,7 +71,7 @@ class ResepObatController extends Controller
         $obat_umum = DB::table('databarang as db')
         ->join('resep_dokter as resdok', 'resdok.kode_brng', '=', 'db.kode_brng')
         ->join('kodesatuan as sat', 'db.kode_sat', '=', 'sat.kode_sat')
-        ->select('resdok.*', 'db.nama_brng', 'sat.satuan')
+        ->select('resdok.*', 'db.nama_brng','db.letak_barang', 'sat.satuan')
         ->where('resdok.no_resep', $id)
         ->get();
 
