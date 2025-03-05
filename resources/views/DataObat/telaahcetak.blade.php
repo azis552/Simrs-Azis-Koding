@@ -103,7 +103,7 @@
                         <td>{{ $item->jml }} {{ $item->satuan }}</td>
 
                     </tr>
-                    <tr style="border-bottom: 1px solid black; text-align: center">
+                    <tr style="border-bottom: 1px solid black; text-align: left">
                         <td colspan="3"> {{ $item->aturan_pakai }}</td>
                     </tr>
                 @endforeach

@@ -82,9 +82,7 @@ class ResepObatController extends Controller
                detail_pemberian_obat.kode_brng, databarang.nama_brng, detail_pemberian_obat.embalase, detail_pemberian_obat.tuslah,
                detail_pemberian_obat.jml, detail_pemberian_obat.biaya_obat, detail_pemberian_obat.total, detail_pemberian_obat.h_beli,
                detail_pemberian_obat.kd_bangsal, detail_pemberian_obat.no_batch, detail_pemberian_obat.no_faktur , (SELECT satuan FROM kodesatuan WHERE kode_sat = databarang.kode_sat) AS satuan
-               ,(SELECT aturan_pakai FROM `resep_dokter` 
-			LEFT JOIN `resep_obat` ON `resep_dokter`.`no_resep` = `resep_obat`.`no_resep` 
-			WHERE `resep_dokter`.`kode_brng` = `databarang`.`kode_brng` AND `resep_obat`.`no_rawat` = `detail_pemberian_obat`.`no_rawat`) AS aturan_pakai
+               ,(SELECT aturan FROM aturan_pakai WHERE `aturan_pakai`.`no_rawat` = `detail_pemberian_obat`.`no_rawat` AND `aturan_pakai`.`kode_brng` = `databarang`.`kode_brng` ) AS aturan_pakai
         FROM detail_pemberian_obat 
         INNER JOIN reg_periksa ON detail_pemberian_obat.no_rawat = reg_periksa.no_rawat 
         INNER JOIN pasien ON reg_periksa.no_rkm_medis = pasien.no_rkm_medis 
