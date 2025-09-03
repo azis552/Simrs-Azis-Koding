@@ -33,10 +33,10 @@
                                                         <label for="" class="col-sm-3 col-form-label">No Resep</label>
                                                         <input type="text" readonly class="form-control mr-2 ml-2 mb-2" name="noresep" id="noresep">
                                                         <div class="col">
-                                                            
+
                                                             <h6>Telaah Resep</h6>
                                                             <hr>
-                                                            
+
                                                             <div class="form-row">
                                                                 <div class="col">
                                                                     <label for="">Kejelasan Tulisan Resep</label>
@@ -407,7 +407,7 @@
                                                     <td>{{ $obat->nm_pasien }}</td>
                                                     <td>
                                                         @if ($obat->telaah == null)
-                                                            <button type="button" class="btn btn-warning mb-3"
+                                                            <button type="button" class="btn btn-warning mb-3 btn-telaah"
                                                                 data-toggle="modal" id="telaah"
                                                                 data-noresep="{{ $obat->no_resep }}"
                                                                 data-target="#staticBackdrop">
@@ -478,12 +478,14 @@
 
 
     @section('script')
-        <script>
-            $(document).ready(function() {
-                $('#telaah').on('click', function() {
-                    var no_resep = $(this).data('noresep');
-                    $('#noresep').val(no_resep);
-                });
-            });
-        </script>
-    @endsection
+<script>
+    $(document).ready(function() {
+        $(document).on('click', '.btn-telaah', function() {
+            var no_resep = $(this).data('noresep');
+            $('#noresep').val(no_resep);
+        });
+    });
+    // coba update
+</script>
+@endsection
+
