@@ -224,6 +224,16 @@
                     </li>
                     
                 </ul>
+                <ul class="pcoded-item pcoded-left-item">
+                    <li class="">
+                        <a href="{{ route('obats.stokObat') }}">
+                            <span class="pcoded-micon"><i class="ti-home"></i><b>D</b></span>
+                            <span class="pcoded-mtext" data-i18n="nav.dash.main">Stok Obat</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+                    
+                </ul>
 
 
                 

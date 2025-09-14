@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ObatController;
 use App\Http\Controllers\ResepObatController;
 use App\Http\Controllers\TelaahObatController;
 use App\Http\Controllers\UserController;
@@ -22,5 +23,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('obats', ResepObatController::class);
     Route::resource('telaah', TelaahObatController::class);
     Route::post('obats', [ResepObatController::class, 'search'])->name('obats.search');
+    Route::get('stokObat', [ObatController::class, 'index'])->name('obats.stokObat');
+    Route::get('/stok/{kode_brng}/riwayat', [ObatController::class, 'riwayat'])->name('stok.riwayat');
+    // untuk cetak (versi print-friendly)
+Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
 });
 
