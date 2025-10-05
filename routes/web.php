@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\EklaimController;
+use App\Http\Controllers\InacbgRanapController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\ResepObatController;
 use App\Http\Controllers\TelaahObatController;
@@ -27,5 +29,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/stok/{kode_brng}/riwayat', [ObatController::class, 'riwayat'])->name('stok.riwayat');
     // untuk cetak (versi print-friendly)
 Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
+
+    Route::resource('inacbg-ranap', InacbgRanapController::class);
 });
 

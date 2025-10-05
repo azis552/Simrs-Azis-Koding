@@ -34,5 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'eklaim' => [
+        'host'    => env('E_KLAIM_HOST'),
+        'cons_id' => env('E_KLAIM_CONS_ID'),
+        'key'     => env('E_KLAIM_KEY'),
+        'debug'   => env('E_KLAIM_DEBUG', false),
+    ],
 
 ];
