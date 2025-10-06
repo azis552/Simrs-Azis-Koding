@@ -18,9 +18,10 @@ Route::get('/', function () {
 
 Route::get('logout', [UserController::class, 'logout'])->name('users.logout');
 
-Route::post('logincheck', [UserController::class,  'logincheck'])->name('users.logincheck');
+Route::post('logincheck', [UserController::class, 'logincheck'])->name('users.logincheck');
 
 Route::group(['middleware' => ['auth']], function () {
+    Route::post('users/mapping', [UserController::class, 'mapping'])->name('users.mapping');
     Route::resource('users', UserController::class);
     Route::resource('obats', ResepObatController::class);
     Route::resource('telaah', TelaahObatController::class);
@@ -28,8 +29,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('stokObat', [ObatController::class, 'index'])->name('obats.stokObat');
     Route::get('/stok/{kode_brng}/riwayat', [ObatController::class, 'riwayat'])->name('stok.riwayat');
     // untuk cetak (versi print-friendly)
-Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
+    Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
+    Route::get('inacbg-ranap', [InacbgRanapController::class, 'index'])->name('inacbg-ranap.index');
+    Route::post('inacbg-ranap/show', [InacbgRanapController::class, 'show'])->name('inacbg-ranap.show');
 
-    Route::resource('inacbg-ranap', InacbgRanapController::class);
 });
 

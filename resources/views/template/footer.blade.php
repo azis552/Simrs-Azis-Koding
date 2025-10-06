@@ -6,6 +6,9 @@
 
 <!-- Warning Section Ends -->
 <!-- Required Jquery -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 <script type="text/javascript" src="{{ asset('') }}/assets/js/jquery/jquery.min.js"></script>
 <script type="text/javascript" src="{{ asset('') }}/assets/js/jquery-ui/jquery-ui.min.js"></script>
 <script type="text/javascript" src="{{ asset('') }}/assets/js/popper.js/popper.min.js"></script>
@@ -28,6 +31,8 @@
 <script src="{{ asset('') }}/assets/js/pcoded.min.js"></script>
 <script src="{{ asset('') }}/assets/js/vartical-demo.js"></script>
 <script src="{{ asset('') }}/assets/js/jquery.mCustomScrollbar.concat.min.js"></script>
+<!-- JS Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </body>
 
 </html>
