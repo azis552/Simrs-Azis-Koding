@@ -49,10 +49,13 @@ class InacbgRanapController extends Controller
             ->join('kabupaten', 'pasien.kd_kab', '=', 'kabupaten.kd_kab')
             ->join('dokter', 'reg_periksa.kd_dokter', '=', 'dokter.kd_dokter')
             ->join('penjab', 'reg_periksa.kd_pj', '=', 'penjab.kd_pj')
+            ->join('bridging_sep', function ($join) {
+                $join->on('kamar_inap.no_rawat', '=', 'bridging_sep.no_rawat')
+                     ->where('bridging_sep.jnspelayanan', '1'); // 1 untuk rawat inap
+            })
             ->whereNotNull('kamar_inap.tgl_keluar') // sudah keluar
             ->where('kamar_inap.tgl_keluar', '<>', '0000-00-00') // bukan nol
             ->where('kamar_inap.stts_pulang', '<>', '') // status tidak kosong
-            ->where('reg_periksa.kd_pj', '<>', 'BPJ') // bukan pasien umum
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('kamar_inap.no_rawat', 'like', "%{$search}%")
@@ -71,6 +74,7 @@ class InacbgRanapController extends Controller
                         ->orWhere('pasien.agama', 'like', "%{$search}%");
                 });
             })
+            ->where('reg_periksa.kd_pj', '<>', 'UMUM') // bukan pasien umum
             ->distinct('kamar_inap.no_rawat')
             ->orderByRaw($order)
             ->paginate(10)
@@ -112,6 +116,7 @@ class InacbgRanapController extends Controller
                 DB::raw("'123456' as no_sep"),
                 DB::raw("'INV042025.1396' as no_tagihan")
             )
+            
             ->where('kamar_inap.no_rawat', $no_rawat)
             
             ->first();
@@ -120,7 +125,12 @@ class InacbgRanapController extends Controller
             return redirect()->back()->with('error', 'Data pasien tidak ditemukan.');
         }
 
-        return view('inacbg.klaim', compact('pasien'));
+        $sep = DB::table('bridging_sep')
+            ->where('no_rawat', $no_rawat)
+            ->where('jnspelayanan', '1')
+            ->first();
+
+        return view('inacbg.klaim', compact('pasien', 'sep'));
     }
 
 
