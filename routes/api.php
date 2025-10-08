@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EklaimController;
+use App\Http\Controllers\IcdController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -46,4 +47,7 @@ Route::prefix('eklaim')->group(function () {
     Route::post('/get-claim-data', [EklaimController::class, 'getClaimData']);
     Route::post('/claim-print', [EklaimController::class, 'claimPrint']);
 
+
 });
+Route::get('/icd10', [IcdController::class, 'icd10']);
+Route::get('/icd9', [IcdController::class, 'icd9']);

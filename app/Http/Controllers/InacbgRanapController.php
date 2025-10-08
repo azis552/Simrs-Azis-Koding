@@ -110,6 +110,7 @@ class InacbgRanapController extends Controller
                 'kamar_inap.jam_masuk',
                 'kamar_inap.tgl_keluar',
                 'kamar_inap.jam_keluar',
+                'kamar_inap.lama',
                 'kamar_inap.stts_pulang as cara_pulang',
                 'reg_periksa.kd_pj as cara_masuk',
                 DB::raw("'-' as jenis_rawat"),
@@ -130,7 +131,19 @@ class InacbgRanapController extends Controller
             ->where('jnspelayanan', '1')
             ->first();
 
-        return view('inacbg.klaim', compact('pasien', 'sep'));
+        $bayi = DB::table('penilaian_awal_keperawatan_ralan_bayi')
+            ->where('no_rawat', $no_rawat)
+            ->first();
+
+        $pemeriksaan = DB::table('pemeriksaan_ranap')
+            ->where('no_rawat', $no_rawat)
+            ->first();
+
+        $coder = DB::table('mapping_users')
+            ->join('pegawai', 'mapping_users.id_pegawai', '=', 'pegawai.id')
+            ->where('id_users', auth()->user()->id)
+            ->first();
+        return view('inacbg.klaim', compact('pasien', 'sep', 'bayi', 'pemeriksaan','coder'));
     }
 
 

@@ -39,6 +39,7 @@
         integrity="sha512-1ycn6Ica9996xFSz8R3+oDEw6FZtV1u1kz4l5C+ZK/0oBkH45qozVf4p5F4rZ7su4l9TZ6dC1Vyg9+9z8I3Cw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 <!-- CSS Select2 -->
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 

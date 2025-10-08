@@ -83,18 +83,18 @@
                                                     <div class="row">
                                                         <div class="col-md-4">
                                                             <label>Nomor SEP</label>
-                                                            <input type="text" name="nomor_sep" value="{{ $sep->no_sep ?? '' }}"
-                                                                class="form-control">
+                                                            <input type="text" name="nomor_sep"
+                                                                value="{{ $sep->no_sep ?? '' }}" class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Nomor Kartu</label>
-                                                            <input type="text" name="nomor_kartu" value="{{ $pasien->no_peserta }}"
-                                                                class="form-control">
+                                                            <input type="text" name="nomor_kartu"
+                                                                value="{{ $pasien->no_peserta }}" class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Nama Dokter</label>
-                                                            <input type="text" name="nama_dokter" value="{{ $sep->nmdpdjp ?? '' }}"
-                                                                class="form-control">
+                                                            <input type="text" name="nama_dokter"
+                                                                value="{{ $sep->nmdpdjp ?? '' }}" class="form-control">
                                                         </div>
                                                     </div>
 
@@ -102,18 +102,24 @@
                                                         <div class="col-md-4">
                                                             <label>Tanggal Masuk</label>
                                                             <input type="datetime-local" name="tgl_masuk"
-                                                                class="form-control" value="{{ \Carbon\Carbon::parse($pasien->tgl_masuk . ' ' . $pasien->jam_masuk)->format('Y-m-d H:i') }}">
+                                                                class="form-control"
+                                                                value="{{ \Carbon\Carbon::parse($pasien->tgl_masuk . ' ' . $pasien->jam_masuk)->format('Y-m-d H:i') }}">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Tanggal Pulang</label>
                                                             <input type="datetime-local" name="tgl_pulang"
-                                                                class="form-control" value="{{ \Carbon\Carbon::parse($pasien->tgl_keluar . ' ' . $pasien->jam_keluar)->format('Y-m-d H:i') }}">
+                                                                class="form-control"
+                                                                value="{{ \Carbon\Carbon::parse($pasien->tgl_keluar . ' ' . $pasien->jam_keluar)->format('Y-m-d H:i') }}">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Cara Masuk</label>
                                                             <select name="cara_masuk" class="form-control">
-                                                                <option value="gp" {{ $sep->asal_rujukan == '1. Faskes 1' ? 'selected' : '' }}>Rujukan FKTP</option>
-                                                                <option value="hosp-trans" {{ $sep->asal_rujukan == '2. Faskes 2(RS)' ? 'selected' : '' }}>Rujukan FKRTL</option>
+                                                                <option value="gp"
+                                                                    {{ $sep->asal_rujukan == '1. Faskes 1' ? 'selected' : '' }}>
+                                                                    Rujukan FKTP</option>
+                                                                <option value="hosp-trans"
+                                                                    {{ $sep->asal_rujukan == '2. Faskes 2(RS)' ? 'selected' : '' }}>
+                                                                    Rujukan FKRTL</option>
                                                                 <option value="mp">Rujukan Spesialis</option>
                                                                 <option value="outp">Dari Rawat Jalan</option>
                                                                 <option value="emd">Dari IGD</option>
@@ -129,26 +135,46 @@
                                                         <div class="col-md-4">
                                                             <label>Jenis Rawat</label>
                                                             <select name="jenis_rawat" class="form-control">
-                                                                <option value="1" {{ $sep->jnspelayanan == '1' ? 'selected' : '' }}>Rawat Inap</option>
-                                                                <option value="2" {{ $sep->jnspelayanan == '2' ? 'selected' : '' }}>Rawat Jalan</option>
+                                                                <option value="1"
+                                                                    {{ $sep->jnspelayanan == '1' ? 'selected' : '' }}>Rawat
+                                                                    Inap</option>
+                                                                <option value="2"
+                                                                    {{ $sep->jnspelayanan == '2' ? 'selected' : '' }}>Rawat
+                                                                    Jalan</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Kelas Rawat</label>
                                                             <select name="kelas_rawat" class="form-control">
-                                                                <option value="1" {{ $sep->klsrawat == '1' ? 'selected' : '' }}>Kelas 1</option>
-                                                                <option value="2" {{ $sep->klsrawat == '2' ? 'selected' : '' }}>Kelas 2</option>
-                                                                <option value="3" {{ $sep->klsrawat == '3' ? 'selected' : '' }}>Kelas 3</option>
+                                                                <option value="1"
+                                                                    {{ $sep->klsrawat == '1' ? 'selected' : '' }}>Kelas 1
+                                                                </option>
+                                                                <option value="2"
+                                                                    {{ $sep->klsrawat == '2' ? 'selected' : '' }}>Kelas 2
+                                                                </option>
+                                                                <option value="3"
+                                                                    {{ $sep->klsrawat == '3' ? 'selected' : '' }}>Kelas 3
+                                                                </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Status Pulang</label>
                                                             <select name="discharge_status" class="form-control">
-                                                                <option value="1" {{ $pasien->cara_pulang == 'Atas Persetujuan Dokter' ? 'selected' : '' }}>Atas Persetujuan Dokter</option>
-                                                                <option value="2" {{ $pasien->cara_pulang == 'Rujuk' ? 'selected' : '' }}>Dirujuk</option>
-                                                                <option value="3" {{ $pasien->cara_pulang == 'Atas Permintaan Sendiri' ? 'selected' : '' }}>Atas Permintaan Sendiri</option>
-                                                                <option value="4" {{ $pasien->cara_pulang == 'Meninggal' ? 'selected' : '' }}>Meninggal</option>
-                                                                <option value="5" {{ $pasien->cara_pulang == 'Lain-lain' ? 'selected' : '' }}>Lain-lain</option>
+                                                                <option value="1"
+                                                                    {{ $pasien->cara_pulang == 'Atas Persetujuan Dokter' ? 'selected' : '' }}>
+                                                                    Atas Persetujuan Dokter</option>
+                                                                <option value="2"
+                                                                    {{ $pasien->cara_pulang == 'Rujuk' ? 'selected' : '' }}>
+                                                                    Dirujuk</option>
+                                                                <option value="3"
+                                                                    {{ $pasien->cara_pulang == 'Atas Permintaan Sendiri' ? 'selected' : '' }}>
+                                                                    Atas Permintaan Sendiri</option>
+                                                                <option value="4"
+                                                                    {{ $pasien->cara_pulang == 'Meninggal' ? 'selected' : '' }}>
+                                                                    Meninggal</option>
+                                                                <option value="5"
+                                                                    {{ $pasien->cara_pulang == 'Lain-lain' ? 'selected' : '' }}>
+                                                                    Lain-lain</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -184,44 +210,54 @@
                                                         <div class="col-md-3">
                                                             <label>Upgrade Class</label>
                                                             <select name="upgrade_class_ind" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ $sep->klsnaik == '0' ? 'selected' : '' }}>Tidak
+                                                                </option>
+                                                                <option value="1"
+                                                                    {{ $sep->klsnaik == '1' ? 'selected' : '' }}>Ya
+                                                                </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Lama Hari Naik Kelas</label>
-                                                            <input type="number" name="upgrade_class_los" value="0"
+                                                            <input type="number" name="upgrade_class_los"
+                                                                value="{{ $sep->klsnaik == null ? '0' : $pasien->lama }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Persentase Biaya Tambahan</label>
-                                                            <input type="number" name="add_payment_pct" value="10"
+                                                            <input type="number" name="add_payment_pct"
+                                                                value="{{ $sep->klsnaik == null ? '' : '10' }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Berat Lahir (gram)</label>
-                                                            <input type="number" name="birth_weight" value="0"
+                                                            <input type="number" name="birth_weight"
+                                                                value="{{ $bayi->berat_lahir ?? '' }}"
                                                                 class="form-control">
                                                         </div>
                                                     </div>
 
                                                     {{-- ==================== TEKANAN DARAH ==================== --}}
+                                                    @php
+                                                        $tensi = explode('/', $pemeriksaan->tensi ?? '/');
+                                                    @endphp
                                                     <div class="row mt-3">
                                                         <div class="col-md-2">
                                                             <label>Sistole</label>
-                                                            <input type="number" name="sistole" value="110"
-                                                                class="form-control">
+                                                            <input type="number" name="sistole"
+                                                                value="{{ $tensi[0] ?? '0' }}" class="form-control">
                                                         </div>
                                                         <div class="col-md-2">
                                                             <label>Diastole</label>
-                                                            <input type="number" name="diastole" value="60"
-                                                                class="form-control">
+                                                            <input type="number" name="diastole"
+                                                                value="{{ $tensi[1] ?? '0' }}" class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Dializer Single Use</label>
                                                             <select name="dializer_single_use" class="form-control">
-                                                                <option value="1" selected>Ya</option>
-                                                                <option value="0">Tidak</option>
+                                                                <option value="1">Ya</option>
+                                                                <option value="0" selected>Tidak</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-4">
@@ -239,29 +275,29 @@
                                                         <div class="col-md-3">
                                                             <label>Pemulasaraan Jenazah</label>
                                                             <select name="pemulasaraan_jenazah" class="form-control">
-                                                                <option value="0">Tidak</option>
-                                                                <option value="1" selected>Ya</option>
+                                                                <option value="0" selected>Tidak</option>
+                                                                <option value="1">Ya</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Kantong Jenazah</label>
                                                             <select name="kantong_jenazah" class="form-control">
-                                                                <option value="0">Tidak</option>
-                                                                <option value="1" selected>Ya</option>
+                                                                <option value="0" selected>Tidak</option>
+                                                                <option value="1">Ya</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Peti Jenazah</label>
                                                             <select name="peti_jenazah" class="form-control">
-                                                                <option value="0">Tidak</option>
-                                                                <option value="1" selected>Ya</option>
+                                                                <option value="0" selected>Tidak</option>
+                                                                <option value="1">Ya</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Desinfektan Jenazah</label>
                                                             <select name="desinfektan_jenazah" class="form-control">
-                                                                <option value="0">Tidak</option>
-                                                                <option value="1" selected>Ya</option>
+                                                                <option value="0" selected>Tidak</option>
+                                                                <option value="1">Ya</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -284,7 +320,8 @@
                                                         <div class="col-md-3">
                                                             <label>Status COVID</label>
                                                             <select name="covid19_status_cd" class="form-control">
-                                                                <option value="1" selected>ODP</option>
+                                                                <option value="">Pilih Status</option>
+                                                                <option value="1">ODP</option>
                                                                 <option value="2">PDP</option>
                                                                 <option value="3">Terkonfirmasi</option>
                                                                 <option value="4">Suspek</option>
@@ -337,38 +374,13 @@
 
                                                     {{-- ==================== DATA LAIN ==================== --}}
                                                     <h5 class="mt-4">📋 Lain-lain</h5>
-                                                    <div class="row">
+
+                                                    <div class="row mt-3">
                                                         <div class="col-md-3">
                                                             <label>Episodes</label>
                                                             <input type="text" name="episodes" value="1;12#2;3#6;5"
                                                                 class="form-control">
                                                         </div>
-                                                        <div class="col-md-3">
-                                                            <label>Akses NAAT</label>
-                                                            <select name="akses_naat" class="form-control">
-                                                                <option value="A">A</option>
-                                                                <option value="B">B</option>
-                                                                <option value="C" selected>C</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <label>Isoman</label>
-                                                            <select name="isoman_ind" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <label>COB (Coordination of Benefit)</label>
-                                                            <select name="cob_cd" class="form-control">
-                                                                <option value="#">Tidak Ada</option>
-                                                                <option value="COB1">COB1</option>
-                                                                <option value="COB2">COB2</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="row mt-3">
                                                         <div class="col-md-3">
                                                             <label>Payor ID</label>
                                                             <input type="text" name="payor_id" value="3"
@@ -382,12 +394,12 @@
                                                         <div class="col-md-3">
                                                             <label>Kode Tarif</label>
                                                             <input type="text" name="kode_tarif" value="DS"
-                                                                class="form-control">
+                                                                class="form-control" readonly>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Coder NIK</label>
-                                                            <input type="text" name="coder_nik" value="123123123123"
-                                                                class="form-control">
+                                                            <input type="text" name="coder_nik"
+                                                                value="{{ $coder->no_ktp ?? '' }}" class="form-control">
                                                         </div>
                                                     </div>
 
@@ -402,7 +414,62 @@
                                             </div>
 
                                             <div class="tab-pane fade" id="diagnosa" role="tabpanel">
-                                                <p>Form diagnosa & prosedur akan ditampilkan di sini.</p>
+                                                <div class="row">
+                                                    <!-- Diagnosa -->
+                                                    <div class="col-md-6">
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h5>Diagnosa IDRG (ICD-10)</h5>
+                                                                <select id="diagnosa_idrg" class="form-control"
+                                                                    multiple="multiple" style="width: 100%"></select>
+
+                                                                <table class="table table-bordered mt-3"
+                                                                    id="tabel_diagnosa">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>#</th>
+                                                                            <th>Kode</th>
+                                                                            <th>Deskripsi</th>
+                                                                            <th>Status</th>
+                                                                            <th>Hapus</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Prosedur -->
+                                                    <div class="col-md-6">
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h5>Prosedur IDRG (ICD-9-CM)</h5>
+                                                                <select id="prosedur_idrg" class="form-control"
+                                                                    multiple="multiple" style="width: 100%"></select>
+
+                                                                <table class="table table-bordered mt-3"
+                                                                    id="tabel_prosedur">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>#</th>
+                                                                            <th>Kode</th>
+                                                                            <th>Deskripsi</th>
+                                                                            <th>Status</th>
+                                                                            <th>Hapus</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody></tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-12 mt-3 text-end">
+                                                        <button class="btn btn-success">Grouping IDRG</button>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                             <div class="tab-pane fade" id="rme" role="tabpanel">
                                                 <p>Berkas rekam medis pasien.</p>
@@ -422,4 +489,91 @@
             </div>
         </div>
     </div>
+@endsection
+
+
+@section('script')
+    <script>
+        $(document).ready(function() {
+
+            // ---------- Diagnosa ----------
+            let diagnosaList = [];
+            initSelect2('#diagnosa_idrg', '/api/icd10', diagnosaList, '#tabel_diagnosa');
+
+            // ---------- Prosedur ----------
+            let prosedurList = [];
+            initSelect2('#prosedur_idrg', '/api/icd9', prosedurList, '#tabel_prosedur');
+
+            // ---------- FUNGSI UTAMA ----------
+            function initSelect2(selector, url, dataList, tableId) {
+                $(selector).select2({
+                    placeholder: 'Cari kode atau deskripsi...',
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        }),
+                    },
+                    templateResult: item => !item.id ? item.text : $('<div><b>' + item.id + '</b> — ' + item
+                        .text.split(' - ')[1] + '</div>'),
+                    templateSelection: item => item.text || item.id,
+                    multiple: true
+                });
+
+                // Saat memilih
+                $(selector).on('select2:select', function(e) {
+                    let data = e.params.data;
+                    let status = dataList.length === 0 ? 'Primer' : 'Sekunder';
+                    dataList.push({
+                        code: data.id,
+                        desc: data.text.split(' - ')[1],
+                        status
+                    });
+                    renderTable(dataList, tableId);
+                });
+
+                // Saat menghapus
+                $(selector).on('select2:unselect', function(e) {
+                    let id = e.params.data.id;
+                    dataList = dataList.filter(d => d.code !== id);
+                    if (dataList.length > 0) {
+                        dataList[0].status = 'Primer';
+                        for (let i = 1; i < dataList.length; i++) dataList[i].status = 'Sekunder';
+                    }
+                    renderTable(dataList, tableId);
+                });
+            }
+
+            // Render Tabel
+            function renderTable(list, tableId) {
+                let tbody = $(tableId + ' tbody');
+                tbody.empty();
+                list.forEach((d, i) => {
+                    tbody.append(`
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${d.code}</td>
+                    <td>${d.desc}</td>
+                    <td>${d.status}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button></td>
+                </tr>
+            `);
+                });
+            }
+
+            // Fungsi hapus
+            window.hapusItem = function(code, table) {
+                let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
+                let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
+
+                $(selector).find(`option[value="${code}"]`).prop('selected', false);
+                $(selector).trigger('change');
+            }
+        });
+    </script>
 @endsection
