@@ -12,18 +12,22 @@ class IcdController extends Controller
     {
         $search = $request->get('q');
         $data = DB::table('icd10_codes')
-            ->select('code2', 'description', 'system')
+            ->select('code2 as code', 'description', 'system', 'validcode', 'accpdx')
             ->when($search, function ($query, $search) {
                 $query->where('code2', 'like', "%$search%")
-                      ->orWhere('description', 'like', "%$search%");
+                    ->orWhere('description', 'like', "%$search%");
             })
             ->limit(30)
             ->get();
 
         return response()->json($data->map(fn($d) => [
-            'id' => $d->code2,
-            'text' => $d->code2 . ' - ' . $d->description,
-            'system' => $d->system
+            'id' => $d->code,
+            'code' => $d->code,
+            'description' => $d->description,
+            'system' => $d->system,
+            'validcode' => $d->validcode,
+            'accpdx' => $d->accpdx,
+            'text' => "{$d->code} - {$d->description}",
         ]));
     }
 
@@ -34,16 +38,19 @@ class IcdController extends Controller
             ->select('code', 'description')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
-                      ->orWhere('description', 'like', "%$search%");
+                    ->orWhere('description', 'like', "%$search%");
             })
             ->limit(30)
             ->get();
 
         return response()->json($data->map(fn($d) => [
             'id' => $d->code,
-            'text' => $d->code . ' - ' . $d->description,
+            'code' => $d->code,
+            'description' => $d->description,
+            'text' => "{$d->code} - {$d->description}",
         ]));
     }
+
     /**
      * Display a listing of the resource.
      */

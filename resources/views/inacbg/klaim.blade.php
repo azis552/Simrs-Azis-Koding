@@ -58,11 +58,11 @@
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link" data-bs-toggle="tab" href="#diagnosa"
-                                                    role="tab">Diagnosa & Prosedur</a>
+                                                    role="tab">Diagnosa & Prosedur IDRG</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" data-bs-toggle="tab" href="#rme"
-                                                    role="tab">Berkas RME</a>
+                                                <a class="nav-link" data-bs-toggle="tab" href="#inacbgimport"
+                                                    role="tab">Import INA-CBG</a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link" data-bs-toggle="tab" href="#inacbg" role="tab">Data
@@ -378,7 +378,7 @@
                                                     <div class="row mt-3">
                                                         <div class="col-md-3">
                                                             <label>Episodes</label>
-                                                            <input type="text" name="episodes" value="1;12#2;3#6;5"
+                                                            <input type="text" name="episodes" value=""
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
@@ -471,7 +471,7 @@
                                                 </div>
 
                                             </div>
-                                            <div class="tab-pane fade" id="rme" role="tabpanel">
+                                            <div class="tab-pane fade" id="inacbgimport" role="tabpanel">
                                                 <p>Berkas rekam medis pasien.</p>
                                             </div>
                                             <div class="tab-pane fade" id="inacbg" role="tabpanel">
@@ -491,89 +491,147 @@
     </div>
 @endsection
 
-
 @section('script')
-    <script>
-        $(document).ready(function() {
+<script>
+    $(document).ready(function () {
 
-            // ---------- Diagnosa ----------
-            let diagnosaList = [];
-            initSelect2('#diagnosa_idrg', '/api/icd10', diagnosaList, '#tabel_diagnosa');
+        // ---------- Diagnosa ----------
+        window.diagnosaList = [];
+        initSelect2('#diagnosa_idrg', '/api/icd10', 'tabel_diagnosa', true);
 
-            // ---------- Prosedur ----------
-            let prosedurList = [];
-            initSelect2('#prosedur_idrg', '/api/icd9', prosedurList, '#tabel_prosedur');
+        // ---------- Prosedur ----------
+        window.prosedurList = [];
+        initSelect2('#prosedur_idrg', '/api/icd9', 'tabel_prosedur', false);
 
-            // ---------- FUNGSI UTAMA ----------
-            function initSelect2(selector, url, dataList, tableId) {
-                $(selector).select2({
-                    placeholder: 'Cari kode atau deskripsi...',
-                    ajax: {
-                        url: url,
-                        dataType: 'json',
-                        delay: 250,
-                        data: params => ({
-                            q: params.term
-                        }),
-                        processResults: data => ({
-                            results: data
-                        }),
-                    },
-                    templateResult: item => !item.id ? item.text : $('<div><b>' + item.id + '</b> — ' + item
-                        .text.split(' - ')[1] + '</div>'),
-                    templateSelection: item => item.text || item.id,
-                    multiple: true
-                });
+        // ---------- FUNGSI UTAMA ----------
+        function initSelect2(selector, url, tableId, isDiagnosa) {
+            $(selector).select2({
+                placeholder: 'Cari kode atau deskripsi...',
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ q: params.term }),
+                    processResults: data => ({ results: data })
+                },
+                templateResult: item => {
+                    if (!item.id) return item.text;
+                    return $('<div><b>' + item.code + '</b> — ' + item.description + '</div>');
+                },
+                templateSelection: item => item.text,
+                multiple: true
+            });
 
-                // Saat memilih
-                $(selector).on('select2:select', function(e) {
-                    let data = e.params.data;
-                    let status = dataList.length === 0 ? 'Primer' : 'Sekunder';
-                    dataList.push({
-                        code: data.id,
-                        desc: data.text.split(' - ')[1],
-                        status
+            // Saat memilih
+            $(selector).on('select2:select', function (e) {
+                let data = e.params.data;
+                let list = isDiagnosa ? diagnosaList : prosedurList;
+
+                // 🔍 Validasi diagnosa primer
+                if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tidak dapat dijadikan Primer',
+                        text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
+                        timer: 2500
                     });
-                    renderTable(dataList, tableId);
+                    // batalkan pilihan
+                    const current = $(selector).val() || [];
+                    $(selector).val(current.filter(v => v !== data.id)).trigger('change');
+                    return;
+                }
+
+                // 🔁 Cek duplikat
+                if (list.some(d => d.code === data.code)) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Diagnosa sudah ada',
+                        text: 'Data ini sudah ditambahkan sebelumnya.',
+                        timer: 2000
+                    });
+                    const current = $(selector).val() || [];
+                    $(selector).val(current.filter(v => v !== data.id)).trigger('change');
+                    return;
+                }
+
+                // Tambah ke list
+                let status = list.length === 0 ? 'Primer' : 'Sekunder';
+                list.push({
+                    code: data.code,
+                    desc: data.description,
+                    status: status
                 });
 
-                // Saat menghapus
-                $(selector).on('select2:unselect', function(e) {
-                    let id = e.params.data.id;
-                    dataList = dataList.filter(d => d.code !== id);
-                    if (dataList.length > 0) {
-                        dataList[0].status = 'Primer';
-                        for (let i = 1; i < dataList.length; i++) dataList[i].status = 'Sekunder';
+                if (isDiagnosa) diagnosaList = list;
+                else prosedurList = list;
+
+                renderTable(list, '#' + tableId);
+            });
+
+            // Saat unselect
+            $(selector).on('select2:unselect', function (e) {
+                let id = e.params.data.id;
+                let list = isDiagnosa ? diagnosaList : prosedurList;
+
+                list = list.filter(d => d.code !== id);
+                if (isDiagnosa) {
+                    diagnosaList = list;
+                    if (diagnosaList.length > 0) {
+                        diagnosaList[0].status = 'Primer';
+                        for (let i = 1; i < diagnosaList.length; i++) diagnosaList[i].status = 'Sekunder';
                     }
-                    renderTable(dataList, tableId);
-                });
+                } else {
+                    prosedurList = list;
+                }
+
+                renderTable(list, '#' + tableId);
+            });
+        }
+
+        // ---------- Render Tabel ----------
+        function renderTable(list, tableId) {
+            let tbody = $(tableId + ' tbody');
+            tbody.empty();
+            list.forEach((d, i) => {
+                tbody.append(`
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${d.code}</td>
+                        <td>${d.desc}</td>
+                        <td>${d.status}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm"
+                                onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        // ---------- Fungsi Hapus ----------
+        window.hapusItem = function (code, table) {
+            let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
+            let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
+
+            // hapus dari list global
+            list = list.filter(d => d.code !== code);
+            if (table === 'tabel_diagnosa') {
+                diagnosaList = list;
+                if (diagnosaList.length > 0) {
+                    diagnosaList[0].status = 'Primer';
+                    for (let i = 1; i < diagnosaList.length; i++) diagnosaList[i].status = 'Sekunder';
+                }
+            } else {
+                prosedurList = list;
             }
 
-            // Render Tabel
-            function renderTable(list, tableId) {
-                let tbody = $(tableId + ' tbody');
-                tbody.empty();
-                list.forEach((d, i) => {
-                    tbody.append(`
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${d.code}</td>
-                    <td>${d.desc}</td>
-                    <td>${d.status}</td>
-                    <td><button type="button" class="btn btn-danger btn-sm" onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button></td>
-                </tr>
-            `);
-                });
-            }
+            // update Select2 (hapus dari value)
+            const current = $(selector).val() || [];
+            const newVals = current.filter(v => v !== code);
+            $(selector).val(newVals).trigger('change');
 
-            // Fungsi hapus
-            window.hapusItem = function(code, table) {
-                let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
-                let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
-
-                $(selector).find(`option[value="${code}"]`).prop('selected', false);
-                $(selector).trigger('change');
-            }
-        });
-    </script>
+            renderTable(list, '#' + table);
+        };
+    });
+</script>
 @endsection
