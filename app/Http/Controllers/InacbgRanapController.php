@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LogEklaimRanap;
 use App\Services\EklaimService;
+use Carbon\Carbon;
 use DB;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -97,6 +98,19 @@ class InacbgRanapController extends Controller
     {
         $no_rawat = $request->input('no_rawat');
 
+        if (empty($no_rawat)) {
+            return redirect()->back()->with('error', 'Parameter no_rawat diperlukan.');
+        }
+
+        $sep = DB::table('bridging_sep')
+            ->where('no_rawat', $no_rawat)
+            ->where('jnspelayanan', '1')
+            ->first();
+
+        $log = LogEklaimRanap::where('nomor_sep', $sep->no_sep)->first();
+
+
+
         // Ambil data pasien dan rawat inap
         $pasien = DB::table('kamar_inap')
             ->join('reg_periksa', 'kamar_inap.no_rawat', '=', 'reg_periksa.no_rawat')
@@ -133,6 +147,10 @@ class InacbgRanapController extends Controller
             return redirect()->back()->with('error', 'Data pasien tidak ditemukan.');
         }
 
+        if ($log) {
+            return view('inacbg.klaim', compact('pasien', 'log'));
+        }
+
         $sep = DB::table('bridging_sep')
             ->where('no_rawat', $no_rawat)
             ->where('jnspelayanan', '1')
@@ -145,6 +163,7 @@ class InacbgRanapController extends Controller
         $pemeriksaan = DB::table('pemeriksaan_ranap')
             ->where('no_rawat', $no_rawat)
             ->first();
+
 
         $coder = DB::table('mapping_users')
             ->join('pegawai', 'mapping_users.id_pegawai', '=', 'pegawai.id')
@@ -393,6 +412,14 @@ class InacbgRanapController extends Controller
     public function store(Request $request)
     {
         $input = $request->all();
+        // Ubah format tanggal jika ada
+        if (!empty($input['tgl_masuk'])) {
+            $input['tgl_masuk'] = Carbon::parse($input['tgl_masuk'])->format('Y-m-d H:i:s');
+        }
+
+        if (!empty($input['tgl_pulang'])) {
+            $input['tgl_pulang'] = Carbon::parse($input['tgl_pulang'])->format('Y-m-d H:i:s');
+        }
 
         // Cari log berdasarkan nomor_sep
         $log = LogEklaimRanap::updateOrCreate(
@@ -402,8 +429,12 @@ class InacbgRanapController extends Controller
                 'tgl_masuk' => $input['tgl_masuk'] ?? null,
                 'tgl_pulang' => $input['tgl_pulang'] ?? null,
                 'cara_masuk' => $input['cara_masuk'] ?? null,
-                'jenis_rawat' => $input['jenis_rawat'] ?? null,
-                'kelas_rawat' => $input['kelas_rawat'] ?? null,
+                'tgl_masuk' => isset($input['tgl_masuk'])
+                    ? Carbon::parse($input['tgl_masuk'])->format('Y-m-d H:i:s')
+                    : null,
+                'tgl_pulang' => isset($input['tgl_pulang'])
+                    ? Carbon::parse($input['tgl_pulang'])->format('Y-m-d H:i:s')
+                    : null,
                 'discharge_status' => $input['discharge_status'] ?? null,
                 'adl_sub_acute' => $input['adl_sub_acute'] ?? null,
                 'adl_chronic' => $input['adl_chronic'] ?? null,
@@ -435,6 +466,11 @@ class InacbgRanapController extends Controller
                 'procedure_idrg' => null,
                 'diagnosa_inacbg' => null,
                 'procedure_inacbg' => null,
+                'kelas_rawat' => $input['kelas_rawat'] ?? null,
+                'jenis_rawat' => $input['jenis_rawat'] ?? null,
+                'nomor_rm' => $input['nomor_rm'] ?? null,
+                'nama_pasien' => $input['nama_pasien'] ?? null,
+                'nama_dokter' => $input['nama_dokter'] ?? null,
                 'response_set_claim_data' => $responseSet ?? null,
                 'status' => isset($responseSet['metadata']['code']) && $responseSet['metadata']['code'] == 200
                     ? 'proses klaim'
@@ -490,6 +526,36 @@ class InacbgRanapController extends Controller
             // Jika gagal, panggil fungsi show agar ambil data dari query yang sama
             $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
             return $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
+        }
+    }
+
+    public function hapusKlaim(Request $request)
+    {
+         $input = $request->all();
+
+        $data = [
+            'nomor_sep' => $request->nomor_sep,
+            'coder_nik' => $request->coder_nik,
+        ];
+
+        $response = $this->eklaim->send('delete_claim', $data);
+
+        // Hapus log berdasarkan nomor rawat
+        LogEklaimRanap::where('nomor_sep', $request->nomor_sep)->delete();
+
+        // Cek hasil respons dari e-Klaim
+        $status = $response['metadata']['code'] ?? null;
+
+        // Debug dulu jika perlu
+        // dd($response);
+
+        // 5️⃣ Redirect dengan alert (sama seperti function lain)
+        if ($status == 200) {
+            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+            return $this->show($requestShow)->with('success', 'Berhasil menghapus e-Klaim dan log terkait.');
+        } else {
+            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+            return $this->show($requestShow)->with('error', 'Gagal menghapus e-Klaim. Silakan cek koneksi atau respon server.');
         }
     }
 

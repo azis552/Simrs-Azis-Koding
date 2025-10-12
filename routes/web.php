@@ -33,6 +33,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('inacbg-ranap', [InacbgRanapController::class, 'index'])->name('inacbg-ranap.index');
     Route::post('inacbg-ranap', [InacbgRanapController::class, 'store'])->name('inacbg-ranap.store');
     Route::post('inacbg-ranap/show', [InacbgRanapController::class, 'show'])->name('inacbg-ranap.show');
+    Route::post('inacbg/hapusklaim' , [InacbgRanapController::class, 'hapusklaim'])->name('inacbg.hapusklaim');
 
 });
 

@@ -85,8 +85,24 @@
                                             {{-- Tab 1: Data Klaim --}}
                                             <div class="tab-pane fade show active" id="dataKlaim" role="tabpanel">
                                                 <h3 class="mb-4">Form Klaim E-Klaim (Set Claim Data)</h3>
+                                                @php
+                                                    $isReadonly = !empty($log);
+                                                @endphp
 
-                                                <form action="{{ route('inacbg-ranap.store') }}" method="POST">
+
+                                                @if ($isReadonly)
+                                                    <script>
+                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                            document.querySelectorAll('#form-claim input, #form-claim select, #form-claim textarea').forEach(
+                                                                function(el) {
+                                                                    el.setAttribute('readonly', true);
+                                                                    el.setAttribute('disabled', true); // supaya select juga tidak bisa diubah
+                                                                });
+                                                        });
+                                                    </script>
+                                                @endif
+                                                <form action="{{ route('inacbg-ranap.store') }}" id="form-claim"
+                                                    method="POST">
                                                     @csrf
                                                     <input type="hidden" name="no_rawat" value="{{ $pasien->no_rawat }}">
                                                     <input type="hidden" name="nomor_rm"
@@ -103,42 +119,70 @@
                                                         <div class="col-md-4">
                                                             <label>Nomor SEP</label>
                                                             <input type="text" name="nomor_sep"
-                                                                value="{{ $sep->no_sep ?? '' }}" class="form-control">
+                                                                value="{{ @$log->nomor_sep ?? ($sep->no_sep ?? '') }}"
+                                                                class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Nomor Kartu</label>
                                                             <input type="text" name="nomor_kartu"
-                                                                value="{{ $pasien->no_peserta }}" class="form-control">
+                                                                value="{{ @$log->nomor_kartu ?? $pasien->no_peserta ?? '' }}"
+                                                                class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Nama Dokter</label>
                                                             <input type="text" name="nama_dokter"
-                                                                value="{{ $sep->nmdpdjp ?? '' }}" class="form-control">
+                                                                value="{{ @$log->nama_dokter ?? ($sep->nmdpdjp ?? '') }}"
+                                                                class="form-control">
                                                         </div>
                                                     </div>
 
                                                     <div class="row mt-3">
+                                                        @php
+                                                            // ambil data dari log jika ada, kalau tidak ambil dari pasien
+                                                            $tglMasuk =
+                                                                $log->tgl_masuk ??
+                                                                $pasien->tgl_masuk . ' ' . $pasien->jam_masuk;
+                                                            $tglPulang =
+                                                                $log->tgl_pulang ??
+                                                                $pasien->tgl_keluar . ' ' . $pasien->jam_keluar;
+
+                                                            // tentukan apakah semua field form perlu readonly
+                                                            $isReadonly =
+                                                                !empty($log->tgl_masuk) && !empty($log->tgl_pulang);
+                                                        @endphp
+
                                                         <div class="col-md-4">
                                                             <label>Tanggal Masuk</label>
                                                             <input type="datetime-local" name="tgl_masuk"
                                                                 class="form-control"
-                                                                value="{{ \Carbon\Carbon::parse($pasien->tgl_masuk . ' ' . $pasien->jam_masuk)->format('Y-m-d H:i') }}">
+                                                                value="{{ \Carbon\Carbon::parse($tglMasuk)->format('Y-m-d\TH:i') }}"
+                                                                {{ $isReadonly ? 'readonly' : '' }}>
                                                         </div>
+
                                                         <div class="col-md-4">
                                                             <label>Tanggal Pulang</label>
                                                             <input type="datetime-local" name="tgl_pulang"
                                                                 class="form-control"
-                                                                value="{{ \Carbon\Carbon::parse($pasien->tgl_keluar . ' ' . $pasien->jam_keluar)->format('Y-m-d H:i') }}">
+                                                                value="{{ \Carbon\Carbon::parse($tglPulang)->format('Y-m-d\TH:i') }}"
+                                                                {{ $isReadonly ? 'readonly' : '' }}>
                                                         </div>
+
+                                                        @php
+                                                            $asalRujukan =
+                                                                $log->cara_masuk ?? ($sep->asal_rujukan ?? '');
+                                                        @endphp
                                                         <div class="col-md-4">
                                                             <label>Cara Masuk</label>
                                                             <select name="cara_masuk" class="form-control">
                                                                 <option value="gp"
-                                                                    {{ $sep->asal_rujukan == '1. Faskes 1' ? 'selected' : '' }}>
-                                                                    Rujukan FKTP</option>
+                                                                    {{ $asalRujukan == 'gp' || $asalRujukan == '1. Faskes 1' ? 'selected' : '' }}>
+                                                                    Rujukan FKTP
+                                                                </option>
+
                                                                 <option value="hosp-trans"
-                                                                    {{ $sep->asal_rujukan == '2. Faskes 2(RS)' ? 'selected' : '' }}>
-                                                                    Rujukan FKRTL</option>
+                                                                    {{ $asalRujukan == 'hosp-trans' || $asalRujukan == '2. Faskes 2(RS)' ? 'selected' : '' }}>
+                                                                    Rujukan FKRTL
+                                                                </option>
                                                                 <option value="mp">Rujukan Spesialis</option>
                                                                 <option value="outp">Dari Rawat Jalan</option>
                                                                 <option value="emd">Dari IGD</option>
@@ -155,10 +199,12 @@
                                                             <label>Jenis Rawat</label>
                                                             <select name="jenis_rawat" class="form-control">
                                                                 <option value="1"
-                                                                    {{ $sep->jnspelayanan == '1' ? 'selected' : '' }}>Rawat
+                                                                    {{ @$log->jenis_rawat || @$sep->jnspelayanan == '1' ? 'selected' : '' }}>
+                                                                    Rawat
                                                                     Inap</option>
                                                                 <option value="2"
-                                                                    {{ $sep->jnspelayanan == '2' ? 'selected' : '' }}>Rawat
+                                                                    {{ @$log->jenis_rawat || @$sep->jnspelayanan == '2' ? 'selected' : '' }}>
+                                                                    Rawat
                                                                     Jalan</option>
                                                             </select>
                                                         </div>
@@ -166,13 +212,16 @@
                                                             <label>Kelas Rawat</label>
                                                             <select name="kelas_rawat" class="form-control">
                                                                 <option value="1"
-                                                                    {{ $sep->klsrawat == '1' ? 'selected' : '' }}>Kelas 1
+                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '1' ? 'selected' : '' }}>
+                                                                    Kelas 1
                                                                 </option>
                                                                 <option value="2"
-                                                                    {{ $sep->klsrawat == '2' ? 'selected' : '' }}>Kelas 2
+                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '2' ? 'selected' : '' }}>
+                                                                    Kelas 2
                                                                 </option>
                                                                 <option value="3"
-                                                                    {{ $sep->klsrawat == '3' ? 'selected' : '' }}>Kelas 3
+                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '3' ? 'selected' : '' }}>
+                                                                    Kelas 3
                                                                 </option>
                                                             </select>
                                                         </div>
@@ -180,19 +229,19 @@
                                                             <label>Status Pulang</label>
                                                             <select name="discharge_status" class="form-control">
                                                                 <option value="1"
-                                                                    {{ $pasien->cara_pulang == 'Atas Persetujuan Dokter' ? 'selected' : '' }}>
+                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Atas Persetujuan Dokter' ? 'selected' : '' }}>
                                                                     Atas Persetujuan Dokter</option>
                                                                 <option value="2"
-                                                                    {{ $pasien->cara_pulang == 'Rujuk' ? 'selected' : '' }}>
+                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Rujuk' ? 'selected' : '' }}>
                                                                     Dirujuk</option>
                                                                 <option value="3"
-                                                                    {{ $pasien->cara_pulang == 'Atas Permintaan Sendiri' ? 'selected' : '' }}>
+                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Atas Permintaan Sendiri' ? 'selected' : '' }}>
                                                                     Atas Permintaan Sendiri</option>
                                                                 <option value="4"
-                                                                    {{ $pasien->cara_pulang == 'Meninggal' ? 'selected' : '' }}>
+                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Meninggal' ? 'selected' : '' }}>
                                                                     Meninggal</option>
                                                                 <option value="5"
-                                                                    {{ $pasien->cara_pulang == 'Lain-lain' ? 'selected' : '' }}>
+                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Lain-lain' ? 'selected' : '' }}>
                                                                     Lain-lain</option>
                                                             </select>
                                                         </div>
@@ -203,25 +252,31 @@
                                                     <div class="row">
                                                         <div class="col-md-3">
                                                             <label>ADL Sub Acute</label>
-                                                            <input type="number" name="adl_sub_acute" value="0"
+                                                            <input type="number" name="adl_sub_acute"
+                                                                value="{{ $log->adl_sub_acute ?? '0' }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>ADL Chronic</label>
-                                                            <input type="number" name="adl_chronic" value="0"
+                                                            <input type="number" name="adl_chronic"
+                                                                value="{{ $log->adl_chronic ?? '0' }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>ICU Indikator</label>
                                                             <select name="icu_indikator" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->icu_indikator ? 'selected' : '' }}>Tidak
+                                                                </option>
+                                                                <option value="1"
+                                                                    {{ @$log->icu_indikator ? 'selected' : '' }}>Ya
+                                                                </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>ICU Lama Rawat (LOS)</label>
-                                                            <input type="number" name="icu_los" value="0"
-                                                                class="form-control">
+                                                            <input type="number" name="icu_los"
+                                                                value="{{ $log->icu_los ?? '0' }}" class="form-control">
                                                         </div>
                                                     </div>
 
@@ -230,29 +285,31 @@
                                                             <label>Upgrade Class</label>
                                                             <select name="upgrade_class_ind" class="form-control">
                                                                 <option value="0"
-                                                                    {{ $sep->klsnaik == '0' ? 'selected' : '' }}>Tidak
+                                                                    {{ @$log->upgrade_class_ind == 0 || @$sep->klsnaik == null ? 'selected' : '' }}>
+                                                                    Tidak
                                                                 </option>
                                                                 <option value="1"
-                                                                    {{ $sep->klsnaik == '1' ? 'selected' : '' }}>Ya
+                                                                    {{ @$log->upgrade_class_ind == 1 || @$sep->klsnaik != null ? 'selected' : '' }}>
+                                                                    Ya
                                                                 </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Lama Hari Naik Kelas</label>
                                                             <input type="number" name="upgrade_class_los"
-                                                                value="{{ $sep->klsnaik == null ? '0' : $pasien->lama }}"
+                                                                value="{{ $log->upgrade_class_los ?? ($sep->klsnaik ?? '0') }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Persentase Biaya Tambahan</label>
                                                             <input type="number" name="add_payment_pct"
-                                                                value="{{ $sep->klsnaik == null ? '0' : '10' }}"
+                                                                value="{{ $log->add_payment_pct ?? '0' }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Berat Lahir (gram)</label>
                                                             <input type="number" name="birth_weight"
-                                                                value="{{ $bayi->berat_lahir ?? '0' }}"
+                                                                value="{{ $log->birth_weight ?? ($bayi->berat_lahir ?? '0') }}"
                                                                 class="form-control">
                                                         </div>
                                                     </div>
@@ -265,25 +322,38 @@
                                                         <div class="col-md-2">
                                                             <label>Sistole</label>
                                                             <input type="number" name="sistole"
-                                                                value="{{ $tensi[0] ?? '0' }}" class="form-control">
+                                                                value="{{ $log->sistole ?? ($tensi[0] ?? '0') }}"
+                                                                class="form-control">
                                                         </div>
                                                         <div class="col-md-2">
                                                             <label>Diastole</label>
                                                             <input type="number" name="diastole"
-                                                                value="{{ $tensi[1] ?? '0' }}" class="form-control">
+                                                                value="{{ $log->diastole ?? ($tensi[1] ?? '0') }}"
+                                                                class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Dializer Single Use</label>
                                                             <select name="dializer_single_use" class="form-control">
-                                                                <option value="1">Ya</option>
-                                                                <option value="0" selected>Tidak</option>
+                                                                <option value="0"
+                                                                    {{ @$log->dializer_single_use == 0 ? 'selected' : '' }}>
+                                                                    Tidak</option>
+                                                                <option value="1"
+                                                                    {{ @$log->dializer_single_use == 1 ? 'selected' : '' }}>
+                                                                    Ya</option>
+
                                                             </select>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Pasien TB</label>
                                                             <select name="tb_indikator" class="form-control">
-                                                                <option value="0" selected>Bukan TB</option>
-                                                                <option value="1">Pasien TB</option>
+                                                                <option value="0"
+                                                                    {{ @$log->tb_indikator == 0 ? 'selected' : '' }}>
+                                                                    Bukan
+                                                                    TB</option>
+                                                                <option value="1"
+                                                                    {{ @$log->tb_indikator == 1 ? 'selected' : '' }}>
+                                                                    Pasien
+                                                                    TB</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -294,29 +364,47 @@
                                                         <div class="col-md-3">
                                                             <label>Pemulasaraan Jenazah</label>
                                                             <select name="pemulasaraan_jenazah" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->pemulasaraan_jenazah == 0 ? 'selected' : '' }}>
+                                                                    Tidak</option>
+                                                                <option value="1"
+                                                                    {{ @$log->pemulasaraan_jenazah == 1 ? 'selected' : '' }}>
+                                                                    Ya</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Kantong Jenazah</label>
                                                             <select name="kantong_jenazah" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->kantong_jenazah == 0 ? 'selected' : '' }}>
+                                                                    Tidak</option>
+                                                                <option value="1"
+                                                                    {{ @$log->kantong_jenazah == 1 ? 'selected' : '' }}>
+                                                                    Ya
+                                                                </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Peti Jenazah</label>
                                                             <select name="peti_jenazah" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->peti_jenazah == 0 ? 'selected' : '' }}>
+                                                                    Tidak
+                                                                </option>
+                                                                <option value="1"
+                                                                    {{ @$log->peti_jenazah == 1 ? 'selected' : '' }}>Ya
+                                                                </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Desinfektan Jenazah</label>
                                                             <select name="desinfektan_jenazah" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->desinfektan_jenazah == 0 ? 'selected' : '' }}>
+                                                                    Tidak</option>
+                                                                <option value="1"
+                                                                    {{ @$log->desinfektan_jenazah == 1 ? 'selected' : '' }}>
+                                                                    Ya</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -325,144 +413,175 @@
                                                         <div class="col-md-3">
                                                             <label>Mobil Jenazah</label>
                                                             <select name="mobil_jenazah" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->mobil_jenazah == 0 ? 'selected' : '' }}>
+                                                                    Tidak
+                                                                </option>
+                                                                <option value="1"
+                                                                    {{ @$log->mobil_jenazah == 1 ? 'selected' : '' }}>Ya
+                                                                </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Desinfektan Mobil Jenazah</label>
                                                             <select name="desinfektan_mobil_jenazah" class="form-control">
-                                                                <option value="0" selected>Tidak</option>
-                                                                <option value="1">Ya</option>
+                                                                <option value="0"
+                                                                    {{ @$log->desinfektan_mobil_jenazah == 0 ? 'selected' : '' }}>
+                                                                    Tidak</option>
+                                                                <option value="1"
+                                                                    {{ @$log->desinfektan_mobil_jenazah == 1 ? 'selected' : '' }}>
+                                                                    Ya</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Status COVID</label>
                                                             <select name="covid19_status_cd" class="form-control">
                                                                 <option value="">Pilih Status</option>
-                                                                <option value="1">ODP</option>
-                                                                <option value="2">PDP</option>
-                                                                <option value="3">Terkonfirmasi</option>
-                                                                <option value="4">Suspek</option>
+                                                                <option value="1"
+                                                                    {{ @$log->covid19_status_cd == 1 ? 'selected' : '' }}>
+                                                                    ODP</option>
+                                                                <option value="2"
+                                                                    {{ @$log->covid19_status_cd == 2 ? 'selected' : '' }}>
+                                                                    PDP</option>
+                                                                <option value="3"
+                                                                    {{ @$log->covid19_status_cd == 3 ? 'selected' : '' }}>
+                                                                    Terkonfirmasi</option>
+                                                                <option value="4"
+                                                                    {{ @$log->covid19_status_cd == 4 ? 'selected' : '' }}>
+                                                                    Suspek</option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Nomor Kartu T</label>
                                                             <select name="nomor_kartu_t" class="form-control">
-                                                                <option value="nik" selected>NIK</option>
-                                                                <option value="paspor">Paspor</option>
+                                                                <option value="nik"
+                                                                    {{ @$log->nomor_kartu_t == 'nik' ? 'selected' : '' }}>
+                                                                    NIK</option>
+                                                                <option value="paspor"
+                                                                    {{ @$log->nomor_kartu_t == 'paspor' ? 'selected' : '' }}>
+                                                                    Paspor</option>
                                                             </select>
                                                         </div>
                                                     </div>
 
                                                     {{-- ==================== TARIF RS ==================== --}}
+                                                    @php
+                                                        $tarifLog = is_string(@$log->tarif_rs)
+                                                            ? json_decode(@$log->tarif_rs, true)
+                                                            : @$log->tarif_rs;
+                                                    @endphp
                                                     <h5 class="mt-4">💰 Tarif RS</h5>
                                                     <div class="row">
                                                         <div class="row ml-2 mr-2">
                                                             <div class="col-md-3">
                                                                 <label>Prosedur Non Bedah</label>
                                                                 <input type="text" name="tarif_rs[prosedur_non_bedah]"
-                                                                    value="{{ $rekap['Prosedur_non_bedah'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['prosedur_non_bedah'] ?? ($rekap['Prosedur_non_bedah'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Prosedur Bedah</label>
                                                                 <input type="text" name="tarif_rs[prosedur_bedah]"
-                                                                    value="{{ $rekap['Prosedur_bedah'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['prosedur_bedah'] ?? ($rekap['Prosedur_bedah'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Konsultasi</label>
                                                                 <input type="text" name="tarif_rs[konsultasi]"
-                                                                    value="{{ $rekap['Konsultasi'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['konsultasi'] ?? ($rekap['Konsultasi'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Tenaga Ahli</label>
                                                                 <input type="text" name="tarif_rs[tenaga_ahli]"
-                                                                    value="{{ $rekap['Tenaga_ahli'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['tenaga_ahli'] ?? ($rekap['Tenaga_ahli'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Keperawatan</label>
                                                                 <input type="text" name="tarif_rs[keperawatan]"
-                                                                    value="{{ $rekap['Keperawatan'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['keperawatan'] ?? ($rekap['Keperawatan'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Penunjang</label>
                                                                 <input type="text" name="tarif_rs[penunjang]"
-                                                                    value="{{ $rekap['Penunjang'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['penunjang'] ?? ($rekap['Penunjang'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Radiologi</label>
                                                                 <input type="text" name="tarif_rs[radiologi]"
-                                                                    value="{{ $rekap['Radiologi'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['radiologi'] ?? ($rekap['Radiologi'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Laboratorium</label>
                                                                 <input type="text" name="tarif_rs[laboratorium]"
-                                                                    value="{{ $rekap['Laboratorium'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['laboratorium'] ?? ($rekap['Laboratorium'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Pelayanan Darah</label>
                                                                 <input type="text" name="tarif_rs[pelayanan_darah]"
-                                                                    value="0" class="form-control rupiah">
+                                                                    value="{{ $tarifLog['pelayanan_darah'] ?? 0 }}"
+                                                                    class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Rehabilitasi</label>
                                                                 <input type="text" name="tarif_rs[rehabilitasi]"
-                                                                    value="0" class="form-control rupiah">
+                                                                    value="{{ $tarifLog['rehabilitasi'] ?? 0 }}"
+                                                                    class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Kamar</label>
                                                                 <input type="text" name="tarif_rs[kamar]"
-                                                                    value="{{ $totalKamar ?? 0 }}"
+                                                                    value="{{ $tarifLog['kamar'] ?? ($totalKamar ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Rawat Intensif</label>
                                                                 <input type="text" name="tarif_rs[rawat_intensif]"
-                                                                    value="0" class="form-control rupiah">
+                                                                    value="{{ $tarifLog['rawat_intensif'] ?? 0 }}"
+                                                                    class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Obat</label>
                                                                 <input type="text" name="tarif_rs[obat]"
-                                                                    value="{{ $obatbhpalkes['total_obat'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['obat'] ?? ($obatbhpalkes['total_obat'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Obat Kronis</label>
                                                                 <input type="text" name="tarif_rs[obat_kronis]"
-                                                                    value="0" class="form-control rupiah">
+                                                                    value="{{ $tarifLog['obat_kronis'] ?? 0 }}"
+                                                                    class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Obat Kemoterapi</label>
                                                                 <input type="text" name="tarif_rs[obat_kemoterapi]"
-                                                                    value="0" class="form-control rupiah">
+                                                                    value="{{ $tarifLog['obat_kemoterapi'] ?? 0 }}"
+                                                                    class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Alkes</label>
                                                                 <input type="text" name="tarif_rs[alkes]"
-                                                                    value="{{ $obatbhpalkes['total_alkes'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['alkes'] ?? ($obatbhpalkes['total_alkes'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
                                                             @php
@@ -473,21 +592,22 @@
                                                             <div class="col-md-3">
                                                                 <label>BMHP</label>
                                                                 <input type="text" name="tarif_rs[bmhp]"
-                                                                    value="{{ $totalBhpGabungan }}"
+                                                                    value="{{ $tarifLog['bmhp'] ?? $totalBhpGabungan }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Sewa Alat</label>
                                                                 <input type="text" name="tarif_rs[sewa_alat]"
-                                                                    value="{{ $rekap['sewa_alat'] ?? 0 }}"
+                                                                    value="{{ $tarifLog['sewa_alat'] ?? ($rekap['sewa_alat'] ?? 0) }}"
                                                                     class="form-control rupiah">
                                                             </div>
 
                                                             <div class="col-md-3">
                                                                 <label>Tarif Poli Eks</label>
                                                                 <input type="text" name="tarif_rs[tarif_poli_eks]"
-                                                                    value="0" class="form-control rupiah">
+                                                                    value="{{ $tarifLog['tarif_poli_eks'] ?? 0 }}"
+                                                                    class="form-control rupiah">
                                                             </div>
                                                         </div>
                                                         <div class="col-md-3">
@@ -504,17 +624,19 @@
                                                     <div class="row mt-3">
                                                         <div class="col-md-3">
                                                             <label>Episodes</label>
-                                                            <input type="text" name="episodes" value=""
+                                                            <input type="text" name="episodes"
+                                                                value="{{ $log->episodes ?? '{}' }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Payor ID</label>
-                                                            <input type="text" name="payor_id" value="3"
-                                                                class="form-control">
+                                                            <input type="text" name="payor_id"
+                                                                value="{{ $log->payor_id ?? '3' }}" class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Payor Code</label>
-                                                            <input type="text" name="payor_cd" value="JKN"
+                                                            <input type="text" name="payor_cd"
+                                                                value="{{ $log->payor_cd ?? 'JKN' }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-3">
@@ -525,20 +647,40 @@
                                                         <div class="col-md-3">
                                                             <label>Coder NIK</label>
                                                             <input type="text" name="coder_nik"
-                                                                value="{{ $coder->no_ktp ?? '' }}" class="form-control">
+                                                                value="{{ $log->coder_nik ?? ($coder->no_ktp ?? '') }}"
+                                                                class="form-control">
                                                         </div>
                                                     </div>
 
                                                     {{-- ==================== SUBMIT ==================== --}}
-                                                    <div class="mt-4">
-                                                        <button type="submit" class="btn btn-success">
-                                                            Simpan Data Klaim
-                                                        </button>
-                                                    </div>
+                                                    @if ($isReadonly)
+                                                        <div class="alert alert-info mt-4">
+                                                            Data klaim sudah dikirim , tidak dapat diubah.
+                                                        </div>
+                                                    @else
+                                                        <div class="mt-4">
+                                                            <button type="submit" class="btn btn-success">
+                                                                Simpan Data Klaim
+                                                            </button>
+
+                                                        </div>
+                                                    @endif
 
                                                 </form>
-                                            </div>
+                                                @if ($isReadonly)
+                                                    <form action="{{ route('inacbg.hapusklaim') }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="no_rawat"
+                                                            value="{{ $pasien->no_rawat ?? '' }}">
+                                                        <input type="hidden" name="nomor_sep"
+                                                            value="{{ @$log->nomor_sep ?? '' }}">
+                                                        <input type="hidden" name="coder_nik"
+                                                            value="{{ @$log->coder_nik ?? '' }}">
+                                                        <button type="submit" class="btn btn-danger">Hapus Klaim</button>
+                                                    </form>
+                                                @endif
 
+                                            </div>
                                             <div class="tab-pane fade" id="diagnosa" role="tabpanel">
                                                 <div class="row">
                                                     <!-- Diagnosa -->
