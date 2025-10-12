@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LogEklaimRanap;
+use App\Services\EklaimService;
 use DB;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class InacbgRanapController extends Controller
 {
+    public function __construct(EklaimService $eklaim)
+    {
+        $this->eklaim = $eklaim;
+    }
     public function index(Request $request)
     {
         // ambil parameter pencarian & urutan
@@ -51,7 +58,7 @@ class InacbgRanapController extends Controller
             ->join('penjab', 'reg_periksa.kd_pj', '=', 'penjab.kd_pj')
             ->join('bridging_sep', function ($join) {
                 $join->on('kamar_inap.no_rawat', '=', 'bridging_sep.no_rawat')
-                     ->where('bridging_sep.jnspelayanan', '1'); // 1 untuk rawat inap
+                    ->where('bridging_sep.jnspelayanan', '1'); // 1 untuk rawat inap
             })
             ->whereNotNull('kamar_inap.tgl_keluar') // sudah keluar
             ->where('kamar_inap.tgl_keluar', '<>', '0000-00-00') // bukan nol
@@ -80,7 +87,7 @@ class InacbgRanapController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        
+
         return view('inacbg.ranap', compact('data'));
 
 
@@ -117,9 +124,9 @@ class InacbgRanapController extends Controller
                 DB::raw("'123456' as no_sep"),
                 DB::raw("'INV042025.1396' as no_tagihan")
             )
-            
+
             ->where('kamar_inap.no_rawat', $no_rawat)
-            
+
             ->first();
 
         if (!$pasien) {
@@ -143,7 +150,347 @@ class InacbgRanapController extends Controller
             ->join('pegawai', 'mapping_users.id_pegawai', '=', 'pegawai.id')
             ->where('id_users', auth()->user()->id)
             ->first();
-        return view('inacbg.klaim', compact('pasien', 'sep', 'bayi', 'pemeriksaan','coder'));
+
+        $obatbhpalkes = DB::table('detail_pemberian_obat')
+            ->join('databarang', 'detail_pemberian_obat.kode_brng', '=', 'databarang.kode_brng')
+            ->join('jenis', 'databarang.kdjns', '=', 'jenis.kdjns')
+            ->selectRaw("
+            SUM(CASE 
+                WHEN jenis.nama REGEXP 'OBAT|Tablet|Syrup|Salep|Infus|Injeksi|Cairan|Suntik|Ampul|Elixir|OBAT LUAR|OBAT NON ORAL|OBAT ORAL' 
+                THEN detail_pemberian_obat.total 
+                ELSE 0 
+            END) AS total_obat,
+
+            SUM(CASE 
+                WHEN jenis.nama REGEXP 'BHP|NON BHP' 
+                THEN detail_pemberian_obat.total 
+                ELSE 0 
+            END) AS total_bhp,
+
+            SUM(CASE 
+                WHEN jenis.nama REGEXP 'ALKES' 
+                THEN detail_pemberian_obat.total 
+                ELSE 0 
+            END) AS total_alkes
+        ")
+            ->where('detail_pemberian_obat.no_rawat', $no_rawat)
+            ->first();
+
+        if (empty($no_rawat)) {
+            return response()->json(['error' => 'Parameter no_rawat diperlukan'], 400);
+        }
+
+        // Query gabungan (UNION ALL). Semua WHERE memakai placeholder ? (9 SELECT => 9 placeholders)
+        $sql = <<<SQL
+            SELECT 
+                rjdr.no_rawat,
+                jp.kd_jenis_prw AS kode_tindakan,
+                jp.nm_perawatan AS nm_perawatan,
+                COUNT(rjdr.kd_jenis_prw) AS jml,
+                jp.total_byrdr AS biaya,
+                SUM(rjdr.biaya_rawat) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM rawat_jl_dr rjdr
+            JOIN jns_perawatan jp ON rjdr.kd_jenis_prw = jp.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jp.kd_jenis_prw = rjt.kode_tindakan
+            WHERE rjdr.no_rawat = ?
+            GROUP BY rjdr.no_rawat, jp.kd_jenis_prw, jp.nm_perawatan, jp.total_byrdr, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                rjpr.no_rawat,
+                jp.kd_jenis_prw AS kode_tindakan,
+                jp.nm_perawatan AS nm_perawatan,
+                COUNT(rjpr.kd_jenis_prw) AS jml,
+                jp.total_byrdr AS biaya,
+                SUM(rjpr.biaya_rawat) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM rawat_jl_pr rjpr
+            JOIN jns_perawatan jp ON rjpr.kd_jenis_prw = jp.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jp.kd_jenis_prw = rjt.kode_tindakan
+            WHERE rjpr.no_rawat = ?
+            GROUP BY rjpr.no_rawat, jp.kd_jenis_prw, jp.nm_perawatan, jp.total_byrdr, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                rjdpr.no_rawat,
+                jp.kd_jenis_prw AS kode_tindakan,
+                jp.nm_perawatan AS nm_perawatan,
+                COUNT(rjdpr.kd_jenis_prw) AS jml,
+                jp.total_byrdrpr AS biaya,
+                SUM(rjdpr.biaya_rawat) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM rawat_jl_drpr rjdpr
+            JOIN jns_perawatan jp ON rjdpr.kd_jenis_prw = jp.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jp.kd_jenis_prw = rjt.kode_tindakan
+            WHERE rjdpr.no_rawat = ?
+            GROUP BY rjdpr.no_rawat, jp.kd_jenis_prw, jp.nm_perawatan, jp.total_byrdrpr, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                ridr.no_rawat,
+                jpi.kd_jenis_prw AS kode_tindakan,
+                jpi.nm_perawatan AS nm_perawatan,
+                COUNT(ridr.kd_jenis_prw) AS jml,
+                jpi.total_byrdr AS biaya,
+                SUM(ridr.biaya_rawat) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM rawat_inap_dr ridr
+            JOIN jns_perawatan_inap jpi ON ridr.kd_jenis_prw = jpi.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jpi.kd_jenis_prw = rjt.kode_tindakan
+            WHERE ridr.no_rawat = ?
+            GROUP BY ridr.no_rawat, jpi.kd_jenis_prw, jpi.nm_perawatan, jpi.total_byrdr, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                ridpr.no_rawat,
+                jpi.kd_jenis_prw AS kode_tindakan,
+                jpi.nm_perawatan AS nm_perawatan,
+                COUNT(ridpr.kd_jenis_prw) AS jml,
+                jpi.total_byrdrpr AS biaya,
+                SUM(ridpr.biaya_rawat) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM rawat_inap_drpr ridpr
+            JOIN jns_perawatan_inap jpi ON ridpr.kd_jenis_prw = jpi.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jpi.kd_jenis_prw = rjt.kode_tindakan
+            WHERE ridpr.no_rawat = ?
+            GROUP BY ridpr.no_rawat, jpi.kd_jenis_prw, jpi.nm_perawatan, jpi.total_byrdrpr, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                ripr.no_rawat,
+                jpi.kd_jenis_prw AS kode_tindakan,
+                jpi.nm_perawatan AS nm_perawatan,
+                COUNT(ripr.kd_jenis_prw) AS jml,
+                jpi.total_byrpr AS biaya,
+                SUM(ripr.biaya_rawat) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM rawat_inap_pr ripr
+            JOIN jns_perawatan_inap jpi ON ripr.kd_jenis_prw = jpi.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jpi.kd_jenis_prw = rjt.kode_tindakan
+            WHERE ripr.no_rawat = ?
+            GROUP BY ripr.no_rawat, jpi.kd_jenis_prw, jpi.nm_perawatan, jpi.total_byrpr, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                pl.no_rawat,
+                jpl.kd_jenis_prw AS kode_tindakan,
+                jpl.nm_perawatan AS nm_perawatan,
+                COUNT(pl.kd_jenis_prw) AS jml,
+                pl.biaya AS biaya,
+                SUM(pl.biaya) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM periksa_lab pl
+            JOIN jns_perawatan_lab jpl ON pl.kd_jenis_prw = jpl.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jpl.kd_jenis_prw = rjt.kode_tindakan
+            WHERE pl.no_rawat = ?
+            GROUP BY pl.no_rawat, jpl.kd_jenis_prw, jpl.nm_perawatan, pl.biaya, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                pr.no_rawat,
+                jpr.kd_jenis_prw AS kode_tindakan,
+                jpr.nm_perawatan AS nm_perawatan,
+                COUNT(pr.kd_jenis_prw) AS jml,
+                pr.biaya AS biaya,
+                SUM(pr.biaya) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM periksa_radiologi pr
+            JOIN jns_perawatan_radiologi jpr ON pr.kd_jenis_prw = jpr.kd_jenis_prw
+            LEFT JOIN relasi_jenis_tindakan rjt ON jpr.kd_jenis_prw = rjt.kode_tindakan
+            WHERE pr.no_rawat = ?
+            GROUP BY pr.no_rawat, jpr.kd_jenis_prw, jpr.nm_perawatan, pr.biaya, rjt.jenis_tindakan
+
+            UNION ALL
+
+            SELECT 
+                o.no_rawat,
+                o.kode_paket AS kode_tindakan,
+                p.nm_perawatan AS nm_perawatan,
+                1 AS jml,
+                (
+                    IFNULL(p.operator1,0)+IFNULL(p.operator2,0)+IFNULL(p.operator3,0)+
+                    IFNULL(p.asisten_operator1,0)+IFNULL(p.asisten_operator2,0)+IFNULL(p.asisten_operator3,0)+
+                    IFNULL(p.instrumen,0)+IFNULL(p.dokter_anak,0)+IFNULL(p.perawaat_resusitas,0)+
+                    IFNULL(p.dokter_anestesi,0)+IFNULL(p.asisten_anestesi,0)+IFNULL(p.asisten_anestesi2,0)+
+                    IFNULL(p.bidan,0)+IFNULL(p.bidan2,0)+IFNULL(p.bidan3,0)+
+                    IFNULL(p.perawat_luar,0)+IFNULL(p.sewa_ok,0)+IFNULL(p.alat,0)+
+                    IFNULL(p.akomodasi,0)+IFNULL(p.bagian_rs,0)+IFNULL(p.omloop,0)+
+                    IFNULL(p.omloop2,0)+IFNULL(p.omloop3,0)+IFNULL(p.omloop4,0)+
+                    IFNULL(p.omloop5,0)+IFNULL(p.sarpras,0)+IFNULL(p.dokter_pjanak,0)+
+                    IFNULL(p.dokter_umum,0)
+                ) AS biaya,
+                (
+                    IFNULL(p.operator1,0)+IFNULL(p.operator2,0)+IFNULL(p.operator3,0)+
+                    IFNULL(p.asisten_operator1,0)+IFNULL(p.asisten_operator2,0)+IFNULL(p.asisten_operator3,0)+
+                    IFNULL(p.instrumen,0)+IFNULL(p.dokter_anak,0)+IFNULL(p.perawaat_resusitas,0)+
+                    IFNULL(p.dokter_anestesi,0)+IFNULL(p.asisten_anestesi,0)+IFNULL(p.asisten_anestesi2,0)+
+                    IFNULL(p.bidan,0)+IFNULL(p.bidan2,0)+IFNULL(p.bidan3,0)+
+                    IFNULL(p.perawat_luar,0)+IFNULL(p.sewa_ok,0)+IFNULL(p.alat,0)+
+                    IFNULL(p.akomodasi,0)+IFNULL(p.bagian_rs,0)+IFNULL(p.omloop,0)+
+                    IFNULL(p.omloop2,0)+IFNULL(p.omloop3,0)+IFNULL(p.omloop4,0)+
+                    IFNULL(p.omloop5,0)+IFNULL(p.sarpras,0)+IFNULL(p.dokter_pjanak,0)+
+                    IFNULL(p.dokter_umum,0)
+                ) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            FROM operasi o
+            JOIN paket_operasi p ON o.kode_paket = p.kode_paket
+            LEFT JOIN relasi_jenis_tindakan rjt ON p.kode_paket = rjt.kode_tindakan
+            WHERE o.no_rawat = ?
+            SQL;
+
+        // Kita punya 9 SELECT dengan placeholder => butuh 9 binding values
+        $bindings = array_fill(0, 9, $no_rawat);
+        // Jalankan query dengan binding yang sesuai
+        $rows = DB::select($sql, $bindings);
+
+        // Ubah ke collection untuk mudah olah
+        // ...
+        $collection = collect($rows);
+
+        // Group by jenis_tindakan tanpa membedakan huruf besar kecil
+        $grouped = $collection
+            ->groupBy(function ($item) {
+                // normalize ke lowercase & hilangkan spasi berlebih
+                return strtolower(trim($item->jenis_tindakan));
+            })
+            ->map(function ($items, $key) {
+                // Hitung total biaya per jenis tindakan
+                return (float) $items->sum(function ($it) {
+                    return (float) ($it->total ?? 0);
+                });
+            });
+
+        // ubah key-nya jadi kapital huruf pertama
+        $formatted = $grouped->mapWithKeys(function ($value, $key) {
+            return [ucfirst($key) => $value];
+        });
+
+        // Jika mau hasil akhir berupa array (bukan Collection)
+        $rekap = $formatted->toArray();
+        $obatbhpalkes = (array) $obatbhpalkes;
+
+        // Ambil total biaya kamar dari tabel kamar_inap
+        $totalKamar = DB::table('kamar_inap')
+            ->where('no_rawat', $no_rawat)
+            ->sum('ttl_biaya');
+
+        // Pastikan nilai tidak null
+        $totalKamar = $totalKamar ?? 0;
+
+        // dd($rekap, $obatbhpalkes, $totalKamar);
+
+        return view('inacbg.klaim', compact('pasien', 'sep', 'bayi', 'pemeriksaan', 'coder', 'obatbhpalkes', 'rekap', 'totalKamar'));
+    }
+
+    public function store(Request $request)
+    {
+        $input = $request->all();
+
+        // Cari log berdasarkan nomor_sep
+        $log = LogEklaimRanap::updateOrCreate(
+            ['nomor_sep' => $input['nomor_sep']], // kondisi unik
+            [
+                'nomor_kartu' => $input['nomor_kartu'] ?? null,
+                'tgl_masuk' => $input['tgl_masuk'] ?? null,
+                'tgl_pulang' => $input['tgl_pulang'] ?? null,
+                'cara_masuk' => $input['cara_masuk'] ?? null,
+                'jenis_rawat' => $input['jenis_rawat'] ?? null,
+                'kelas_rawat' => $input['kelas_rawat'] ?? null,
+                'discharge_status' => $input['discharge_status'] ?? null,
+                'adl_sub_acute' => $input['adl_sub_acute'] ?? null,
+                'adl_chronic' => $input['adl_chronic'] ?? null,
+                'icu_indikator' => $input['icu_indikator'] ?? null,
+                'icu_los' => $input['icu_los'] ?? null,
+                'upgrade_class_ind' => $input['upgrade_class_ind'] ?? null,
+                'upgrade_class_los' => $input['upgrade_class_los'] ?? null,
+                'add_payment_pct' => $input['add_payment_pct'] ?? null,
+                'birth_weight' => $input['birth_weight'] ?? null,
+                'sistole' => $input['sistole'] ?? null,
+                'diastole' => $input['diastole'] ?? null,
+                'dializer_single_use' => $input['dializer_single_use'] ?? null,
+                'tb_indikator' => $input['tb_indikator'] ?? null,
+                'pemulasaraan_jenazah' => $input['pemulasaraan_jenazah'] ?? null,
+                'kantong_jenazah' => $input['kantong_jenazah'] ?? null,
+                'peti_jenazah' => $input['peti_jenazah'] ?? null,
+                'desinfektan_jenazah' => $input['desinfektan_jenazah'] ?? null,
+                'mobil_jenazah' => $input['mobil_jenazah'] ?? null,
+                'desinfektan_mobil_jenazah' => $input['desinfektan_mobil_jenazah'] ?? null,
+                'covid19_status_cd' => $input['covid19_status_cd'] ?? null,
+                'nomor_kartu_t' => $input['nomor_kartu_t'] ?? null,
+                'tarif_rs' => $input['tarif_rs'] ?? null,
+                'episodes' => $input['episodes'] ?? null,
+                'payor_id' => $input['payor_id'] ?? null,
+                'payor_cd' => $input['payor_cd'] ?? null,
+                'kode_tarif' => $input['kode_tarif'] ?? null,
+                'coder_nik' => $input['coder_nik'] ?? null,
+                'diagnosa_idrg' => null,
+                'procedure_idrg' => null,
+                'diagnosa_inacbg' => null,
+                'procedure_inacbg' => null,
+                'response_set_claim_data' => $responseSet ?? null,
+                'status' => isset($responseSet['metadata']['code']) && $responseSet['metadata']['code'] == 200
+                    ? 'proses klaim'
+                    : 'gagal'
+            ]
+        );
+
+        // 2️⃣ Payload new_claim
+        $payloadNew = [
+            'nomor_sep' => $input['nomor_sep'],
+            'nomor_kartu' => $input['nomor_kartu'],
+            'nomor_rm' => $input['nomor_rm'],
+            'nama_pasien' => $input['nama_pasien'],
+            'tgl_lahir' => date('Y-m-d H:i:s', strtotime($input['tgl_lahir'])),
+            'gender' => $input['gender'],
+        ];
+
+        $responseNew = $this->eklaim->send('new_claim', $payloadNew);
+        $log->update(['response_new_claim' => $responseNew]);
+
+        // 3️⃣ Payload set_claim_data
+        $payloadSet = [
+            'metadata' => [
+                'method' => 'set_claim_data',
+                'nomor_sep' => $payloadNew['nomor_sep'] ?? null, // pastikan SEP dari new_claim
+            ],
+            'data' => $input  // semua field Ranap yang relevan
+        ];
+
+        // Kirim ke e-Klaim
+        $responseSet = $this->eklaim->send(
+            'set_claim_data',
+            $payloadSet['data'],      // data Ranap
+            $payloadSet['metadata']   // metadata termasuk nomor_sep
+        );
+
+        // 4️⃣ Update log response set_claim_data + status
+        $log->update([
+            'response_set_claim_data' => $responseSet,
+            'status' => 'proses klaim'
+        ]);
+        // 3️⃣ Tentukan status
+        $status = (isset($responseSet['metadata']['code']) && $responseSet['metadata']['code'] == 200)
+            ? 'proses klaim'
+            : 'gagal';
+
+        // 5️⃣ Redirect dengan alert
+        if ($status === 'proses klaim') {
+            // Jika gagal, panggil fungsi show agar ambil data dari query yang sama
+            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+            return $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim');
+        } else {
+            // Jika gagal, panggil fungsi show agar ambil data dari query yang sama
+            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+            return $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
+        }
     }
 
 

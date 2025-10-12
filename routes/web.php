@@ -31,6 +31,7 @@ Route::group(['middleware' => ['auth']], function () {
     // untuk cetak (versi print-friendly)
     Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
     Route::get('inacbg-ranap', [InacbgRanapController::class, 'index'])->name('inacbg-ranap.index');
+    Route::post('inacbg-ranap', [InacbgRanapController::class, 'store'])->name('inacbg-ranap.store');
     Route::post('inacbg-ranap/show', [InacbgRanapController::class, 'show'])->name('inacbg-ranap.show');
 
 });
