@@ -64,11 +64,11 @@
                                         {{-- Tabs --}}
                                         <ul class="nav nav-tabs mb-3" id="klaimTabs" role="tablist">
                                             <li class="nav-item">
-                                                <a class="nav-link active" data-bs-toggle="tab" href="#dataKlaim"
+                                                <a class="nav-link {{ @$log == null ? 'active' : '' }}" data-bs-toggle="tab" href="#dataKlaim"
                                                     role="tab">Data Klaim</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" data-bs-toggle="tab" href="#diagnosa"
+                                                <a class="nav-link {{ @$log->status == "proses klaim" ? 'active' : '' }}" data-bs-toggle="tab" href="#diagnosa"
                                                     role="tab">Diagnosa & Prosedur IDRG</a>
                                             </li>
                                             <li class="nav-item">
@@ -83,7 +83,7 @@
 
                                         <div class="tab-content">
                                             {{-- Tab 1: Data Klaim --}}
-                                            <div class="tab-pane fade show active" id="dataKlaim" role="tabpanel">
+                                            <div class="tab-pane fade {{ @$log == null ? 'show active' : '' }}" id="dataKlaim" role="tabpanel">
                                                 <h3 class="mb-4">Form Klaim E-Klaim (Set Claim Data)</h3>
                                                 @php
                                                     $isReadonly = !empty($log);
@@ -125,7 +125,7 @@
                                                         <div class="col-md-4">
                                                             <label>Nomor Kartu</label>
                                                             <input type="text" name="nomor_kartu"
-                                                                value="{{ @$log->nomor_kartu ?? $pasien->no_peserta ?? '' }}"
+                                                                value="{{ @$log->nomor_kartu ?? ($pasien->no_peserta ?? '') }}"
                                                                 class="form-control">
                                                         </div>
                                                         <div class="col-md-4">
@@ -681,7 +681,7 @@
                                                 @endif
 
                                             </div>
-                                            <div class="tab-pane fade" id="diagnosa" role="tabpanel">
+                                            <div class="tab-pane fade {{ @$log->status == "proses klaim" ? 'active show' : '' }}" id="diagnosa" role="tabpanel">
                                                 <div class="row">
                                                     <!-- Diagnosa -->
                                                     <div class="col-md-6">
@@ -723,6 +723,7 @@
                                                                             <th>#</th>
                                                                             <th>Kode</th>
                                                                             <th>Deskripsi</th>
+                                                                            <th>Qty</th>
                                                                             <th>Status</th>
                                                                             <th>Hapus</th>
                                                                         </tr>
@@ -807,7 +808,6 @@
                             text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
                             timer: 2500
                         });
-                        // batalkan pilihan
                         const current = $(selector).val() || [];
                         $(selector).val(current.filter(v => v !== data.id)).trigger('change');
                         return;
@@ -817,7 +817,7 @@
                     if (list.some(d => d.code === data.code)) {
                         Swal.fire({
                             icon: 'info',
-                            title: 'Diagnosa sudah ada',
+                            title: 'Data sudah ada',
                             text: 'Data ini sudah ditambahkan sebelumnya.',
                             timer: 2000
                         });
@@ -828,16 +828,23 @@
 
                     // Tambah ke list
                     let status = list.length === 0 ? 'Primer' : 'Sekunder';
-                    list.push({
+                    let item = {
                         code: data.code,
                         desc: data.description,
                         status: status
-                    });
+                    };
+
+                    // 👇 Tambah field qty khusus untuk prosedur
+                    if (!isDiagnosa) {
+                        item.qty = 1;
+                    }
+
+                    list.push(item);
 
                     if (isDiagnosa) diagnosaList = list;
                     else prosedurList = list;
 
-                    renderTable(list, '#' + tableId);
+                    renderTable(list, '#' + tableId, isDiagnosa);
                 });
 
                 // Saat unselect
@@ -857,36 +864,49 @@
                         prosedurList = list;
                     }
 
-                    renderTable(list, '#' + tableId);
+                    renderTable(list, '#' + tableId, isDiagnosa);
                 });
             }
 
             // ---------- Render Tabel ----------
-            function renderTable(list, tableId) {
+            function renderTable(list, tableId, isDiagnosa) {
                 let tbody = $(tableId + ' tbody');
                 tbody.empty();
                 list.forEach((d, i) => {
                     tbody.append(`
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${d.code}</td>
-                        <td>${d.desc}</td>
-                        <td>${d.status}</td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm"
-                                onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button>
-                        </td>
-                    </tr>
-                `);
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${d.code}</td>
+                    <td>${d.desc}</td>
+                    ${
+                        !isDiagnosa
+                        ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
+                                    data-code="${d.code}" value="${d.qty}" style="width:80px"></td>`
+                        : ''
+                    }
+                    <td>${d.status}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm"
+                            onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button>
+                    </td>
+                </tr>
+            `);
                 });
             }
+
+            // ---------- Update Qty ----------
+            $(document).on('change', '.qty-input', function() {
+                const code = $(this).data('code');
+                const qty = parseInt($(this).val()) || 1;
+                const item = prosedurList.find(p => p.code === code);
+                if (item) item.qty = qty;
+            });
 
             // ---------- Fungsi Hapus ----------
             window.hapusItem = function(code, table) {
                 let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
                 let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
 
-                // hapus dari list global
                 list = list.filter(d => d.code !== code);
                 if (table === 'tabel_diagnosa') {
                     diagnosaList = list;
@@ -898,15 +918,15 @@
                     prosedurList = list;
                 }
 
-                // update Select2 (hapus dari value)
                 const current = $(selector).val() || [];
                 const newVals = current.filter(v => v !== code);
                 $(selector).val(newVals).trigger('change');
 
-                renderTable(list, '#' + table);
+                renderTable(list, '#' + table, table === 'tabel_diagnosa');
             };
         });
-
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rupiahInputs = document.querySelectorAll('.rupiah');
 
