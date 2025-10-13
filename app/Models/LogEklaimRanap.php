@@ -58,6 +58,8 @@ class LogEklaimRanap extends Model
         // response API
         'response_new_claim',
         'response_set_claim_data',
+        'response_grouping_idrg',
+        'response_idrg_grouper_final',
         'status'
     ];
 

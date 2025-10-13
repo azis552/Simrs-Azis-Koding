@@ -12,9 +12,9 @@ class IcdController extends Controller
     {
         $search = $request->get('q');
         $data = DB::table('icd10_codes')
-            ->select('code2 as code', 'description', 'system', 'validcode', 'accpdx')
+            ->select('code', 'description', 'system', 'validcode', 'accpdx')
             ->when($search, function ($query, $search) {
-                $query->where('code2', 'like', "%$search%")
+                $query->where('code', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             })
             ->limit(30)

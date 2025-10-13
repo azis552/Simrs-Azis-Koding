@@ -1,6 +1,29 @@
 @extends('template.master')
 
 @section('content')
+    <style>
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+
+            table.table-sm th,
+            table.table-sm td {
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .card-body {
+                padding: 10px;
+            }
+
+            select.form-control {
+                font-size: 14px;
+            }
+        }
+    </style>
     <div class="pcoded-content">
         <div class="pcoded-inner-content">
             <div class="main-body">
@@ -64,12 +87,13 @@
                                         {{-- Tabs --}}
                                         <ul class="nav nav-tabs mb-3" id="klaimTabs" role="tablist">
                                             <li class="nav-item">
-                                                <a class="nav-link {{ @$log == null ? 'active' : '' }}" data-bs-toggle="tab" href="#dataKlaim"
-                                                    role="tab">Data Klaim</a>
+                                                <a class="nav-link {{ @$log == null ? 'active' : '' }}"
+                                                    data-bs-toggle="tab" href="#dataKlaim" role="tab">Data Klaim</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link {{ @$log->status == "proses klaim" ? 'active' : '' }}" data-bs-toggle="tab" href="#diagnosa"
-                                                    role="tab">Diagnosa & Prosedur IDRG</a>
+                                                <a class="nav-link {{ @$log->status == 'proses klaim' ? 'active' : '' }}"
+                                                    data-bs-toggle="tab" href="#diagnosa" role="tab">Diagnosa & Prosedur
+                                                    IDRG</a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link" data-bs-toggle="tab" href="#inacbgimport"
@@ -83,7 +107,8 @@
 
                                         <div class="tab-content">
                                             {{-- Tab 1: Data Klaim --}}
-                                            <div class="tab-pane fade {{ @$log == null ? 'show active' : '' }}" id="dataKlaim" role="tabpanel">
+                                            <div class="tab-pane fade {{ @$log == null ? 'show active' : '' }}"
+                                                id="dataKlaim" role="tabpanel">
                                                 <h3 class="mb-4">Form Klaim E-Klaim (Set Claim Data)</h3>
                                                 @php
                                                     $isReadonly = !empty($log);
@@ -681,7 +706,8 @@
                                                 @endif
 
                                             </div>
-                                            <div class="tab-pane fade {{ @$log->status == "proses klaim" ? 'active show' : '' }}" id="diagnosa" role="tabpanel">
+                                            <div class="tab-pane fade {{ @$log->status == 'proses klaim' ? 'active show' : '' }}"
+                                                id="diagnosa" role="tabpanel">
                                                 <div class="row">
                                                     <!-- Diagnosa -->
                                                     <div class="col-md-6">
@@ -689,23 +715,30 @@
                                                             <div class="card-body">
                                                                 <h5>Diagnosa IDRG (ICD-10)</h5>
                                                                 <select id="diagnosa_idrg" class="form-control"
-                                                                    multiple="multiple" style="width: 100%"></select>
+                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}></select>
 
-                                                                <table class="table table-bordered mt-3"
-                                                                    id="tabel_diagnosa">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>#</th>
-                                                                            <th>Kode</th>
-                                                                            <th>Deskripsi</th>
-                                                                            <th>Status</th>
-                                                                            <th>Hapus</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody></tbody>
-                                                                </table>
+                                                                <div class="table-responsive mt-2">
+                                                                    <table id="tabel_diagnosa"
+                                                                        class="table table-bordered table-sm">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>#</th>
+                                                                                <th>Kode</th>
+                                                                                <th>Deskripsi</th>
+                                                                                <th>Status</th>
+                                                                                <th>Hapus</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody></tbody>
+                                                                    </table>
+                                                                </div>
+
+                                                                <button class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
+                                                                    id="diagnosa-idrg-simpan"
+                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Simpan</button>
                                                             </div>
                                                         </div>
+
                                                     </div>
 
                                                     <!-- Prosedur -->
@@ -714,29 +747,104 @@
                                                             <div class="card-body">
                                                                 <h5>Prosedur IDRG (ICD-9-CM)</h5>
                                                                 <select id="prosedur_idrg" class="form-control"
-                                                                    multiple="multiple" style="width: 100%"></select>
+                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}></select>
 
-                                                                <table class="table table-bordered mt-3"
-                                                                    id="tabel_prosedur">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>#</th>
-                                                                            <th>Kode</th>
-                                                                            <th>Deskripsi</th>
-                                                                            <th>Qty</th>
-                                                                            <th>Status</th>
-                                                                            <th>Hapus</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody></tbody>
-                                                                </table>
+                                                                <div class="table-responsive mt-2">
+                                                                    <table id="tabel_prosedur"
+                                                                        class="table table-bordered table-sm">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>#</th>
+                                                                                <th>Kode</th>
+                                                                                <th>Deskripsi</th>
+                                                                                <th>Qty</th>
+                                                                                <th>Status</th>
+                                                                                <th>Hapus</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody></tbody>
+                                                                    </table>
+                                                                </div>
+
+                                                                <button class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
+                                                                    id="prosedur-idrg-simpan"
+                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Simpan</button>
                                                             </div>
                                                         </div>
-                                                    </div>
 
-                                                    <div class="col-md-12 mt-3 text-end">
-                                                        <button class="btn btn-success">Grouping IDRG</button>
                                                     </div>
+                                                    <button id="btnGroupingIdrg" class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }}"
+                                                        {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Proses
+                                                        Grouping
+                                                        iDRG</button>
+
+                                                    @php
+                                                        $response = json_decode(
+                                                            $log->response_grouping_idrg ?? '{}',
+                                                            true,
+                                                        );
+                                                        $response_idrg = $response['response_idrg'] ?? null;
+                                                    @endphp
+
+
+                                                </div>
+                                                {{-- ========================= --}}
+                                                {{-- Hasil Grouping iDRG --}}
+                                                {{-- ========================= --}}
+                                                @if ($response_idrg)
+                                                    <table class="table table-bordered mt-3">
+                                                        <thead class="text-center">
+                                                            <tr>
+                                                                <th colspan="3">Hasil Grouping iDRG</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td><b>MDC</b></td>
+                                                                <td>{{ $response_idrg['mdc_description'] ?? '-' }}</td>
+                                                                <td class="text-center">
+                                                                    {{ $response_idrg['mdc_number'] ?? '-' }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><b>DRG</b></td>
+                                                                <td>{{ $response_idrg['drg_description'] ?? '-' }}</td>
+                                                                <td class="text-center">
+                                                                    {{ $response_idrg['drg_code'] ?? '-' }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    {{-- Tombol Final iDRG --}}
+                                                    <button id="btnFinalIdrg" class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
+                                                        {{ $log->response_grouping_idrg == null ? 'disabled' : '' }}>
+                                                        ✔ Final IDRG
+                                                    </button>
+                                                @else
+                                                    <div class="alert alert-warning mt-3">
+                                                        Belum ada hasil grouping iDRG tersimpan
+                                                    </div>
+                                                @endif
+
+                                                {{-- ========================= --}}
+                                                {{-- Tempat Hasil Final IDRG --}}
+                                                {{-- ========================= --}}
+                                                <div id="hasil_final_idrg" class="mt-4">
+                                                    @php
+                                                        $final = json_decode(
+                                                            $log->response_idrg_grouper_final ?? '{}',
+                                                            true,
+                                                        );
+                                                    @endphp
+
+                                                    @if (!empty($final))
+                                                        <div class="alert alert-success">
+                                                            <b>Final IDRG</b>
+                                                        </div>
+
+                                                        <button id="btnReeditIdrg" class="btn btn-warning">
+                                                            ✎ Re-edit iDRG
+                                                        </button>
+                                                    @endif
                                                 </div>
 
                                             </div>
@@ -763,13 +871,225 @@
 @section('script')
     <script>
         $(document).ready(function() {
+            // Tombol Re-edit IDRG
+            $('#btnReeditIdrg').click(function() {
+                let nomor_sep = '{{ $log->nomor_sep ?? '' }}';
 
-            // ---------- Diagnosa ----------
+                if (!nomor_sep) {
+                    Swal.fire('Error', 'Nomor SEP tidak ditemukan', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Yakin ingin Re-edit?',
+                    text: 'Proses ini akan menghapus hasil Final IDRG sebelumnya.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, lanjutkan!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    // 🔹 1. Panggil endpoint idrg_grouper_reedit
+                    $.ajax({
+                        url: '/idrg-grouper-reedit',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            metadata: {
+                                method: 'idrg_grouper_reedit'
+                            },
+                            data: {
+                                nomor_sep: nomor_sep
+                            }
+                        }),
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            console.log('Re-edit response:', response);
+
+                            // 🔹 2. Jika sukses dari WS, hapus final IDRG di DB
+                            if (response.metadata && response.metadata.code == 200) {
+                                $.ajax({
+                                    url: '/hapus-final-idrg',
+                                    type: 'POST',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        nomor_sep: nomor_sep
+                                    },
+                                    success: function(res) {
+                                        Swal.fire('Berhasil',
+                                                'Final IDRG berhasil dihapus, dan data siap diedit ulang.',
+                                                'success')
+                                            .then(() => location.reload());
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Gagal', response.metadata?.message ||
+                                    'Re-edit gagal', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error(xhr.responseText);
+                            Swal.fire('Error', 'Terjadi kesalahan saat Re-edit',
+                                'error');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#btnGroupingIdrg').click(function() {
+                let nomor_sep = '{{ @$log->nomor_sep ?? '' }}';
+
+                $.ajax({
+                    url: '/grouping-idrg',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        metadata: {
+                            method: 'grouper',
+                            stage: '1',
+                            grouper: 'idrg'
+                        },
+                        data: {
+                            nomor_sep: nomor_sep
+                        }
+                    }),
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        // ✅ Simpan hasil ke tabel log
+                        $.ajax({
+                            url: '/save-grouping-idrg-log',
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                nomor_sep: nomor_sep,
+                                response_grouping_idrg: JSON.stringify(response)
+                            },
+                            success: function(res) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Sukses',
+                                    text: 'Data grouping tersimpan ke log',
+                                    timer: 2000
+                                });
+                            }
+                        });
+
+                        // ✅ Tampilkan hasil grouping di tampilan
+                        if (response.data) {
+                            $('#hasil_grouping').html(`
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="3" class="text-center">Hasil Grouping iDRG</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><b>MDC</b></td>
+                                    <td>${response.data.mdc_name ?? '-'}</td>
+                                    <td>${response.data.mdc_code ?? '-'}</td>
+                                </tr>
+                                <tr>
+                                    <td><b>DRG</b></td>
+                                    <td>${response.data.drg_name ?? '-'}</td>
+                                    <td>${response.data.drg_code ?? '-'}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button class="btn btn-success">✔ Final IDRG</button>
+                    `);
+                        } else {
+                            $('#hasil_grouping').html(
+                                '<div class="alert alert-warning">Data IDRG tidak ditemukan</div>'
+                            );
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        let msg = 'Terjadi kesalahan';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                    }
+                });
+            });
+            // ------------------- FINAL IDRG -------------------
+            $(document).on('click', '#btnFinalIdrg', function() {
+                let nomor_sep = '{{ @$log->nomor_sep ?? '' }}';
+                let log_response_idrg_grouper_final = '{{ $log->response_idrg_grouper_final ?? '' }}';
+                if (log_response_idrg_grouper_final) {
+                    return Swal.fire('Info', 'Final IDRG sudah diproses sebelumnya', 'info');
+                }
+                if (!nomor_sep) return Swal.fire('Nomor SEP kosong!');
+
+                $.ajax({
+                    url: '/final-idrg',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        metadata: {
+                            method: 'idrg_grouper_final'
+                        },
+                        data: {
+                            nomor_sep: nomor_sep
+                        }
+                    }),
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Proses Final IDRG...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                    },
+                    success: function(response) {
+                        Swal.close();
+
+                        // Simpan hasil ke log
+                        $.post('/save-final-idrg-log', {
+                            _token: '{{ csrf_token() }}',
+                            nomor_sep: nomor_sep,
+                            response_idrg_grouper_final: JSON.stringify(response)
+                        });
+
+                        Swal.fire('Sukses', 'Final IDRG tersimpan di log', 'success').then(
+                            () => {
+                                location.reload();
+                            });
+                    },
+                    error: function(xhr) {
+                        Swal.close();
+                        Swal.fire('Error', xhr.responseJSON?.message ?? 'Terjadi kesalahan',
+                            'error');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            // ---------- Variabel global ----------
             window.diagnosaList = [];
-            initSelect2('#diagnosa_idrg', '/api/icd10', 'tabel_diagnosa', true);
-
-            // ---------- Prosedur ----------
             window.prosedurList = [];
+
+            // ---------- Inisialisasi Select2 ----------
+            initSelect2('#diagnosa_idrg', '/api/icd10', 'tabel_diagnosa', true);
             initSelect2('#prosedur_idrg', '/api/icd9', 'tabel_prosedur', false);
 
             // ---------- FUNGSI UTAMA ----------
@@ -787,20 +1107,22 @@
                             results: data
                         })
                     },
-                    templateResult: item => {
+                    templateResult: function(item) {
                         if (!item.id) return item.text;
-                        return $('<div><b>' + item.code + '</b> — ' + item.description + '</div>');
+                        return $('<div>')
+                            .append($('<b>').text(item.code))
+                            .append(' — ' + item.description);
                     },
                     templateSelection: item => item.text,
                     multiple: true
                 });
 
-                // Saat memilih
+                // Saat memilih item
                 $(selector).on('select2:select', function(e) {
                     let data = e.params.data;
                     let list = isDiagnosa ? diagnosaList : prosedurList;
 
-                    // 🔍 Validasi diagnosa primer
+                    // Validasi Diagnosa Primer
                     if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
                         Swal.fire({
                             icon: 'warning',
@@ -808,12 +1130,11 @@
                             text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
                             timer: 2500
                         });
-                        const current = $(selector).val() || [];
-                        $(selector).val(current.filter(v => v !== data.id)).trigger('change');
+                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
                         return;
                     }
 
-                    // 🔁 Cek duplikat
+                    // Cegah duplikat
                     if (list.some(d => d.code === data.code)) {
                         Swal.fire({
                             icon: 'info',
@@ -821,33 +1142,27 @@
                             text: 'Data ini sudah ditambahkan sebelumnya.',
                             timer: 2000
                         });
-                        const current = $(selector).val() || [];
-                        $(selector).val(current.filter(v => v !== data.id)).trigger('change');
+                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
                         return;
                     }
 
-                    // Tambah ke list
-                    let status = list.length === 0 ? 'Primer' : 'Sekunder';
+                    // Tambah item baru
                     let item = {
                         code: data.code,
                         desc: data.description,
-                        status: status
+                        status: isDiagnosa && list.length === 0 ? 'Primer' : 'Sekunder'
                     };
 
-                    // 👇 Tambah field qty khusus untuk prosedur
-                    if (!isDiagnosa) {
-                        item.qty = 1;
-                    }
+                    if (!isDiagnosa) item.qty = 1;
 
                     list.push(item);
-
                     if (isDiagnosa) diagnosaList = list;
                     else prosedurList = list;
 
                     renderTable(list, '#' + tableId, isDiagnosa);
                 });
 
-                // Saat unselect
+                // Saat unselect item
                 $(selector).on('select2:unselect', function(e) {
                     let id = e.params.data.id;
                     let list = isDiagnosa ? diagnosaList : prosedurList;
@@ -857,8 +1172,7 @@
                         diagnosaList = list;
                         if (diagnosaList.length > 0) {
                             diagnosaList[0].status = 'Primer';
-                            for (let i = 1; i < diagnosaList.length; i++) diagnosaList[i].status =
-                                'Sekunder';
+                            diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
                         }
                     } else {
                         prosedurList = list;
@@ -874,23 +1188,21 @@
                 tbody.empty();
                 list.forEach((d, i) => {
                     tbody.append(`
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${d.code}</td>
-                    <td>${d.desc}</td>
-                    ${
-                        !isDiagnosa
-                        ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                    data-code="${d.code}" value="${d.qty}" style="width:80px"></td>`
-                        : ''
-                    }
-                    <td>${d.status}</td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-sm"
-                            onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button>
-                    </td>
-                </tr>
-            `);
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${d.code}</td>
+                        <td>${d.desc}</td>
+                        ${!isDiagnosa
+                            ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
+                                                                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
+                        }
+                        <td>${d.status}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm"
+                                onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button>
+                        </td>
+                    </tr>
+                `);
                 });
             }
 
@@ -902,7 +1214,7 @@
                 if (item) item.qty = qty;
             });
 
-            // ---------- Fungsi Hapus ----------
+            // ---------- Hapus Item ----------
             window.hapusItem = function(code, table) {
                 let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
                 let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
@@ -912,20 +1224,43 @@
                     diagnosaList = list;
                     if (diagnosaList.length > 0) {
                         diagnosaList[0].status = 'Primer';
-                        for (let i = 1; i < diagnosaList.length; i++) diagnosaList[i].status = 'Sekunder';
+                        diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
                     }
                 } else {
                     prosedurList = list;
                 }
 
-                const current = $(selector).val() || [];
-                const newVals = current.filter(v => v !== code);
-                $(selector).val(newVals).trigger('change');
-
+                $(selector).val($(selector).val().filter(v => v !== code)).trigger('change');
                 renderTable(list, '#' + table, table === 'tabel_diagnosa');
             };
+
+            // ---------- Load Data dari Log ----------
+            let diagnosaLog = @json($log->diagnosa_idrg ?? '');
+            let prosedurLog = @json($log->procedure_idrg ?? '');
+
+            // Diagnosa
+            if (diagnosaLog && diagnosaLog.expanded) {
+                diagnosaList = diagnosaLog.expanded.map((d, i) => ({
+                    code: d.code,
+                    desc: d.display,
+                    status: i === 0 ? 'Primer' : 'Sekunder'
+                }));
+                renderTable(diagnosaList, '#tabel_diagnosa', true);
+            }
+
+            // Prosedur
+            if (prosedurLog && prosedurLog.expanded) {
+                prosedurList = prosedurLog.expanded.map((d) => ({
+                    code: d.code,
+                    desc: d.display,
+                    qty: d.multiplicity || 1,
+                    status: 'Primer' // atau 'Sekunder' sesuai log kamu
+                }));
+                renderTable(prosedurList, '#tabel_prosedur', false);
+            }
         });
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rupiahInputs = document.querySelectorAll('.rupiah');
@@ -953,7 +1288,7 @@
             }
         });
     </script>
-    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('.rupiah');
@@ -994,6 +1329,122 @@
                     const angka = parseRupiah(this.value);
                     this.value = formatRupiah(angka);
                     hitungTotal();
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            let nomor_sep = "{{ @$log->nomor_sep }}";
+
+            // === SIMPAN DIAGNOSA ===
+            $('#diagnosa-idrg-simpan').on('click', function() {
+                let diagnosaCodes = [];
+                $('#tabel_diagnosa tbody tr').each(function() {
+                    let kode = $(this).find('td:eq(1)').text();
+                    if (kode) diagnosaCodes.push(kode);
+                });
+
+                let payload = {
+                    metadata: {
+                        method: "idrg_diagnosa_set",
+                        nomor_sep: nomor_sep
+                    },
+                    data: {
+                        diagnosa: diagnosaCodes.join('#')
+                    }
+                };
+
+                $.ajax({
+                    url: '/api/eklaim/idrg-diagnosa-set',
+                    type: 'POST',
+                    data: JSON.stringify(payload),
+                    contentType: 'application/json',
+                    success: function(res) {
+                        Swal.fire('Sukses', 'Diagnosa berhasil disimpan', 'success');
+
+                        // Ambil hasil dari respon eksternal
+                        let stringData = res.data;
+                        // Kirim ke Laravel untuk update kolom diagnosa_idrg
+                        $.ajax({
+                            url: '/idrg/update-log',
+                            type: 'POST',
+                            data: {
+                                nomor_sep: nomor_sep,
+                                field: 'diagnosa_idrg',
+                                value: stringData,
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(res2) {
+                                console.log('Update diagnosa_idrg sukses:', res2);
+                            },
+                            error: function(xhr) {
+                                console.error('Gagal update log:', xhr
+                                    .responseText);
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat mengirim data', 'error');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+
+            // === SIMPAN PROSEDUR ===
+            $('#prosedur-idrg-simpan').on('click', function() {
+                let procedureList = [];
+                $('#tabel_prosedur tbody tr').each(function() {
+                    let kode = $(this).find('td:eq(1)').text();
+                    let qty = $(this).find('td:eq(3) input').val() || '1';
+                    if (kode) procedureList.push(`${kode}+${qty}`);
+                });
+
+                let payload = {
+                    metadata: {
+                        method: "idrg_procedure_set",
+                        nomor_sep: nomor_sep
+                    },
+                    data: {
+                        procedure: procedureList.join('#')
+                    }
+                };
+                $.ajax({
+                    url: '/api/eklaim/idrg-procedure-set',
+                    type: 'POST',
+                    data: JSON.stringify(payload),
+                    contentType: 'application/json',
+                    success: function(res) {
+                        Swal.fire('Sukses', 'Prosedur berhasil disimpan', 'success');
+
+                        // Ambil hasil string dari respon eksternal
+                        let stringData = res.data;
+
+                        // Kirim ke Laravel untuk update kolom procedure_idrg
+                        $.ajax({
+                            url: '/idrg/update-log',
+                            type: 'POST',
+                            data: {
+                                nomor_sep: nomor_sep,
+                                field: 'procedure_idrg',
+                                value: stringData,
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(res2) {
+                                console.log('Update procedure_idrg sukses:', res2);
+                            },
+                            error: function(xhr) {
+                                console.error('Gagal update log:', xhr
+                                    .responseText);
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat mengirim data', 'error');
+                        console.error(xhr.responseText);
+                    }
                 });
             });
         });

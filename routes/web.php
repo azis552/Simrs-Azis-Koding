@@ -33,7 +33,16 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('inacbg-ranap', [InacbgRanapController::class, 'index'])->name('inacbg-ranap.index');
     Route::post('inacbg-ranap', [InacbgRanapController::class, 'store'])->name('inacbg-ranap.store');
     Route::post('inacbg-ranap/show', [InacbgRanapController::class, 'show'])->name('inacbg-ranap.show');
-    Route::post('inacbg/hapusklaim' , [InacbgRanapController::class, 'hapusklaim'])->name('inacbg.hapusklaim');
+    Route::post('inacbg/hapusklaim', [InacbgRanapController::class, 'hapusklaim'])->name('inacbg.hapusklaim');
+    Route::post('/idrg/update-log', [InacbgRanapController::class, 'updateLog'])->name('idrg.updateLog');
+    Route::post('/grouping-idrg', [EklaimController::class, 'groupingIdrg']);
+    Route::post('/save-grouping-idrg-log', [InacbgRanapController::class, 'saveGroupingIdrgLog']);
+
+    Route::post('/final-idrg', [EklaimController::class, 'finalIdrg']);
+    Route::post('/save-final-idrg-log', [InacbgRanapController::class, 'saveFinalIdrgLog']);
+
+    Route::post('/idrg-grouper-reedit', [EklaimController::class, 'idrgGrouperReedit']);
+    Route::post('/hapus-final-idrg', [InacbgRanapController::class, 'hapusFinalIdrg']);
 
 });
 

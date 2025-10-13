@@ -16,6 +16,8 @@ class EklaimController extends Controller
         $this->eklaim = $eklaim;
     }
 
+    
+
     /**
      * Membuat klaim baru
      */
@@ -124,6 +126,8 @@ class EklaimController extends Controller
             'metadata.nomor_sep' => 'required|string',
             'data.diagnosa' => 'required|string',
         ]);
+
+        
 
         if ($validator->fails()) {
             return response()->json([

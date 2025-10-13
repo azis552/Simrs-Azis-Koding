@@ -531,7 +531,7 @@ class InacbgRanapController extends Controller
 
     public function hapusKlaim(Request $request)
     {
-         $input = $request->all();
+        $input = $request->all();
 
         $data = [
             'nomor_sep' => $request->nomor_sep,
@@ -558,6 +558,67 @@ class InacbgRanapController extends Controller
             return $this->show($requestShow)->with('error', 'Gagal menghapus e-Klaim. Silakan cek koneksi atau respon server.');
         }
     }
+
+    public function updateLog(Request $request)
+    {
+        $nomor_sep = $request->input('nomor_sep');
+        $field = $request->input('field'); // diagnosa_idrg atau procedure_idrg
+        $value = $request->input('value');
+
+
+        DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $nomor_sep)
+            ->update([$field => $value]);
+        return response()->json(['status' => 'ok', 'updated_field' => $field]);
+    }
+
+    public function saveGroupingIdrgLog(Request $request)
+    {
+        DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $request->nomor_sep)
+            ->update(['response_grouping_idrg' => $request->response_grouping_idrg]);
+
+        return response()->json(['status' => 'success']);
+    }
+
+    public function saveFinalIdrgLog(Request $request)
+    {
+        $request->validate([
+            'nomor_sep' => 'required|string|max:50',
+            'response_idrg_grouper_final' => 'required|json',
+        ]);
+
+        $updated = DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $request->nomor_sep)
+            ->update([
+                'response_idrg_grouper_final' => $request->response_idrg_grouper_final,
+                'updated_at' => now()
+            ]);
+
+        return response()->json([
+            'status' => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Final IDRG berhasil disimpan' : 'Nomor SEP tidak ditemukan'
+        ]);
+    }
+
+    public function hapusFinalIdrg(Request $request)
+    {
+        $nomor_sep = $request->input('nomor_sep');
+
+        if (!$nomor_sep) {
+            return response()->json(['status' => 'error', 'message' => 'Nomor SEP tidak ditemukan'], 400);
+        }
+
+        DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $nomor_sep)
+            ->update(['response_idrg_grouper_final' => null]);
+
+        return response()->json(['status' => 'success', 'mes`sage' => 'Final IDRG berhasil dihapus']);
+    }
+
+
+
+
 
 
 }
