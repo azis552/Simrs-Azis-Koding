@@ -45,6 +45,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/hapus-final-idrg', [InacbgRanapController::class, 'hapusFinalIdrg']);
 
     Route::post('/inacbg/import/save-log', [InacbgRanapController::class, 'saveImportInacbgLog']);
+    Route::post('/save-grouping-inacbg-stage1-log', [InacbgRanapController::class, 'saveGroupingStage1Log']);
+    Route::post('/save-grouping-inacbg-stage2-log', [InacbgRanapController::class, 'saveGroupingStage2Log']);
 
 
 });

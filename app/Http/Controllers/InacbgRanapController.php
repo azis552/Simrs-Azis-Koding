@@ -559,7 +559,7 @@ class InacbgRanapController extends Controller
         $field = $request->input('field'); // diagnosa_idrg atau procedure_idrg
         $value = $request->input('value');
 
-        
+
         $simpan = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->update([$field => $value]);
@@ -581,6 +581,8 @@ class InacbgRanapController extends Controller
             'nomor_sep' => 'required|string|max:50',
             'response_idrg_grouper_final' => 'required|json',
         ]);
+
+
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
@@ -607,6 +609,8 @@ class InacbgRanapController extends Controller
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->update([
+                'procedure_inacbg' => null,
+                'diagnosa_inacbg' => null,
                 'response_grouping_idrg' => null,
                 'status' => 'proses klaim',
                 'response_idrg_grouper_final' => null
@@ -622,12 +626,26 @@ class InacbgRanapController extends Controller
             'response_inacbg_import' => 'required|json',
         ]);
 
+        // Decode response JSON dari INA-CBG
+        $response = json_decode($request->response_inacbg_import, true);
+
+        // Ambil objek diagnosa & procedure dari data INA-CBG
+        $diagnosaData = $response['data']['diagnosa'] ?? null;
+        $procedureData = $response['data']['procedure'] ?? null;
+
+        // Encode ke JSON string untuk disimpan di kolom LONGTEXT
+        $diagnosaJson = $diagnosaData ? json_encode($diagnosaData, JSON_UNESCAPED_UNICODE) : null;
+        $procedureJson = $procedureData ? json_encode($procedureData, JSON_UNESCAPED_UNICODE) : null;
+
+        // Update ke tabel log_eklaim_ranap
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
                 'status' => 'proses final idrg',
                 'response_inacbg_import' => $request->response_inacbg_import,
-                'updated_at' => now()
+                'diagnosa_inacbg' => $diagnosaJson,
+                'procedure_inacbg' => $procedureJson,
+                'updated_at' => now(),
             ]);
 
         return response()->json([
@@ -635,8 +653,51 @@ class InacbgRanapController extends Controller
             'message' => $updated
                 ? 'Hasil import iDRG → INA-CBG berhasil disimpan'
                 : 'Nomor SEP tidak ditemukan pada log',
+            'saved_data' => [
+                'nomor_sep' => $request->nomor_sep,
+                'diagnosa_inacbg' => $diagnosaJson,
+                'procedure_inacbg' => $procedureJson,
+            ],
         ]);
     }
+
+    public function saveGroupingStage1Log(Request $request)
+    {
+        $request->validate([
+            'nomor_sep' => 'required|string|max:50',
+            'response_inacbg_stage1' => 'required|json',
+        ]);
+
+        $updated = DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $request->nomor_sep)
+            ->update([
+                'response_inacbg_stage1' => $request->response_inacbg_stage1,
+                'updated_at' => now()
+            ]);
+
+        return response()->json(['status' => $updated ? 'success' : 'failed']);
+    }
+
+    public function saveGroupingStage2Log(Request $request)
+    {
+        $request->validate([
+            'nomor_sep' => 'required|string|max:50',
+            'response_inacbg_stage2' => 'required|json',
+        ]);
+
+        $updated = DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $request->nomor_sep)
+            ->update([
+                'response_inacbg_stage2' => $request->response_inacbg_stage2,
+                'updated_at' => now()
+            ]);
+
+        return response()->json(['status' => $updated ? 'success' : 'failed']);
+    }
+
+
+
+
 
 
 

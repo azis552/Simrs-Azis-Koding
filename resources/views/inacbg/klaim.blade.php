@@ -937,9 +937,13 @@
                                                     <div id="hasil_import_inacbg" class="mt-3"></div>
                                                 </div>
                                                 @if (@$log->response_inacbg_import != null && @$log->procedure_inacbg != null)
-                                                    <button class="btn btn-primary" id="btnGroupingInacbg"
-                                                        disabled>Grouping INA-CBG</button>
+                                                    <button class="btn btn-primary" id="btnGroupingInacbg">Grouping
+                                                        INA-CBG</button>
+                                                    <div id="groupingInacbgResult" class="mt-3"></div>
                                                 @endif
+
+
+
 
 
                                             </div>
@@ -961,6 +965,147 @@
 @endsection
 
 @section('script')
+    {{-- grouping inacbg --}}
+    <script>
+        $(document).on('change', '#specialCmgSelect', function() {
+            const code = $(this).val();
+            if (!code) {
+                $('#stage2Result').html('');
+                return;
+            }
+
+            $('#stage2Result').html('<div class="text-info">Memproses Stage 2...</div>');
+
+            $.ajax({
+                url: '/api/eklaim/grouping-inacbg-stage-2',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    metadata: {
+                        method: 'grouper',
+                        stage: '2',
+                        grouper: 'inacbg'
+                    },
+                    data: {
+                        nomor_sep: '{{ @$log->nomor_sep }}',
+                        special_cmg: code
+                    }
+                }),
+                success: function(res) {
+                    if (res.response_inacbg) {
+                        const cbg = res.response_inacbg.cbg;
+                        const tarif = parseInt(res.response_inacbg.tariff).toLocaleString('id-ID');
+
+                        $('#stage2Result').html(`
+                    <div class="alert alert-success">
+                        <h6>Hasil Grouping Stage 2</h6>
+                        <p><b>Kode CBG:</b> ${cbg.code}</p>
+                        <p><b>Deskripsi:</b> ${cbg.description}</p>
+                        <p><b>Tarif:</b> Rp ${tarif}</p>
+                    </div>
+                `);
+                    } else {
+                        $('#stage2Result').html(
+                            '<div class="alert alert-warning">Gagal memproses Stage 2.</div>');
+                    }
+                },
+                error: function(err) {
+                    console.error('Stage 2 error:', err.responseJSON || err);
+                    $('#stage2Result').html(
+                        '<div class="alert alert-danger">Terjadi kesalahan pada proses Stage 2.</div>'
+                        );
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#btnGroupingInacbg').on('click', function() {
+                $(this).prop('disabled', true).text('Processing...');
+
+                $.ajax({
+                    url: '/api/eklaim/grouping-inacbg-stage-1',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        metadata: {
+                            method: 'grouper',
+                            stage: '1',
+                            grouper: 'inacbg'
+                        },
+                        data: {
+                            nomor_sep: '{{ @$log->nomor_sep }}'
+                        }
+                    }),
+                    success: function(response) {
+                        $('#btnGroupingInacbg').prop('disabled', false).text(
+                        'Grouping INA-CBG');
+
+                        if (response.response_inacbg) {
+                            const cbg = response.response_inacbg.cbg;
+                            const tarif = parseInt(response.response_inacbg.tariff)
+                                .toLocaleString('id-ID');
+                            const version = response.response_inacbg.inacbg_version;
+                            const specialOptions = response.special_cmg_option || [];
+
+                            let html = `
+                        <div class="card p-3">
+                            <h5>Hasil Grouping INA-CBG (Stage 1)</h5>
+                            <table class="table table-bordered mt-2">
+                                <tr><td>Kode CBG</td><td><b>${cbg.code}</b></td></tr>
+                                <tr><td>Deskripsi</td><td>${cbg.description}</td></tr>
+                                <tr><td>Tarif</td><td>Rp ${tarif}</td></tr>
+                                <tr><td>Versi INA-CBG</td><td>${version}</td></tr>
+                            </table>
+                    `;
+
+                            if (specialOptions.length > 0) {
+                                html += `
+                            <div class="mt-3">
+                                <label><b>Pilih Special CMG (Stage 2)</b></label>
+                                <select id="specialCmgSelect" class="form-select mt-2">
+                                    <option value="">-- Pilih --</option>`;
+                                specialOptions.forEach(opt => {
+                                    html += `
+                                    <option value="${opt.code}" data-field="${opt.type}">
+                                        ${opt.description}
+                                    </option>`;
+                                });
+                                html += `
+                                </select>
+                            </div>
+                            <div id="stage2Result" class="mt-3"></div>
+                        `;
+                            }
+
+                            html += `</div>`;
+                            $('#groupingInacbgResult').html(html);
+
+                        } else {
+                            $('#groupingInacbgResult').html(
+                                '<div class="alert alert-danger">Tidak ada hasil grouping.</div>'
+                                );
+                        }
+                    },
+                    error: function(err) {
+                        console.error('Error detail:', err.responseJSON || err);
+                        $('#btnGroupingInacbg').prop('disabled', false).text(
+                        'Grouping INA-CBG');
+                        alert('Terjadi kesalahan pada proses Grouping INA-CBG.');
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+    {{-- end grouping inacbg --}}
     <script>
         $(document).ready(function() {
             // Tombol Re-edit IDRG
@@ -1057,7 +1202,6 @@
                     success: function(response) {
                         console.log(response);
 
-                        // ✅ Simpan hasil ke tabel log
                         $.ajax({
                             url: '/save-grouping-idrg-log',
                             type: 'POST',
@@ -1071,42 +1215,18 @@
                                     icon: 'success',
                                     title: 'Sukses',
                                     text: 'Data grouping tersimpan ke log',
-                                    timer: 2000
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    didClose: () => {
+                                        // Reload setelah alert tertutup
+                                        location.reload();
+                                    }
                                 });
                             }
                         });
 
-                        // ✅ Tampilkan hasil grouping di tampilan
-                        if (response.data) {
-                            $('#hasil_grouping').html(`
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th colspan="3" class="text-center">Hasil Grouping iDRG</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><b>MDC</b></td>
-                                    <td>${response.data.mdc_name ?? '-'}</td>
-                                    <td>${response.data.mdc_code ?? '-'}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>DRG</b></td>
-                                    <td>${response.data.drg_name ?? '-'}</td>
-                                    <td>${response.data.drg_code ?? '-'}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <button class="btn btn-success">✔ Final IDRG</button>
-                        
-                    `);
-                            window.location.reload();
-                        } else {
-                            $('#hasil_grouping').html(
-                                '<div class="alert alert-warning">Data IDRG tidak ditemukan</div>'
-                            );
-                        }
+
+
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);
@@ -1327,7 +1447,7 @@
                         <td>${d.desc}</td>
                         ${!isDiagnosa
                             ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                                                                                                                                                                    data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
+                                                                                                                                                                                                                                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
                         }
                         <td>${d.status}</td>
                         <td>
