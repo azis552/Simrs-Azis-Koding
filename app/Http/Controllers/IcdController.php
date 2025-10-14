@@ -8,11 +8,15 @@ use Illuminate\Http\Request;
 class IcdController extends Controller
 {
 
+    // ==========================
+    // ICD-10
+    // ==========================
     public function icd10(Request $request)
     {
         $search = $request->get('q');
+
         $data = DB::table('icd10_codes')
-            ->select('code', 'description', 'system', 'validcode', 'accpdx')
+            ->select('code', 'description', 'system', 'validcode', 'accpdx', 'asterisk', 'im')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
@@ -27,15 +31,21 @@ class IcdController extends Controller
             'system' => $d->system,
             'validcode' => $d->validcode,
             'accpdx' => $d->accpdx,
+            'asterisk' => $d->asterisk,
+            'im' => $d->im,
             'text' => "{$d->code} - {$d->description}",
         ]));
     }
 
+    // ==========================
+    // ICD-9 (Prosedur)
+    // ==========================
     public function icd9(Request $request)
     {
         $search = $request->get('q');
+
         $data = DB::table('icd9cm_codes')
-            ->select('code', 'description')
+            ->select('code', 'description', 'system', 'validcode', 'accpdx', 'asterisk', 'im')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
@@ -47,9 +57,17 @@ class IcdController extends Controller
             'id' => $d->code,
             'code' => $d->code,
             'description' => $d->description,
+            'system' => $d->system,
+            'validcode' => $d->validcode,
+            'accpdx' => $d->accpdx,
+            'asterisk' => $d->asterisk,
+            'im' => $d->im,
             'text' => "{$d->code} - {$d->description}",
         ]));
     }
+
+
+
 
     /**
      * Display a listing of the resource.

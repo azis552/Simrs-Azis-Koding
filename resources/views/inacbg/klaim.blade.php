@@ -95,14 +95,19 @@
                                                     data-bs-toggle="tab" href="#diagnosa" role="tab">Diagnosa & Prosedur
                                                     IDRG</a>
                                             </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" data-bs-toggle="tab" href="#inacbgimport"
-                                                    role="tab">Import INA-CBG</a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" data-bs-toggle="tab" href="#inacbg" role="tab">Data
-                                                    INA-CBG</a>
-                                            </li>
+                                            @if (@$log->status == 'proses final idrg')
+                                                <li class="nav-item">
+                                                    <a class="nav-link {{ @$log->status == 'proses final idrg' ? 'active' : 'hidden' }}"
+                                                        data-bs-toggle="tab" href="#inacbgimport" role="tab">Import
+                                                        INA-CBG</a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" data-bs-toggle="tab" href="#inacbg"
+                                                        role="tab">Data
+                                                        INA-CBG</a>
+                                                </li>
+                                            @endif
+
                                         </ul>
 
                                         <div class="tab-content">
@@ -715,7 +720,7 @@
                                                             <div class="card-body">
                                                                 <h5>Diagnosa IDRG (ICD-10)</h5>
                                                                 <select id="diagnosa_idrg" class="form-control"
-                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}></select>
+                                                                    {{ @$log->response_idrg_grouper_final != null ? 'disabled' : '' }}></select>
 
                                                                 <div class="table-responsive mt-2">
                                                                     <table id="tabel_diagnosa"
@@ -733,9 +738,10 @@
                                                                     </table>
                                                                 </div>
 
-                                                                <button class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
+                                                                <button
+                                                                    class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
                                                                     id="diagnosa-idrg-simpan"
-                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Simpan</button>
+                                                                    {{ @$log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Simpan</button>
                                                             </div>
                                                         </div>
 
@@ -747,7 +753,7 @@
                                                             <div class="card-body">
                                                                 <h5>Prosedur IDRG (ICD-9-CM)</h5>
                                                                 <select id="prosedur_idrg" class="form-control"
-                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}></select>
+                                                                    {{ @$log->response_idrg_grouper_final != null ? 'disabled' : '' }}></select>
 
                                                                 <div class="table-responsive mt-2">
                                                                     <table id="tabel_prosedur"
@@ -766,15 +772,17 @@
                                                                     </table>
                                                                 </div>
 
-                                                                <button class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
+                                                                <button
+                                                                    class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
                                                                     id="prosedur-idrg-simpan"
-                                                                    {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Simpan</button>
+                                                                    {{ @$log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Simpan</button>
                                                             </div>
                                                         </div>
 
                                                     </div>
-                                                    <button id="btnGroupingIdrg" class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }}"
-                                                        {{ $log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Proses
+                                                    <button id="btnGroupingIdrg"
+                                                        class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }}"
+                                                        {{ @$log->response_idrg_grouper_final != null ? 'disabled' : '' }}>Proses
                                                         Grouping
                                                         iDRG</button>
 
@@ -815,7 +823,8 @@
                                                     </table>
 
                                                     {{-- Tombol Final iDRG --}}
-                                                    <button id="btnFinalIdrg" class="btn {{ $log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
+                                                    <button id="btnFinalIdrg"
+                                                        class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
                                                         {{ $log->response_grouping_idrg == null ? 'disabled' : '' }}>
                                                         ✔ Final IDRG
                                                     </button>
@@ -848,8 +857,91 @@
                                                 </div>
 
                                             </div>
-                                            <div class="tab-pane fade" id="inacbgimport" role="tabpanel">
-                                                <p>Berkas rekam medis pasien.</p>
+                                            <div class="tab-pane fade {{ @$log->status == 'proses final idrg' ? 'active show' : 'hidden' }}"
+                                                id="inacbgimport" role="tabpanel">
+                                                <div class="row">
+                                                    <div class="col-12 text-center mb-3">
+                                                        <button id="btnImportInacbg" class="btn btn-primary btn-lg">
+                                                            <i class="fas fa-exchange-alt"></i> Import iDRG → INA-CBG
+                                                        </button>
+                                                    </div>
+                                                    <!-- Diagnosa -->
+                                                    <div class="col-md-6">
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h5>Diagnosa INACBG (ICD-10)</h5>
+                                                                <select id="diagnosa_inacbg" class="form-control"
+                                                                    {{ @$log->response_inacbg_final != null ? 'disabled' : '' }}></select>
+
+                                                                <div class="table-responsive mt-2">
+                                                                    <table id="tabel_diagnosa_inacbg"
+                                                                        class="table table-bordered table-sm">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>#</th>
+                                                                                <th>Kode</th>
+                                                                                <th>Deskripsi</th>
+                                                                                <th>Status</th>
+                                                                                <th>Hapus</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody></tbody>
+                                                                    </table>
+                                                                </div>
+
+                                                                <button
+                                                                    class="btn {{ @$log->response_inacbg_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
+                                                                    id="diagnosa-inacbg-simpan"
+                                                                    {{ @$log->response_inacbg_final != null ? 'disabled' : '' }}>
+                                                                    Simpan
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Prosedur -->
+                                                    <div class="col-md-6">
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h5>Prosedur INACBG (ICD-9-CM)</h5>
+                                                                <select id="prosedur_inacbg" class="form-control"
+                                                                    {{ @$log->response_inacbg_final != null ? 'disabled' : '' }}></select>
+
+                                                                <div class="table-responsive mt-2">
+                                                                    <table id="tabel_prosedur_inacbg"
+                                                                        class="table table-bordered table-sm">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>#</th>
+                                                                                <th>Kode</th>
+                                                                                <th>Deskripsi</th>
+                                                                                <th>Status</th>
+                                                                                <th>Hapus</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody></tbody>
+                                                                    </table>
+                                                                </div>
+
+
+                                                                <button
+                                                                    class="btn {{ @$log->response_inacbg_final != null ? 'btn-disabled' : 'btn-primary' }} btn-sm mt-2"
+                                                                    id="prosedur-inacbg-simpan"
+                                                                    {{ @$log->response_inacbg_final != null ? 'disabled' : '' }}>
+                                                                    Simpan
+                                                                </button>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                    <div id="hasil_import_inacbg" class="mt-3"></div>
+                                                </div>
+                                                @if (@$log->response_inacbg_import != null && @$log->procedure_inacbg != null)
+                                                    <button class="btn btn-primary" id="btnGroupingInacbg"
+                                                        disabled>Grouping INA-CBG</button>
+                                                @endif
+
+
                                             </div>
                                             <div class="tab-pane fade" id="inacbg" role="tabpanel">
                                                 <p>Data INA-CBG dan hasil grouping.</p>
@@ -940,7 +1032,6 @@
             });
         });
     </script>
-
     <script>
         $(document).ready(function() {
             $('#btnGroupingIdrg').click(function() {
@@ -1008,7 +1099,9 @@
                             </tbody>
                         </table>
                         <button class="btn btn-success">✔ Final IDRG</button>
+                        
                     `);
+                            window.location.reload();
                         } else {
                             $('#hasil_grouping').html(
                                 '<div class="alert alert-warning">Data IDRG tidak ditemukan</div>'
@@ -1029,10 +1122,14 @@
             $(document).on('click', '#btnFinalIdrg', function() {
                 let nomor_sep = '{{ @$log->nomor_sep ?? '' }}';
                 let log_response_idrg_grouper_final = '{{ $log->response_idrg_grouper_final ?? '' }}';
+
                 if (log_response_idrg_grouper_final) {
                     return Swal.fire('Info', 'Final IDRG sudah diproses sebelumnya', 'info');
                 }
-                if (!nomor_sep) return Swal.fire('Nomor SEP kosong!');
+
+                if (!nomor_sep) {
+                    return Swal.fire('Peringatan', 'Nomor SEP kosong!', 'warning');
+                }
 
                 $.ajax({
                     url: '/final-idrg',
@@ -1051,7 +1148,8 @@
                     },
                     beforeSend: function() {
                         Swal.fire({
-                            title: 'Proses Final IDRG...',
+                            title: 'Memproses Final IDRG...',
+                            text: 'Mohon tunggu sebentar',
                             allowOutsideClick: false,
                             didOpen: () => Swal.showLoading()
                         });
@@ -1059,17 +1157,53 @@
                     success: function(response) {
                         Swal.close();
 
-                        // Simpan hasil ke log
-                        $.post('/save-final-idrg-log', {
-                            _token: '{{ csrf_token() }}',
-                            nomor_sep: nomor_sep,
-                            response_idrg_grouper_final: JSON.stringify(response)
-                        });
+                        if (response.metadata && response.metadata.code === 200) {
+                            // Simpan log ke database tanpa reload
+                            $.ajax({
+                                url: '/save-final-idrg-log',
+                                type: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                data: {
+                                    nomor_sep: nomor_sep,
+                                    response_idrg_grouper_final: JSON.stringify(
+                                        response)
+                                },
+                                success: function(res) {
+                                    // Tampilkan hasil ke halaman tanpa reload
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Final IDRG Berhasil',
+                                        text: 'Data Final IDRG berhasil diproses dan disimpan.'
+                                    });
 
-                        Swal.fire('Sukses', 'Final IDRG tersimpan di log', 'success').then(
-                            () => {
-                                location.reload();
+                                    // Tambahkan info hasil di area tertentu (jika ada div hasil)
+                                    $('#hasil_final_idrg').html(`
+                            <div class="alert alert-success mt-3">
+                                <b>Final IDRG Sukses</b><br>
+                                <small>Kode IDRG: ${response.data?.idrg_code || '-'}</small><br>
+                                <small>Deskripsi: ${response.data?.description || '-'}</small><br>
+                                <small>Tarif INA-CBG: Rp ${(response.data?.cbg_tarif || 0).toLocaleString('id-ID')}</small>
+                            </div>
+                        `);
+
+                                    window.location.reload();
+                                },
+                                error: function() {
+                                    Swal.fire('Error',
+                                        'Gagal menyimpan log ke database',
+                                        'error');
+                                }
                             });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: response.metadata?.message ||
+                                    'Proses Final IDRG gagal.'
+                            });
+                        }
                     },
                     error: function(xhr) {
                         Swal.close();
@@ -1080,7 +1214,6 @@
             });
         });
     </script>
-
     <script>
         $(document).ready(function() {
 
@@ -1194,7 +1327,7 @@
                         <td>${d.desc}</td>
                         ${!isDiagnosa
                             ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                                                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
+                                                                                                                                                                                    data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
                         }
                         <td>${d.status}</td>
                         <td>
@@ -1260,7 +1393,6 @@
             }
         });
     </script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rupiahInputs = document.querySelectorAll('.rupiah');
@@ -1288,7 +1420,6 @@
             }
         });
     </script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('.rupiah');
@@ -1333,7 +1464,6 @@
             });
         });
     </script>
-
     <script>
         $(document).ready(function() {
             let nomor_sep = "{{ @$log->nomor_sep }}";
@@ -1443,6 +1573,495 @@
                     },
                     error: function(xhr) {
                         Swal.fire('Gagal', 'Terjadi kesalahan saat mengirim data', 'error');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            // ---------- Variabel global ----------
+            window.diagnosaListInacbg = [];
+            window.prosedurListInacbg = [];
+            window.diagnosaCodes = []; // daftar kode diagnosa aktif
+
+            // ---------- Fungsi Update Diagnosa Codes ----------
+            function updateDiagnosaCodes() {
+                window.diagnosaCodes = diagnosaListInacbg.map(d => d.code);
+                console.log('Diagnosa codes terbaru:', diagnosaCodes);
+            }
+
+            // ---------- Inisialisasi Select2 ----------
+            initSelect2('#diagnosa_inacbg', '/api/icd10', 'tabel_diagnosa_inacbg', true);
+            initSelect2('#prosedur_inacbg', '/api/icd9', 'tabel_prosedur_inacbg', false);
+
+            // ---------- Fungsi Select2 ----------
+            function initSelect2(selector, url, tableId, isDiagnosa) {
+                $(selector).select2({
+                    placeholder: 'Cari kode atau deskripsi...',
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        })
+                    },
+                    templateResult: function(item) {
+                        if (!item.id) return item.text;
+                        return $('<div>')
+                            .append($('<b>').text(item.code))
+                            .append(' — ' + item.description);
+                    },
+                    templateSelection: item => item.text,
+                    multiple: true
+                });
+
+                // Saat pilih item
+                $(selector).on('select2:select', function(e) {
+                    let data = e.params.data;
+                    let list = isDiagnosa ? diagnosaListInacbg : prosedurListInacbg;
+
+                    // ---------- Validasi Diagnosa Primer ----------
+                    if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak dapat dijadikan Primer',
+                            text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
+                            timer: 2500
+                        });
+                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                        return;
+                    }
+
+                    // ---------- Cegah duplikat ----------
+                    if (list.some(d => d.code === data.code)) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Data sudah ada',
+                            text: 'Data ini sudah ditambahkan sebelumnya.',
+                            timer: 2000
+                        });
+                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                        return;
+                    }
+
+                    // ---------- Deteksi IM tidak berlaku ----------
+                    if (data.im == 1) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Perhatian',
+                            html: `
+                            <div style="text-align:left">
+                                <b>${isDiagnosa ? 'Diagnosa' : 'Prosedur'}:</b><br>
+                                ${data.code} - ${data.description}<br>
+                                <span style="color:red;font-weight:bold;">(IM tidak berlaku pada item ini)</span>
+                            </div>
+                        `,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+
+                    // ---------- Tambah item baru ----------
+                    let item = {
+                        code: data.code,
+                        desc: data.description,
+                        status: isDiagnosa && list.length === 0 ? 'Primer' : 'Sekunder',
+                        im: data.im || 0
+                    };
+
+                    if (!isDiagnosa) item.qty = 1;
+
+                    list.push(item);
+                    if (isDiagnosa) diagnosaListInacbg = list;
+                    else prosedurListInacbg = list;
+
+                    renderTable(list, '#' + tableId, isDiagnosa);
+                    if (isDiagnosa) updateDiagnosaCodes(); // <- update otomatis
+                });
+
+                // Saat unselect item
+                $(selector).on('select2:unselect', function(e) {
+                    let id = e.params.data.id;
+                    let list = isDiagnosa ? diagnosaListInacbg : prosedurListInacbg;
+
+                    list = list.filter(d => d.code !== id);
+                    if (isDiagnosa) {
+                        diagnosaListInacbg = list;
+                        if (diagnosaListInacbg.length > 0) {
+                            diagnosaListInacbg[0].status = 'Primer';
+                            diagnosaListInacbg.slice(1).forEach(d => d.status = 'Sekunder');
+                        }
+                    } else {
+                        prosedurListInacbg = list;
+                    }
+
+                    renderTable(list, '#' + tableId, isDiagnosa);
+                    if (isDiagnosa) updateDiagnosaCodes();
+                });
+            }
+
+            // ---------- Render Tabel ----------
+            function renderTable(list, tableId, isDiagnosa) {
+                let tbody = $(tableId + ' tbody');
+                tbody.empty();
+
+                list.forEach((d, i) => {
+                    const rowClass = d.error_no ? 'table-danger' : '';
+                    const warningMsg = d.im == 1 ?
+                        `<br><span class="text-danger fw-bold">⚠ IM tidak berlaku</span>` :
+                        (d.error_no ? `<br><span class="text-danger">[${d.error_no}] ${d.message}</span>` :
+                            '');
+
+                    tbody.append(`
+                    <tr class="fade-highlight ${rowClass}">
+                        <td>${i + 1}</td>
+                        <td>${d.code}</td>
+                        <td>${d.desc}${warningMsg}</td>
+                        <td>${d.status}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm"
+                                onclick="hapusItemInacbg('${d.code}', '${tableId.replace('#','')}')">X</button>
+                        </td>
+                    </tr>
+                `);
+                });
+            }
+
+            // ---------- Hapus Item ----------
+            window.hapusItemInacbg = function(code, table) {
+                let selector = table === 'tabel_diagnosa_inacbg' ? '#diagnosa_inacbg' : '#prosedur_inacbg';
+                let list = table === 'tabel_diagnosa_inacbg' ? diagnosaListInacbg : prosedurListInacbg;
+
+                // Hapus dari array
+                list = list.filter(d => d.code !== code);
+
+                // Update primer-sekunder
+                if (table === 'tabel_diagnosa_inacbg') {
+                    diagnosaListInacbg = list;
+                    if (diagnosaListInacbg.length > 0) {
+                        diagnosaListInacbg[0].status = 'Primer';
+                        diagnosaListInacbg.slice(1).forEach(d => d.status = 'Sekunder');
+                    }
+                } else {
+                    prosedurListInacbg = list;
+                }
+
+                // Hapus dari select2
+                $(selector).val($(selector).val().filter(v => v !== code)).trigger('change');
+
+                // Render ulang tabel
+                renderTable(list, '#' + table, table === 'tabel_diagnosa_inacbg');
+
+                // Update daftar kode diagnosa
+                if (table === 'tabel_diagnosa_inacbg') updateDiagnosaCodes();
+            };
+
+            // ---------- Load Data dari Log ----------
+            let diagnosaLog = @json($log->diagnosa_inacbg ?? '');
+            let prosedurLog = @json($log->procedure_inacbg ?? '');
+            let imInvalidItems = [];
+
+            if (diagnosaLog && diagnosaLog.expanded) {
+                diagnosaListInacbg = diagnosaLog.expanded.map((d, i) => {
+                    const message = d.metadata?.message || '';
+                    const imInvalid = d.validcode == 0 || message.includes('IM tidak berlaku');
+                    if (imInvalid) {
+                        imInvalidItems.push({
+                            jenis: 'Diagnosa',
+                            code: d.code,
+                            desc: d.display,
+                            message: message || 'IM tidak berlaku'
+                        });
+                    }
+                    return {
+                        code: d.code,
+                        desc: d.display + (imInvalid ? ' ⚠ IM tidak berlaku' : ''),
+                        status: i === 0 ? 'Primer' : 'Sekunder',
+                        im: imInvalid ? 1 : 0
+                    };
+                });
+
+                renderTable(diagnosaListInacbg, '#tabel_diagnosa_inacbg', true);
+                updateDiagnosaCodes();
+            }
+
+            if (prosedurLog && prosedurLog.expanded) {
+                prosedurListInacbg = prosedurLog.expanded.map((d) => {
+                    const message = d.metadata?.message || '';
+                    const imInvalid = d.validcode == 0 || message.includes('IM tidak berlaku');
+                    if (imInvalid) {
+                        imInvalidItems.push({
+                            jenis: 'Prosedur',
+                            code: d.code,
+                            desc: d.display,
+                            message: message || 'IM tidak berlaku'
+                        });
+                    }
+                    return {
+                        code: d.code,
+                        desc: d.display + (imInvalid ? ' ⚠ IM tidak berlaku' : ''),
+                        status: 'Primer',
+                        im: imInvalid ? 1 : 0
+                    };
+                });
+
+                renderTable(prosedurListInacbg, '#tabel_prosedur_inacbg', false);
+            }
+
+            // ---------- Gabungan Alert IM Tidak Berlaku ----------
+            if (imInvalidItems.length > 0) {
+                let htmlList = imInvalidItems.map(d =>
+                    `<b>${d.jenis}</b>: ${d.code} - ${d.desc}<br>[400] ${d.message}`
+                ).join('<br><br>');
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Perhatian: Terdapat Kode dengan IM Tidak Berlaku',
+                    html: `
+                    Terjadi kesalahan pada item berikut:<br><br>
+                    ${htmlList}
+                    <br><br><b>Periksa kembali kode sebelum klaim dikirim.</b>
+                `,
+                    confirmButtonText: 'Mengerti'
+                });
+            }
+
+            // ---------- Tombol Import ----------
+            $('#btnImportInacbg').on('click', function() {
+                const nomor_sep = '{{ @$log->nomor_sep }}';
+                const btn = $(this);
+                btn.prop('disabled', true);
+
+                Swal.fire({
+                    title: 'Proses Import iDRG → INA-CBG?',
+                    text: "Pastikan hasil Final IDRG sudah benar.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        btn.prop('disabled', false);
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '/api/eklaim/idrg-to-inacbg-import',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            metadata: {
+                                method: 'idrg_to_inacbg_import'
+                            },
+                            data: {
+                                nomor_sep: nomor_sep
+                            }
+                        }),
+                        beforeSend: () => {
+                            Swal.fire({
+                                title: 'Memproses...',
+                                text: 'Mengimpor data iDRG ke INA-CBG...',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                        },
+                        success: function(response) {
+                            Swal.close();
+                            console.log('Response INA-CBG Import:', response);
+
+                            if (response.metadata?.code !== 200) {
+                                btn.prop('disabled', false);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal Import',
+                                    text: response.metadata?.message ||
+                                        'Terjadi kesalahan saat proses import.'
+                                });
+                                return;
+                            }
+
+                            // === Simpan log hasil import ===
+                            $.ajax({
+                                url: '/inacbg/import/save-log',
+                                type: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                data: {
+                                    nomor_sep: nomor_sep,
+                                    response_inacbg_import: JSON.stringify(
+                                        response)
+                                },
+                                beforeSend: () => {
+                                    Swal.fire({
+                                        title: 'Menyimpan...',
+                                        text: 'Menyimpan hasil import ke log...',
+                                        allowOutsideClick: false,
+                                        didOpen: () => Swal
+                                            .showLoading()
+                                    });
+                                },
+                                success: function() {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Import Selesai',
+                                        text: 'Data berhasil diimport dan disimpan. Halaman akan dimuat ulang.',
+                                        showConfirmButton: false,
+                                        timer: 2000
+                                    });
+                                    setTimeout(() => location.reload(),
+                                        2000);
+                                },
+                                error: function() {
+                                    btn.prop('disabled', false);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal Simpan Log',
+                                        text: 'Import berhasil, tapi gagal menyimpan log.'
+                                    });
+                                }
+                            });
+                        },
+                        error: function() {
+                            btn.prop('disabled', false);
+                            Swal.close();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error Server',
+                                text: 'Tidak dapat terhubung ke server.'
+                            });
+                        }
+                    });
+                });
+            });
+
+        });
+    </script>
+
+
+
+
+
+
+    <script>
+        $(document).ready(function() {
+            let nomor_sep = "{{ @$log->nomor_sep }}";
+
+            // === SIMPAN DIAGNOSA (INA-CBG) ===
+            $('#diagnosa-inacbg-simpan').on('click', function() {
+                let diagnosaCodes = [];
+                $('#tabel_diagnosa_inacbg tbody tr').each(function() {
+                    let kode = $(this).find('td:eq(1)').text();
+                    if (kode) diagnosaCodes.push(kode);
+                });
+                alert(diagnosaCodes.join('#'));
+
+                let payload = {
+                    metadata: {
+                        method: "inacbg_diagnosa_set",
+                        nomor_sep: nomor_sep
+                    },
+                    data: {
+                        diagnosa: diagnosaCodes.join('#')
+                    }
+                };
+
+                $.ajax({
+                    url: '/api/eklaim/inacbg-diagnosa-set',
+                    type: 'POST',
+                    data: JSON.stringify(payload),
+                    contentType: 'application/json',
+                    success: function(res) {
+                        Swal.fire('Sukses', 'Diagnosa INA-CBG berhasil disimpan', 'success');
+
+                        // Ambil hasil string dari response eksternal
+                        let stringData = res.data;
+
+                        // Kirim ke Laravel untuk update log
+                        $.ajax({
+                            url: '/idrg/update-log',
+                            type: 'POST',
+                            data: {
+                                nomor_sep: nomor_sep,
+                                field: 'diagnosa_inacbg',
+                                value: stringData,
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(res2) {
+                                console.log('Update diagnosa_inacbg sukses:', res2);
+                            },
+                            error: function(xhr) {
+                                console.error('Gagal update log:', xhr
+                                    .responseText);
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan diagnosa',
+                            'error');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            // === SIMPAN PROSEDUR (INA-CBG) ===
+            $('#prosedur-inacbg-simpan').on('click', function() {
+                let procedureList = [];
+                $('#tabel_prosedur_inacbg tbody tr').each(function() {
+                    let kode = $(this).find('td:eq(1)').text();
+                    let qty = $(this).find('td:eq(3) input').val() || '1';
+                    if (kode) procedureList.push(`${kode}+${qty}`);
+                });
+
+                let payload = {
+                    metadata: {
+                        method: "inacbg_procedure_set",
+                        nomor_sep: nomor_sep
+                    },
+                    data: {
+                        procedure: procedureList.join('#')
+                    }
+                };
+
+                $.ajax({
+                    url: '/api/eklaim/inacbg-procedure-set',
+                    type: 'POST',
+                    data: JSON.stringify(payload),
+                    contentType: 'application/json',
+                    success: function(res) {
+                        Swal.fire('Sukses', 'Prosedur INA-CBG berhasil disimpan', 'success');
+
+                        let stringData = res.data;
+
+                        $.ajax({
+                            url: '/idrg/update-log',
+                            type: 'POST',
+                            data: {
+                                nomor_sep: nomor_sep,
+                                field: 'procedure_inacbg',
+                                value: stringData,
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(res2) {
+                                console.log('Update procedure_inacbg sukses:',
+                                    res2);
+                            },
+                            error: function(xhr) {
+                                console.error('Gagal update log:', xhr
+                                    .responseText);
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan prosedur',
+                            'error');
                         console.error(xhr.responseText);
                     }
                 });

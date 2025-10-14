@@ -409,32 +409,37 @@ class InacbgRanapController extends Controller
         return view('inacbg.klaim', compact('pasien', 'sep', 'bayi', 'pemeriksaan', 'coder', 'obatbhpalkes', 'rekap', 'totalKamar'));
     }
 
+
+
     public function store(Request $request)
     {
         $input = $request->all();
-        // Ubah format tanggal jika ada
+
+        // 🔹 Cek apakah log sudah pernah final IDRG
+        $logExisting = LogEklaimRanap::where('nomor_sep', $input['nomor_sep'] ?? null)->first();
+        if ($logExisting && $logExisting->status === 'proses final idrg') {
+            // Tetap kembali ke halaman show tanpa melakukan simpan/update
+            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+            return $this->show($requestShow)
+                ->with('info', 'Data ini sudah mencapai proses Final IDRG, tidak dapat disimpan ulang.');
+        }
+
+        // 🔹 Ubah format tanggal jika ada
         if (!empty($input['tgl_masuk'])) {
             $input['tgl_masuk'] = Carbon::parse($input['tgl_masuk'])->format('Y-m-d H:i:s');
         }
-
         if (!empty($input['tgl_pulang'])) {
             $input['tgl_pulang'] = Carbon::parse($input['tgl_pulang'])->format('Y-m-d H:i:s');
         }
 
-        // Cari log berdasarkan nomor_sep
+        // 🔹 Simpan atau update log klaim
         $log = LogEklaimRanap::updateOrCreate(
-            ['nomor_sep' => $input['nomor_sep']], // kondisi unik
+            ['nomor_sep' => $input['nomor_sep']],
             [
                 'nomor_kartu' => $input['nomor_kartu'] ?? null,
                 'tgl_masuk' => $input['tgl_masuk'] ?? null,
                 'tgl_pulang' => $input['tgl_pulang'] ?? null,
                 'cara_masuk' => $input['cara_masuk'] ?? null,
-                'tgl_masuk' => isset($input['tgl_masuk'])
-                    ? Carbon::parse($input['tgl_masuk'])->format('Y-m-d H:i:s')
-                    : null,
-                'tgl_pulang' => isset($input['tgl_pulang'])
-                    ? Carbon::parse($input['tgl_pulang'])->format('Y-m-d H:i:s')
-                    : null,
                 'discharge_status' => $input['discharge_status'] ?? null,
                 'adl_sub_acute' => $input['adl_sub_acute'] ?? null,
                 'adl_chronic' => $input['adl_chronic'] ?? null,
@@ -462,23 +467,16 @@ class InacbgRanapController extends Controller
                 'payor_cd' => $input['payor_cd'] ?? null,
                 'kode_tarif' => $input['kode_tarif'] ?? null,
                 'coder_nik' => $input['coder_nik'] ?? null,
-                'diagnosa_idrg' => null,
-                'procedure_idrg' => null,
-                'diagnosa_inacbg' => null,
-                'procedure_inacbg' => null,
                 'kelas_rawat' => $input['kelas_rawat'] ?? null,
                 'jenis_rawat' => $input['jenis_rawat'] ?? null,
                 'nomor_rm' => $input['nomor_rm'] ?? null,
                 'nama_pasien' => $input['nama_pasien'] ?? null,
                 'nama_dokter' => $input['nama_dokter'] ?? null,
-                'response_set_claim_data' => $responseSet ?? null,
-                'status' => isset($responseSet['metadata']['code']) && $responseSet['metadata']['code'] == 200
-                    ? 'proses klaim'
-                    : 'gagal'
+                'status' => 'proses klaim'
             ]
         );
 
-        // 2️⃣ Payload new_claim
+        // 🔹 Kirim new_claim ke e-Klaim
         $payloadNew = [
             'nomor_sep' => $input['nomor_sep'],
             'nomor_kartu' => $input['nomor_kartu'],
@@ -491,43 +489,39 @@ class InacbgRanapController extends Controller
         $responseNew = $this->eklaim->send('new_claim', $payloadNew);
         $log->update(['response_new_claim' => $responseNew]);
 
-        // 3️⃣ Payload set_claim_data
+        // 🔹 Kirim set_claim_data
         $payloadSet = [
             'metadata' => [
                 'method' => 'set_claim_data',
-                'nomor_sep' => $payloadNew['nomor_sep'] ?? null, // pastikan SEP dari new_claim
+                'nomor_sep' => $payloadNew['nomor_sep'] ?? null,
             ],
-            'data' => $input  // semua field Ranap yang relevan
+            'data' => $input
         ];
 
-        // Kirim ke e-Klaim
         $responseSet = $this->eklaim->send(
             'set_claim_data',
-            $payloadSet['data'],      // data Ranap
-            $payloadSet['metadata']   // metadata termasuk nomor_sep
+            $payloadSet['data'],
+            $payloadSet['metadata']
         );
 
-        // 4️⃣ Update log response set_claim_data + status
-        $log->update([
-            'response_set_claim_data' => $responseSet,
-            'status' => 'proses klaim'
-        ]);
-        // 3️⃣ Tentukan status
+        // 🔹 Update status berdasarkan hasil
         $status = (isset($responseSet['metadata']['code']) && $responseSet['metadata']['code'] == 200)
             ? 'proses klaim'
             : 'gagal';
 
-        // 5️⃣ Redirect dengan alert
-        if ($status === 'proses klaim') {
-            // Jika gagal, panggil fungsi show agar ambil data dari query yang sama
-            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-            return $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim');
-        } else {
-            // Jika gagal, panggil fungsi show agar ambil data dari query yang sama
-            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-            return $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
-        }
+        $log->update([
+            'response_set_claim_data' => $responseSet,
+            'status' => $status
+        ]);
+
+        // 🔹 Kembali ke halaman show dengan pesan sesuai status
+        $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+
+        return $status === 'proses klaim'
+            ? $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim')
+            : $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
     }
+
 
     public function hapusKlaim(Request $request)
     {
@@ -565,8 +559,8 @@ class InacbgRanapController extends Controller
         $field = $request->input('field'); // diagnosa_idrg atau procedure_idrg
         $value = $request->input('value');
 
-
-        DB::table('log_eklaim_ranap')
+        
+        $simpan = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->update([$field => $value]);
         return response()->json(['status' => 'ok', 'updated_field' => $field]);
@@ -591,6 +585,7 @@ class InacbgRanapController extends Controller
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
+                'status' => 'proses final idrg',
                 'response_idrg_grouper_final' => $request->response_idrg_grouper_final,
                 'updated_at' => now()
             ]);
@@ -611,10 +606,38 @@ class InacbgRanapController extends Controller
 
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
-            ->update(['response_idrg_grouper_final' => null]);
+            ->update([
+                'response_grouping_idrg' => null,
+                'status' => 'proses klaim',
+                'response_idrg_grouper_final' => null
+            ]);
 
         return response()->json(['status' => 'success', 'mes`sage' => 'Final IDRG berhasil dihapus']);
     }
+
+    public function saveImportInacbgLog(Request $request)
+    {
+        $request->validate([
+            'nomor_sep' => 'required|string|max:50',
+            'response_inacbg_import' => 'required|json',
+        ]);
+
+        $updated = DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $request->nomor_sep)
+            ->update([
+                'status' => 'proses final idrg',
+                'response_inacbg_import' => $request->response_inacbg_import,
+                'updated_at' => now()
+            ]);
+
+        return response()->json([
+            'status' => $updated ? 'success' : 'failed',
+            'message' => $updated
+                ? 'Hasil import iDRG → INA-CBG berhasil disimpan'
+                : 'Nomor SEP tidak ditemukan pada log',
+        ]);
+    }
+
 
 
 

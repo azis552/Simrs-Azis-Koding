@@ -44,5 +44,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/idrg-grouper-reedit', [EklaimController::class, 'idrgGrouperReedit']);
     Route::post('/hapus-final-idrg', [InacbgRanapController::class, 'hapusFinalIdrg']);
 
+    Route::post('/inacbg/import/save-log', [InacbgRanapController::class, 'saveImportInacbgLog']);
+
+
 });
 
