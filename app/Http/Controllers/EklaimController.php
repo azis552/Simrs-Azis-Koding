@@ -16,7 +16,7 @@ class EklaimController extends Controller
         $this->eklaim = $eklaim;
     }
 
-    
+
 
     /**
      * Membuat klaim baru
@@ -122,12 +122,12 @@ class EklaimController extends Controller
     public function idrgDiagnosaSet(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'metadata.method' => 'required|string|in:idrg_diagnosa_set',
-            'metadata.nomor_sep' => 'required|string',
-            'data.diagnosa' => 'required|string',
+            'metadata.method' => 'nullable|string|in:idrg_diagnosa_set',
+            'metadata.nomor_sep' => 'nullable|string',
+            'data.diagnosa' => 'nullable|string',
         ]);
 
-        
+
 
         if ($validator->fails()) {
             return response()->json([
@@ -157,9 +157,9 @@ class EklaimController extends Controller
     {
         // ✅ Validasi nested JSON sesuai struktur e-Klaim
         $validator = Validator::make($request->all(), [
-            'metadata.method' => 'required|string|in:idrg_procedure_set',
-            'metadata.nomor_sep' => 'required|string',
-            'data.procedure' => 'required|string',
+            'metadata.method' => 'nullable|string|in:idrg_procedure_set',
+            'metadata.nomor_sep' => 'nullable|string',
+            'data.procedure' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -394,9 +394,9 @@ class EklaimController extends Controller
     {
         // ✅ Validasi nested JSON
         $validator = Validator::make($request->all(), [
-            'metadata.method' => 'required|string|in:inacbg_diagnosa_set',
-            'metadata.nomor_sep' => 'required|string',
-            'data.diagnosa' => 'required|string',
+            'metadata.method' => 'nullable|string|in:inacbg_diagnosa_set',
+            'metadata.nomor_sep' => 'nullable|string',
+            'data.diagnosa' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -427,9 +427,9 @@ class EklaimController extends Controller
     {
         // ✅ Validasi nested JSON
         $validator = Validator::make($request->all(), [
-            'metadata.method' => 'required|string|in:inacbg_procedure_set',
-            'metadata.nomor_sep' => 'required|string',
-            'data.procedure' => 'required|string',
+            'metadata.method' => 'nullable|string|in:inacbg_procedure_set',
+            'metadata.nomor_sep' => 'nullable|string',
+            'data.procedure' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -553,10 +553,10 @@ class EklaimController extends Controller
     {
         // ✅ Validasi nested JSON
         $validator = Validator::make($request->all(), [
-            'metadata.method' => 'required|string|in:grouper',
-            'metadata.stage' => 'required|string|in:2',
-            'metadata.grouper' => 'required|string|in:inacbg',
-            'data.nomor_sep' => 'required|string',
+            'metadata.method' => 'nullable|string|in:grouper',
+            'metadata.stage' => 'nullable|string|in:2',
+            'metadata.grouper' => 'nullable|string|in:inacbg',
+            'data.nomor_sep' => 'nullable|string',
             'data.special_cmg' => 'nullable|string',
         ]);
 
@@ -782,17 +782,21 @@ class EklaimController extends Controller
 
     $payload = $validator->validated();
 
-    // ✅ Kirim request ke e-Klaim
     $result = $this->eklaim->send(
-        $payload['metadata']['method'], 
-        $payload['data'], 
+        $payload['metadata']['method'],
+        $payload['data'],
         $payload['metadata']
     );
 
-    // Kalau hasilnya base64 PDF
-    if (isset($result['response']['file']) && !empty($result['response']['file'])) {
-        $pdfData = base64_decode($result['response']['file']);
+    // ✅ e-Klaim dev kadang return `data` bukan `response.file`
+    $base64Pdf = $result['response']['file']
+        ?? $result['data']
+        ?? null;
+
+    if ($base64Pdf) {
+        $pdfData = base64_decode($base64Pdf);
         $filename = 'claim_' . $payload['data']['nomor_sep'] . '.pdf';
+
         return response($pdfData)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
@@ -800,6 +804,7 @@ class EklaimController extends Controller
 
     return response()->json($result);
 }
+
 
 
 

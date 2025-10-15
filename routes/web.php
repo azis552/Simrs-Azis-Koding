@@ -48,6 +48,15 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/save-grouping-inacbg-stage1-log', [InacbgRanapController::class, 'saveGroupingStage1Log']);
     Route::post('/save-grouping-inacbg-stage2-log', [InacbgRanapController::class, 'saveGroupingStage2Log']);
 
+    Route::post('/save-final-inacbg-log', [InacbgRanapController::class, 'saveFinalInacbgLog']);
+    Route::post('/grouping-inacbg-reedit-final', [InacbgRanapController::class, 'reeditGroupingInacbg']);
+
+    Route::post('/save-claim-final-log', [InacbgRanapController::class, 'saveClaimFinalLog']);
+    Route::post('/reedit-claim', [InacbgRanapController::class, 'reeditClaim']);
+
+    Route::post('/log/claim-send/save', [InacbgRanapController::class, 'saveClaimSendLog']);
+
+
 
 });
 

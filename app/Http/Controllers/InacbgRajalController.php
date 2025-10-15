@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LogEklaimRanap;
 use App\Services\EklaimService;
-use Carbon\Carbon;
 use DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
-class InacbgRanapController extends Controller
+class InacbgRajalController extends Controller
 {
+    
     public function __construct(EklaimService $eklaim)
     {
         $this->eklaim = $eklaim;
@@ -107,7 +105,7 @@ class InacbgRanapController extends Controller
             ->where('jnspelayanan', '1')
             ->first();
 
-        $log = LogEklaimRanap::where('nomor_sep', $sep->no_sep)->first();
+        $log = LogEklaimRajal::where('nomor_sep', $sep->no_sep)->first();
 
 
 
@@ -413,7 +411,7 @@ class InacbgRanapController extends Controller
         $input = $request->all();
 
         // 🔹 Cek apakah log sudah pernah final IDRG
-        $logExisting = LogEklaimRanap::where('nomor_sep', $input['nomor_sep'] ?? null)->first();
+        $logExisting = LogEklaimRajal::where('nomor_sep', $input['nomor_sep'] ?? null)->first();
         if ($logExisting && $logExisting->status === 'proses final idrg') {
             // Tetap kembali ke halaman show tanpa melakukan simpan/update
             $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
@@ -430,7 +428,7 @@ class InacbgRanapController extends Controller
         }
 
         // 🔹 Simpan atau update log klaim
-        $log = LogEklaimRanap::updateOrCreate(
+        $log = LogEklaimRajal::updateOrCreate(
             ['nomor_sep' => $input['nomor_sep']],
             [
                 'nomor_kartu' => $input['nomor_kartu'] ?? null,
@@ -530,7 +528,7 @@ class InacbgRanapController extends Controller
         $response = $this->eklaim->send('delete_claim', $data);
 
         // Hapus log berdasarkan nomor rawat
-        LogEklaimRanap::where('nomor_sep', $request->nomor_sep)->delete();
+        LogEklaimRajal::where('nomor_sep', $request->nomor_sep)->delete();
 
         // Cek hasil respons dari e-Klaim
         $status = $response['metadata']['code'] ?? null;
@@ -857,18 +855,6 @@ class InacbgRanapController extends Controller
                 : 'Gagal menyimpan log Kirim Claim Individual.'
         ]);
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

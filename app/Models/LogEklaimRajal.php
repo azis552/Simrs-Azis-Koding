@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LogEklaimRanap extends Model
+class LogEklaimRajal extends Model
 {
     use HasFactory;
-   protected $table = 'log_eklaim_ranap';
+   protected $table = 'log_eklaim_rajal';
 
     protected $fillable = [
         'nomor_sep',
