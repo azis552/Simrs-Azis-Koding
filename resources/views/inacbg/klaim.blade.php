@@ -123,15 +123,18 @@
                                                 @if ($isReadonly)
                                                     <script>
                                                         document.addEventListener('DOMContentLoaded', function() {
-                                                            document.querySelectorAll('#form-claim input, #form-claim select, #form-claim textarea').forEach(
-                                                                function(el) {
-                                                                    el.setAttribute('readonly', true);
-                                                                    el.setAttribute('disabled', true); // supaya select juga tidak bisa diubah
+                                                            document.querySelectorAll('#form-claim input, #form-claim select, #form-claim textarea')
+                                                                .forEach(function(el) {
+                                                                    if (el.tagName === 'SELECT') {
+                                                                        el.setAttribute('disabled', true);
+                                                                    } else {
+                                                                        el.setAttribute('readonly', true);
+                                                                    }
                                                                 });
                                                         });
                                                     </script>
                                                 @endif
-                                                <form action="{{ route('inacbg-ranap.store') }}" id="form-claim"
+                                                <form action="{{ route('inacbg-rajal.store') }}" id="form-claim"
                                                     method="POST">
                                                     @csrf
                                                     <input type="hidden" name="no_rawat" value="{{ $pasien->no_rawat }}">
@@ -171,10 +174,10 @@
                                                             // ambil data dari log jika ada, kalau tidak ambil dari pasien
                                                             $tglMasuk =
                                                                 $log->tgl_masuk ??
-                                                                $pasien->tgl_masuk . ' ' . $pasien->jam_masuk;
+                                                                $pasien->tgl_registrasi . ' ' . $pasien->jam_reg;
                                                             $tglPulang =
                                                                 $log->tgl_pulang ??
-                                                                $pasien->tgl_keluar . ' ' . $pasien->jam_keluar;
+                                                                $pasien->tgl_registrasi . ' ' . $pasien->jam_reg;
 
                                                             // tentukan apakah semua field form perlu readonly
                                                             $isReadonly =
@@ -203,22 +206,44 @@
                                                         @endphp
                                                         <div class="col-md-4">
                                                             <label>Cara Masuk</label>
+                                                            @php
+                                                                // Tentukan asal rujukan berdasar logika data
+                                                                $cara_masuk = match ($asalRujukan ?? '') {
+                                                                    'gp', '1. Faskes 1' => 'gp',
+                                                                    'hosp-trans', '2. Faskes 2(RS)' => 'hosp-trans',
+                                                                    'mp' => 'mp',
+                                                                    'outp' => 'outp',
+                                                                    'emd' => 'emd',
+                                                                    'born' => 'born',
+                                                                    'other' => 'other',
+                                                                    default => '',
+                                                                };
+                                                            @endphp
+
                                                             <select name="cara_masuk" class="form-control">
                                                                 <option value="gp"
-                                                                    {{ $asalRujukan == 'gp' || $asalRujukan == '1. Faskes 1' ? 'selected' : '' }}>
-                                                                    Rujukan FKTP
-                                                                </option>
-
+                                                                    {{ $cara_masuk == 'gp' ? 'selected' : '' }}>Rujukan
+                                                                    FKTP</option>
                                                                 <option value="hosp-trans"
-                                                                    {{ $asalRujukan == 'hosp-trans' || $asalRujukan == '2. Faskes 2(RS)' ? 'selected' : '' }}>
-                                                                    Rujukan FKRTL
+                                                                    {{ $cara_masuk == 'hosp-trans' ? 'selected' : '' }}>
+                                                                    Rujukan FKRTL</option>
+                                                                <option value="mp"
+                                                                    {{ $cara_masuk == 'mp' ? 'selected' : '' }}>Rujukan
+                                                                    Spesialis</option>
+                                                                <option value="outp"
+                                                                    {{ $cara_masuk == 'outp' ? 'selected' : '' }}>Dari
+                                                                    Rawat Jalan</option>
+                                                                <option value="emd"
+                                                                    {{ $cara_masuk == 'emd' ? 'selected' : '' }}>Dari IGD
                                                                 </option>
-                                                                <option value="mp">Rujukan Spesialis</option>
-                                                                <option value="outp">Dari Rawat Jalan</option>
-                                                                <option value="emd">Dari IGD</option>
-                                                                <option value="born">Lahir di RS</option>
-                                                                <option value="other">Lain-lain</option>
+                                                                <option value="born"
+                                                                    {{ $cara_masuk == 'born' ? 'selected' : '' }}>Lahir di
+                                                                    RS</option>
+                                                                <option value="other"
+                                                                    {{ $cara_masuk == 'other' ? 'selected' : '' }}>
+                                                                    Lain-lain</option>
                                                             </select>
+
                                                         </div>
                                                     </div>
 
@@ -227,53 +252,75 @@
                                                     <div class="row">
                                                         <div class="col-md-4">
                                                             <label>Jenis Rawat</label>
+                                                            @php
+                                                                // Ambil nilai jenis rawat: pakai dari log kalau ada, kalau tidak dari SEP
+                                                                $jenis_rawat =
+                                                                    $log->jenis_rawat ?? ($sep->jnspelayanan ?? '');
+                                                            @endphp
+
                                                             <select name="jenis_rawat" class="form-control">
                                                                 <option value="1"
-                                                                    {{ @$log->jenis_rawat || @$sep->jnspelayanan == '1' ? 'selected' : '' }}>
-                                                                    Rawat
-                                                                    Inap</option>
+                                                                    {{ $jenis_rawat == '1' ? 'selected' : '' }}>Rawat Inap
+                                                                </option>
                                                                 <option value="2"
-                                                                    {{ @$log->jenis_rawat || @$sep->jnspelayanan == '2' ? 'selected' : '' }}>
-                                                                    Rawat
-                                                                    Jalan</option>
+                                                                    {{ $jenis_rawat == '2' ? 'selected' : '' }}>Rawat Jalan
+                                                                </option>
                                                             </select>
+
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Kelas Rawat</label>
+                                                            @php
+                                                                $kelas_rawat =
+                                                                    $log->kelas_rawat ?? ($sep->klsrawat ?? '');
+                                                            @endphp
+
                                                             <select name="kelas_rawat" class="form-control">
                                                                 <option value="1"
-                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '1' ? 'selected' : '' }}>
-                                                                    Kelas 1
+                                                                    {{ $kelas_rawat == '1' ? 'selected' : '' }}>Kelas 1
                                                                 </option>
                                                                 <option value="2"
-                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '2' ? 'selected' : '' }}>
-                                                                    Kelas 2
+                                                                    {{ $kelas_rawat == '2' ? 'selected' : '' }}>Kelas 2
                                                                 </option>
                                                                 <option value="3"
-                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '3' ? 'selected' : '' }}>
-                                                                    Kelas 3
+                                                                    {{ $kelas_rawat == '3' ? 'selected' : '' }}>Kelas 3
                                                                 </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Status Pulang</label>
+                                                            @php
+                                                                // Ambil nilai discharge status: prioritas dari log, jika tidak ada gunakan data pasien
+                                                                $discharge_status =
+                                                                    $log->discharge_status ??
+                                                                    match ($pasien->cara_pulang ?? '') {
+                                                                        'Atas Persetujuan Dokter' => '1',
+                                                                        'Rujuk' => '2',
+                                                                        'Atas Permintaan Sendiri' => '3',
+                                                                        'Meninggal' => '4',
+                                                                        'Lain-lain' => '5',
+                                                                        default => '',
+                                                                    };
+                                                            @endphp
+
                                                             <select name="discharge_status" class="form-control">
                                                                 <option value="1"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Atas Persetujuan Dokter' ? 'selected' : '' }}>
-                                                                    Atas Persetujuan Dokter</option>
+                                                                    {{ $discharge_status == '1' ? 'selected' : '' }}>Atas
+                                                                    Persetujuan Dokter</option>
                                                                 <option value="2"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Rujuk' ? 'selected' : '' }}>
+                                                                    {{ $discharge_status == '2' ? 'selected' : '' }}>
                                                                     Dirujuk</option>
                                                                 <option value="3"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Atas Permintaan Sendiri' ? 'selected' : '' }}>
-                                                                    Atas Permintaan Sendiri</option>
+                                                                    {{ $discharge_status == '3' ? 'selected' : '' }}>Atas
+                                                                    Permintaan Sendiri</option>
                                                                 <option value="4"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Meninggal' ? 'selected' : '' }}>
+                                                                    {{ $discharge_status == '4' ? 'selected' : '' }}>
                                                                     Meninggal</option>
                                                                 <option value="5"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Lain-lain' ? 'selected' : '' }}>
+                                                                    {{ $discharge_status == '5' ? 'selected' : '' }}>
                                                                     Lain-lain</option>
                                                             </select>
+
                                                         </div>
                                                     </div>
 
@@ -849,10 +896,11 @@
                                                         <div class="alert alert-success">
                                                             <b>Final IDRG</b>
                                                         </div>
-
-                                                        <button id="btnReeditIdrg" class="btn btn-warning">
-                                                            ✎ Re-edit iDRG
-                                                        </button>
+                                                        @if (empty($log->response_send_claim_individual))
+                                                            <button id="btnReeditIdrg" class="btn btn-warning">
+                                                                ✎ Re-edit iDRG
+                                                            </button>
+                                                        @endif
                                                     @endif
                                                 </div>
 
@@ -977,10 +1025,13 @@
                                                                             </button>
                                                                         @endif
                                                                         @if (!empty($log->response_claim_final))
-                                                                            <button id="btnReeditClaim"
-                                                                                class="btn btn-warning">
-                                                                                <i class="fa fa-refresh"></i> Re-edit Claim
-                                                                            </button>
+                                                                            @if (empty($log->response_send_claim_individual))
+                                                                                <button id="btnReeditClaim"
+                                                                                    class="btn btn-warning">
+                                                                                    <i class="fa fa-refresh"></i> Re-edit
+                                                                                    Claim
+                                                                                </button>
+                                                                            @endif
                                                                             <!-- Tombol kirim klaim -->
                                                                             <button id="btnSendClaim"
                                                                                 class="btn btn-success"
@@ -1801,6 +1852,14 @@
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Memproses Grouping IDRG...',
+                            text: 'Mohon tunggu sebentar',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                    },
                     success: function(response) {
                         console.log(response);
 
@@ -2049,7 +2108,7 @@
                         <td>${d.desc}</td>
                         ${!isDiagnosa
                             ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                                                                                                                                                                                                                                                                                                            data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
+                                                                                                                                                                                                                                                                                                                                                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
                         }
                         <td>${d.status}</td>
                         <td>

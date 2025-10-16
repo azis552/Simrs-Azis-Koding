@@ -98,12 +98,7 @@
                                             @if (@$log->status == 'proses final idrg')
                                                 <li class="nav-item">
                                                     <a class="nav-link {{ @$log->status == 'proses final idrg' ? 'active' : 'hidden' }}"
-                                                        data-bs-toggle="tab" href="#inacbgimport" role="tab">Import
-                                                        INA-CBG</a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-bs-toggle="tab" href="#inacbg"
-                                                        role="tab">Data
+                                                        data-bs-toggle="tab" href="#inacbgimport" role="tab">
                                                         INA-CBG</a>
                                                 </li>
                                             @endif
@@ -123,15 +118,18 @@
                                                 @if ($isReadonly)
                                                     <script>
                                                         document.addEventListener('DOMContentLoaded', function() {
-                                                            document.querySelectorAll('#form-claim input, #form-claim select, #form-claim textarea').forEach(
-                                                                function(el) {
-                                                                    el.setAttribute('readonly', true);
-                                                                    el.setAttribute('disabled', true); // supaya select juga tidak bisa diubah
+                                                            document.querySelectorAll('#form-claim input, #form-claim select, #form-claim textarea')
+                                                                .forEach(function(el) {
+                                                                    if (el.tagName === 'SELECT') {
+                                                                        el.setAttribute('disabled', true);
+                                                                    } else {
+                                                                        el.setAttribute('readonly', true);
+                                                                    }
                                                                 });
                                                         });
                                                     </script>
                                                 @endif
-                                                <form action="{{ route('inacbg-ranap.store') }}" id="form-claim"
+                                                <form action="{{ route('inacbg-rajal.store') }}" id="form-claim"
                                                     method="POST">
                                                     @csrf
                                                     <input type="hidden" name="no_rawat" value="{{ $pasien->no_rawat }}">
@@ -171,10 +169,10 @@
                                                             // ambil data dari log jika ada, kalau tidak ambil dari pasien
                                                             $tglMasuk =
                                                                 $log->tgl_masuk ??
-                                                                $pasien->tgl_masuk . ' ' . $pasien->jam_masuk;
+                                                                $pasien->tgl_registrasi . ' ' . $pasien->jam_reg;
                                                             $tglPulang =
                                                                 $log->tgl_pulang ??
-                                                                $pasien->tgl_keluar . ' ' . $pasien->jam_keluar;
+                                                                $pasien->tgl_registrasi . ' ' . $pasien->jam_reg;
 
                                                             // tentukan apakah semua field form perlu readonly
                                                             $isReadonly =
@@ -203,22 +201,44 @@
                                                         @endphp
                                                         <div class="col-md-4">
                                                             <label>Cara Masuk</label>
+                                                            @php
+                                                                // Tentukan asal rujukan berdasar logika data
+                                                                $cara_masuk = match ($asalRujukan ?? '') {
+                                                                    'gp', '1. Faskes 1' => 'gp',
+                                                                    'hosp-trans', '2. Faskes 2(RS)' => 'hosp-trans',
+                                                                    'mp' => 'mp',
+                                                                    'outp' => 'outp',
+                                                                    'emd' => 'emd',
+                                                                    'born' => 'born',
+                                                                    'other' => 'other',
+                                                                    default => '',
+                                                                };
+                                                            @endphp
+
                                                             <select name="cara_masuk" class="form-control">
                                                                 <option value="gp"
-                                                                    {{ $asalRujukan == 'gp' || $asalRujukan == '1. Faskes 1' ? 'selected' : '' }}>
-                                                                    Rujukan FKTP
-                                                                </option>
-
+                                                                    {{ $cara_masuk == 'gp' ? 'selected' : '' }}>Rujukan
+                                                                    FKTP</option>
                                                                 <option value="hosp-trans"
-                                                                    {{ $asalRujukan == 'hosp-trans' || $asalRujukan == '2. Faskes 2(RS)' ? 'selected' : '' }}>
-                                                                    Rujukan FKRTL
+                                                                    {{ $cara_masuk == 'hosp-trans' ? 'selected' : '' }}>
+                                                                    Rujukan FKRTL</option>
+                                                                <option value="mp"
+                                                                    {{ $cara_masuk == 'mp' ? 'selected' : '' }}>Rujukan
+                                                                    Spesialis</option>
+                                                                <option value="outp"
+                                                                    {{ $cara_masuk == 'outp' ? 'selected' : '' }}>Dari
+                                                                    Rawat Jalan</option>
+                                                                <option value="emd"
+                                                                    {{ $cara_masuk == 'emd' ? 'selected' : '' }}>Dari IGD
                                                                 </option>
-                                                                <option value="mp">Rujukan Spesialis</option>
-                                                                <option value="outp">Dari Rawat Jalan</option>
-                                                                <option value="emd">Dari IGD</option>
-                                                                <option value="born">Lahir di RS</option>
-                                                                <option value="other">Lain-lain</option>
+                                                                <option value="born"
+                                                                    {{ $cara_masuk == 'born' ? 'selected' : '' }}>Lahir di
+                                                                    RS</option>
+                                                                <option value="other"
+                                                                    {{ $cara_masuk == 'other' ? 'selected' : '' }}>
+                                                                    Lain-lain</option>
                                                             </select>
+
                                                         </div>
                                                     </div>
 
@@ -227,53 +247,76 @@
                                                     <div class="row">
                                                         <div class="col-md-4">
                                                             <label>Jenis Rawat</label>
+                                                            @php
+                                                                // Ambil nilai jenis rawat: pakai dari log kalau ada, kalau tidak dari SEP
+                                                                $jenis_rawat =
+                                                                    $log->jenis_rawat ?? ($sep->jnspelayanan ?? '');
+                                                            @endphp
+
                                                             <select name="jenis_rawat" class="form-control">
                                                                 <option value="1"
-                                                                    {{ @$log->jenis_rawat || @$sep->jnspelayanan == '1' ? 'selected' : '' }}>
-                                                                    Rawat
-                                                                    Inap</option>
+                                                                    {{ $jenis_rawat == '1' ? 'selected' : '' }}>Rawat Inap
+                                                                </option>
                                                                 <option value="2"
-                                                                    {{ @$log->jenis_rawat || @$sep->jnspelayanan == '2' ? 'selected' : '' }}>
-                                                                    Rawat
-                                                                    Jalan</option>
+                                                                    {{ $jenis_rawat == '2' ? 'selected' : '' }}>Rawat Jalan
+                                                                </option>
                                                             </select>
+
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Kelas Rawat</label>
-                                                            <select name="kelas_rawat" class="form-control">
+                                                            @php
+                                                                $kelas_rawat =
+                                                                    $log->kelas_rawat ?? ($sep->klsrawat ?? '');
+                                                            @endphp
+
+                                                            <select name="kelas_rawat" class="form-control"
+                                                                >
                                                                 <option value="1"
-                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '1' ? 'selected' : '' }}>
-                                                                    Kelas 1
+                                                                    {{ $kelas_rawat == '1' ? 'selected' : '' }}>Kelas 1
                                                                 </option>
                                                                 <option value="2"
-                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '2' ? 'selected' : '' }}>
-                                                                    Kelas 2
+                                                                    {{ $kelas_rawat == '2' ? 'selected' : '' }}>Kelas 2
                                                                 </option>
                                                                 <option value="3"
-                                                                    {{ @$log->kelas_rawat || @$sep->klsrawat == '3' ? 'selected' : '' }}>
-                                                                    Kelas 3
+                                                                    {{ $kelas_rawat == '3' ? 'selected' : '' }}>Kelas 3
                                                                 </option>
                                                             </select>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <label>Status Pulang</label>
+                                                            @php
+                                                                // Ambil nilai discharge status: prioritas dari log, jika tidak ada gunakan data pasien
+                                                                $discharge_status =
+                                                                    $log->discharge_status ??
+                                                                    match ($pasien->cara_pulang ?? '') {
+                                                                        'Atas Persetujuan Dokter' => '1',
+                                                                        'Rujuk' => '2',
+                                                                        'Atas Permintaan Sendiri' => '3',
+                                                                        'Meninggal' => '4',
+                                                                        'Lain-lain' => '5',
+                                                                        default => '',
+                                                                    };
+                                                            @endphp
+
                                                             <select name="discharge_status" class="form-control">
                                                                 <option value="1"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Atas Persetujuan Dokter' ? 'selected' : '' }}>
-                                                                    Atas Persetujuan Dokter</option>
+                                                                    {{ $discharge_status == '1' ? 'selected' : '' }}>Atas
+                                                                    Persetujuan Dokter</option>
                                                                 <option value="2"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Rujuk' ? 'selected' : '' }}>
+                                                                    {{ $discharge_status == '2' ? 'selected' : '' }}>
                                                                     Dirujuk</option>
                                                                 <option value="3"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Atas Permintaan Sendiri' ? 'selected' : '' }}>
-                                                                    Atas Permintaan Sendiri</option>
+                                                                    {{ $discharge_status == '3' ? 'selected' : '' }}>Atas
+                                                                    Permintaan Sendiri</option>
                                                                 <option value="4"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Meninggal' ? 'selected' : '' }}>
+                                                                    {{ $discharge_status == '4' ? 'selected' : '' }}>
                                                                     Meninggal</option>
                                                                 <option value="5"
-                                                                    {{ @$log->discharge_status || $pasien->cara_pulang == 'Lain-lain' ? 'selected' : '' }}>
+                                                                    {{ $discharge_status == '5' ? 'selected' : '' }}>
                                                                     Lain-lain</option>
                                                             </select>
+
                                                         </div>
                                                     </div>
 
@@ -849,10 +892,12 @@
                                                         <div class="alert alert-success">
                                                             <b>Final IDRG</b>
                                                         </div>
-
-                                                        <button id="btnReeditIdrg" class="btn btn-warning">
+                                                        @if (empty($log->response_send_claim_individual ))
+                                                            <button id="btnReeditIdrg" class="btn btn-warning">
                                                             ✎ Re-edit iDRG
                                                         </button>
+                                                        @endif
+                                                        
                                                     @endif
                                                 </div>
 
@@ -961,7 +1006,6 @@
                                                                     $hasFinal = !empty($log->response_inacbg_final);
                                                                 @endphp
                                                                 @if ($hasFinal)
-                                                                    <p>{{ $log->response_claim_final }}</p>
 
                                                                     <div class="mt-3 text-center">
                                                                         @if (@$log->response_claim_final == null)
@@ -977,10 +1021,14 @@
                                                                             </button>
                                                                         @endif
                                                                         @if (!empty($log->response_claim_final))
+                                                                            @if (empty($log->response_send_claim_individual ))
+                                                                                
+                                                                            
                                                                             <button id="btnReeditClaim"
                                                                                 class="btn btn-warning">
                                                                                 <i class="fa fa-refresh"></i> Re-edit Claim
                                                                             </button>
+                                                                            @endif
                                                                             <!-- Tombol kirim klaim -->
                                                                             <button id="btnSendClaim"
                                                                                 class="btn btn-success"
@@ -1024,9 +1072,6 @@
 
 
 
-                                            </div>
-                                            <div class="tab-pane fade" id="inacbg" role="tabpanel">
-                                                <p>Data INA-CBG dan hasil grouping.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1292,7 +1337,7 @@
 
                             // ✅ Simpan hasil ke log
                             $.ajax({
-                                url: '/save-claim-final-log',
+                                url: '/save-claim-final-log-rajal',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1337,9 +1382,7 @@
             });
         });
     </script>
-
     {{-- Re-edit Inacbg Final --}}
-
     <script>
         $('#btnReeditInacbg').on('click', function() {
             const nomor_sep = '{{ @$log->nomor_sep }}';
@@ -1349,7 +1392,7 @@
             $(this).prop('disabled', true).text('Memproses Re-edit...');
 
             $.ajax({
-                url: '/grouping-inacbg-reedit-final',
+                url: '/grouping-inacbg-reedit-final-rajal',
                 type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -1429,7 +1472,7 @@
 
                         // === 2. Simpan hasil ke log (save-final-inacbg-log) ===
                         $.ajax({
-                            url: '/save-final-inacbg-log', // <---- langsung pakai URL
+                            url: '/save-final-inacbg-log-rajal', // <---- langsung pakai URL
                             type: 'POST',
                             data: {
                                 _token: "{{ csrf_token() }}",
@@ -1525,7 +1568,7 @@
                                 .special_cmg_option || []);
 
                             // --- Simpan log stage 1 (full JSON) ---
-                            $.post('/save-grouping-inacbg-stage1-log', {
+                            $.post('/save-grouping-inacbg-stage1-log-rajal', {
                                 _token: '{{ csrf_token() }}',
                                 nomor_sep: nomor_sep,
                                 response_inacbg_stage1: JSON.stringify(response)
@@ -1654,7 +1697,7 @@
                             renderStage2Result(res.response_inacbg);
 
                             // --- Simpan log Stage 2 (full JSON) ---
-                            $.post('/save-grouping-inacbg-stage2-log', {
+                            $.post('/save-grouping-inacbg-stage2-log-rajal', {
                                 _token: '{{ csrf_token() }}',
                                 nomor_sep: nomor_sep,
                                 response_inacbg_stage2: JSON.stringify(res)
@@ -1685,7 +1728,7 @@
 
                 // Update log: hapus response_inacbg_stage2
                 $.ajax({
-                    url: '/save-grouping-inacbg-stage2-log',
+                    url: '/save-grouping-inacbg-stage2-log-rajal',
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
@@ -1708,6 +1751,8 @@
 
 
     {{-- end grouping inacbg --}}
+
+    {{-- Re-edit IDRG --}}
     <script>
         $(document).ready(function() {
             // Tombol Re-edit IDRG
@@ -1745,13 +1790,21 @@
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
+                        beforeSend: function() {
+                            Swal.fire({
+                                title: 'Memproses Re-edit...',
+                                text: 'Mohon tunggu sebentar',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                        },
                         success: function(response) {
                             console.log('Re-edit response:', response);
 
                             // 🔹 2. Jika sukses dari WS, hapus final IDRG di DB
                             if (response.metadata && response.metadata.code == 200) {
                                 $.ajax({
-                                    url: '/hapus-final-idrg',
+                                    url: '/hapus-final-idrg-rajal',
                                     type: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
@@ -1779,6 +1832,8 @@
             });
         });
     </script>
+
+    {{-- grouping idrg dan final --}}
     <script>
         $(document).ready(function() {
             $('#btnGroupingIdrg').click(function() {
@@ -1801,11 +1856,19 @@
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Memproses Grouping IDRG...',
+                            text: 'Mohon tunggu sebentar',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                    },
                     success: function(response) {
                         console.log(response);
 
                         $.ajax({
-                            url: '/save-grouping-idrg-log',
+                            url: '/save-grouping-idrg-log-rajal',
                             type: 'POST',
                             data: {
                                 _token: '{{ csrf_token() }}',
@@ -1882,7 +1945,7 @@
                         if (response.metadata && response.metadata.code === 200) {
                             // Simpan log ke database tanpa reload
                             $.ajax({
-                                url: '/save-final-idrg-log',
+                                url: '/save-final-idrg-log-rajal',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1936,6 +1999,8 @@
             });
         });
     </script>
+
+    {{-- diagnosa & prosedur idrg --}}
     <script>
         $(document).ready(function() {
 
@@ -2049,7 +2114,7 @@
                         <td>${d.desc}</td>
                         ${!isDiagnosa
                             ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                                                                                                                                                                                                                                                                                                            data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
+                                                                                                                                                                                                                                                                                                                                                    data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
                         }
                         <td>${d.status}</td>
                         <td>
@@ -2115,6 +2180,8 @@
             }
         });
     </script>
+
+    {{-- rupiah --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rupiahInputs = document.querySelectorAll('.rupiah');
@@ -2142,6 +2209,8 @@
             }
         });
     </script>
+
+    {{-- total semua tarif --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('.rupiah');
@@ -2186,6 +2255,8 @@
             });
         });
     </script>
+
+    {{-- simpan diagnosa & prosedur idrg --}}
     <script>
         $(document).ready(function() {
             let nomor_sep = "{{ @$log->nomor_sep }}";
@@ -2220,7 +2291,7 @@
                         let stringData = res.data;
                         // Kirim ke Laravel untuk update kolom diagnosa_idrg
                         $.ajax({
-                            url: '/idrg/update-log',
+                            url: '/idrg/update-log-rajal',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2276,7 +2347,7 @@
 
                         // Kirim ke Laravel untuk update kolom procedure_idrg
                         $.ajax({
-                            url: '/idrg/update-log',
+                            url: '/idrg/update-log-rajal',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2301,7 +2372,7 @@
             });
         });
     </script>
-
+    {{-- diagnosa & prosedur inacbg dan import --}}
     <script>
         $(document).ready(function() {
 
@@ -2611,7 +2682,7 @@
 
                             // === Simpan log hasil import ===
                             $.ajax({
-                                url: '/inacbg/import/save-log',
+                                url: '/inacbg/import/save-log-rajal',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -2671,7 +2742,7 @@
 
 
 
-
+    {{-- simpan diagnosa & prosedur inacbg --}}
     <script>
         $(document).ready(function() {
             let nomor_sep = "{{ @$log->nomor_sep }}";

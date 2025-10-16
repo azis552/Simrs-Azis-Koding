@@ -236,7 +236,7 @@
                 <div class="pcoded-navigatio-lavel" data-i18n="nav.category.other">INACBG</div>
                 <ul class="pcoded-item pcoded-left-item">
                     <li>
-                        <a href="index.html">
+                        <a href="{{ route('inacbg-rajal.index') }}">
                             <span class="pcoded-micon"><i class="ti-home"></i><b>D</b></span>
                             <span class="pcoded-mtext" data-i18n="nav.dash.main">Rawat Jalan</span>
                             <span class="pcoded-mcaret"></span>
