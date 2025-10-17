@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\EklaimService;
+use App\Services\Eklaimservice;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class EklaimController extends Controller
 {
-    protected EklaimService $eklaim;
+    protected Eklaimservice $eklaim;
 
-    public function __construct(EklaimService $eklaim)
+    public function __construct(Eklaimservice $eklaim)
     {
         $this->eklaim = $eklaim;
     }

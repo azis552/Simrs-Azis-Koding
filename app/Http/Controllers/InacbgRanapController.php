@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LogEklaimRanap;
-use App\Services\EklaimService;
+use App\Services\Eklaimservice;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Database\QueryException;
@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class InacbgRanapController extends Controller
 {
-    public function __construct(EklaimService $eklaim)
+    public function __construct(Eklaimservice $eklaim)
     {
         $this->eklaim = $eklaim;
     }
@@ -87,7 +87,7 @@ class InacbgRanapController extends Controller
             ->orderByRaw($order)
             ->paginate(10)
             ->withQueryString();
-
+            
 
         return view('inacbg.ranap', compact('data'));
 
@@ -744,7 +744,7 @@ class InacbgRanapController extends Controller
         ];
 
         try {
-            $result = app(\App\Services\EklaimService::class)
+            $result = app(\App\Services\Eklaimservice::class)
                 ->send('inacbg_grouper_reedit', $payload['data'], $payload['metadata']);
 
             return response()->json([
@@ -820,7 +820,7 @@ class InacbgRanapController extends Controller
         ];
 
         try {
-            $result = app(\App\Services\EklaimService::class)
+            $result = app(\App\Services\Eklaimservice::class)
                 ->send('reedit_claim', $payload['data'], $payload['metadata']);
 
             return response()->json([

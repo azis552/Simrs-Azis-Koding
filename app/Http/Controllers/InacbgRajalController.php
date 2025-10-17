@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LogEklaimRajal;
-use App\Services\EklaimService;
+use App\Services\Eklaimservice;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class InacbgRajalController extends Controller
 {
 
-    public function __construct(EklaimService $eklaim)
+    public function __construct(Eklaimservice $eklaim)
     {
         $this->eklaim = $eklaim;
     }
@@ -523,7 +523,6 @@ class InacbgRajalController extends Controller
         $simpan = DB::table('log_eklaim_rajal')
             ->where('nomor_sep', $nomor_sep)
             ->update([$field => $value]);
-            dd($simpan);
         return response()->json(['status' => 'ok', 'updated_field' => $field]);
     }
     public function saveGroupingIdrgLog(Request $request)
@@ -713,7 +712,7 @@ class InacbgRajalController extends Controller
         ];
 
         try {
-            $result = app(\App\Services\EklaimService::class)
+            $result = app(\App\Services\Eklaimservice::class)
                 ->send('inacbg_grouper_reedit', $payload['data'], $payload['metadata']);
 
             return response()->json([
@@ -789,7 +788,7 @@ class InacbgRajalController extends Controller
         ];
 
         try {
-            $result = app(\App\Services\EklaimService::class)
+            $result = app(\App\Services\Eklaimservice::class)
                 ->send('reedit_claim', $payload['data'], $payload['metadata']);
 
             return response()->json([

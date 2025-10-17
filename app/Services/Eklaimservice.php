@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 
-class EklaimService
+class Eklaimservice
 {
     protected $host;
     protected $key; // hex string dari setup e-Klaim

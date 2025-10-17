@@ -1102,7 +1102,7 @@
 
             // Kirim request ke backend
             $.ajax({
-                url: '/api/eklaim/claim-print',
+                url: '{{url("")}}/api/eklaim/claim-print',
                 method: 'POST',
                 xhrFields: {
                     responseType: 'blob' // penting untuk PDF!
@@ -1159,7 +1159,7 @@
 
                     // === Kirim ke e-Klaim ===
                     $.ajax({
-                        url: '/api/eklaim/claim-send',
+                        url: '{{url("")}}/api/eklaim/claim-send',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -1186,7 +1186,7 @@
 
                             // === Simpan Log ke Database ===
                             $.ajax({
-                                url: '/log/claim-send/save',
+                                url: '{{url("")}}/log/claim-send/save',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1253,7 +1253,7 @@
             if (!confirm('Yakin ingin melakukan re-edit claim untuk SEP ini?')) return;
 
             $.ajax({
-                url: '/reedit-claim',
+                url: '{{url("")}}/reedit-claim',
                 type: 'POST',
                 data: {
 
@@ -1296,7 +1296,7 @@
                     btn.prop('disabled', true);
 
                     $.ajax({
-                        url: '/api/eklaim/claim-final',
+                        url: '{{url("")}}/api/eklaim/claim-final',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -1337,7 +1337,7 @@
 
                             // ✅ Simpan hasil ke log
                             $.ajax({
-                                url: '/save-claim-final-log-rajal',
+                                url: '{{url("")}}/save-claim-final-log-rajal',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1392,7 +1392,7 @@
             $(this).prop('disabled', true).text('Memproses Re-edit...');
 
             $.ajax({
-                url: '/grouping-inacbg-reedit-final-rajal',
+                url: '{{url("")}}/grouping-inacbg-reedit-final-rajal',
                 type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -1453,7 +1453,7 @@
 
                 // === 1. Kirim ke e-Klaim (final-inacbg) ===
                 $.ajax({
-                    url: '/api/eklaim/final-inacbg', // <---- langsung pakai URL
+                    url: '{{url("")}}/api/eklaim/final-inacbg', // <---- langsung pakai URL
                     type: 'POST',
                     data: {
                         _token: "{{ csrf_token() }}",
@@ -1472,7 +1472,7 @@
 
                         // === 2. Simpan hasil ke log (save-final-inacbg-log) ===
                         $.ajax({
-                            url: '/save-final-inacbg-log-rajal', // <---- langsung pakai URL
+                            url: '{{url("")}}/save-final-inacbg-log-rajal', // <---- langsung pakai URL
                             type: 'POST',
                             data: {
                                 _token: "{{ csrf_token() }}",
@@ -1543,7 +1543,7 @@
                 $(this).prop('disabled', true).text('Processing...');
 
                 $.ajax({
-                    url: '/api/eklaim/grouping-inacbg-stage-1',
+                    url: '{{url("")}}/api/eklaim/grouping-inacbg-stage-1',
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1568,7 +1568,7 @@
                                 .special_cmg_option || []);
 
                             // --- Simpan log stage 1 (full JSON) ---
-                            $.post('/save-grouping-inacbg-stage1-log-rajal', {
+                            $.post('{{ url("") }}/save-grouping-inacbg-stage1-log-rajal', {
                                 _token: '{{ csrf_token() }}',
                                 nomor_sep: nomor_sep,
                                 response_inacbg_stage1: JSON.stringify(response)
@@ -1674,7 +1674,7 @@
                 $('#stage2Result').html('<div class="text-muted">Memproses Stage 2...</div>');
 
                 $.ajax({
-                    url: '/api/eklaim/grouping-inacbg-stage-2',
+                    url: '{{url("")}}/api/eklaim/grouping-inacbg-stage-2',
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1697,7 +1697,7 @@
                             renderStage2Result(res.response_inacbg);
 
                             // --- Simpan log Stage 2 (full JSON) ---
-                            $.post('/save-grouping-inacbg-stage2-log-rajal', {
+                            $.post('{{ url("") }}/save-grouping-inacbg-stage2-log-rajal', {
                                 _token: '{{ csrf_token() }}',
                                 nomor_sep: nomor_sep,
                                 response_inacbg_stage2: JSON.stringify(res)
@@ -1728,7 +1728,7 @@
 
                 // Update log: hapus response_inacbg_stage2
                 $.ajax({
-                    url: '/save-grouping-inacbg-stage2-log-rajal',
+                    url: '{{url("")}}/save-grouping-inacbg-stage2-log-rajal',
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
@@ -1776,7 +1776,7 @@
 
                     // 🔹 1. Panggil endpoint idrg_grouper_reedit
                     $.ajax({
-                        url: '/idrg-grouper-reedit',
+                        url: '{{url("")}}/idrg-grouper-reedit',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -1804,7 +1804,7 @@
                             // 🔹 2. Jika sukses dari WS, hapus final IDRG di DB
                             if (response.metadata && response.metadata.code == 200) {
                                 $.ajax({
-                                    url: '/hapus-final-idrg-rajal',
+                                    url: '{{url("")}}/hapus-final-idrg-rajal',
                                     type: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
@@ -1840,7 +1840,7 @@
                 let nomor_sep = '{{ @$log->nomor_sep ?? '' }}';
 
                 $.ajax({
-                    url: '/grouping-idrg',
+                    url: '{{url("")}}/grouping-idrg',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -1868,7 +1868,7 @@
                         console.log(response);
 
                         $.ajax({
-                            url: '/save-grouping-idrg-log-rajal',
+                            url: '{{url("")}}/save-grouping-idrg-log-rajal',
                             type: 'POST',
                             data: {
                                 _token: '{{ csrf_token() }}',
@@ -1917,7 +1917,7 @@
                 }
 
                 $.ajax({
-                    url: '/final-idrg',
+                    url: '{{url("")}}/final-idrg',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -1945,7 +1945,7 @@
                         if (response.metadata && response.metadata.code === 200) {
                             // Simpan log ke database tanpa reload
                             $.ajax({
-                                url: '/save-final-idrg-log-rajal',
+                                url: '{{url("")}}/save-final-idrg-log-rajal',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -2009,8 +2009,8 @@
             window.prosedurList = [];
 
             // ---------- Inisialisasi Select2 ----------
-            initSelect2('#diagnosa_idrg', '/api/icd10', 'tabel_diagnosa', true);
-            initSelect2('#prosedur_idrg', '/api/icd9', 'tabel_prosedur', false);
+            initSelect2('#diagnosa_idrg', "{{ url('/api/icd10') }}", 'tabel_diagnosa', true);
+            initSelect2('#prosedur_idrg', "{{ url('/api/icd9')}}", 'tabel_prosedur', false);
 
             // ---------- FUNGSI UTAMA ----------
             function initSelect2(selector, url, tableId, isDiagnosa) {
@@ -2280,7 +2280,7 @@
                 };
 
                 $.ajax({
-                    url: '/api/eklaim/idrg-diagnosa-set',
+                    url: '{{url("")}}/api/eklaim/idrg-diagnosa-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2291,7 +2291,7 @@
                         let stringData = res.data;
                         // Kirim ke Laravel untuk update kolom diagnosa_idrg
                         $.ajax({
-                            url: '/idrg/update-log-rajal',
+                            url: '{{url("")}}/idrg/update-log-rajal',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2335,7 +2335,7 @@
                     }
                 };
                 $.ajax({
-                    url: '/api/eklaim/idrg-procedure-set',
+                    url: '{{url("")}}/api/eklaim/idrg-procedure-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2347,7 +2347,7 @@
 
                         // Kirim ke Laravel untuk update kolom procedure_idrg
                         $.ajax({
-                            url: '/idrg/update-log-rajal',
+                            url: '{{url("")}}/idrg/update-log-rajal',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2388,8 +2388,8 @@
             }
 
             // ---------- Inisialisasi Select2 ----------
-            initSelect2('#diagnosa_inacbg', '/api/icd10', 'tabel_diagnosa_inacbg', true);
-            initSelect2('#prosedur_inacbg', '/api/icd9', 'tabel_prosedur_inacbg', false);
+            initSelect2('#diagnosa_inacbg', '{{ url('') }}/api/icd10', 'tabel_diagnosa_inacbg', true);
+            initSelect2('#prosedur_inacbg', '{{ url('') }}/api/icd9', 'tabel_prosedur_inacbg', false);
 
             // ---------- Fungsi Select2 ----------
             function initSelect2(selector, url, tableId, isDiagnosa) {
@@ -2646,7 +2646,7 @@
                     }
 
                     $.ajax({
-                        url: '/api/eklaim/idrg-to-inacbg-import',
+                        url: '{{url("")}}/api/eklaim/idrg-to-inacbg-import',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -2682,7 +2682,7 @@
 
                             // === Simpan log hasil import ===
                             $.ajax({
-                                url: '/inacbg/import/save-log-rajal',
+                                url: '{{url("")}}/inacbg/import/save-log-rajal',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -2767,7 +2767,7 @@
                 };
 
                 $.ajax({
-                    url: '/api/eklaim/inacbg-diagnosa-set',
+                    url: '{{url("")}}/api/eklaim/inacbg-diagnosa-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2779,7 +2779,7 @@
 
                         // Kirim ke Laravel untuk update log
                         $.ajax({
-                            url: '/idrg/update-log',
+                            url: '{{url("")}}/idrg/update-log',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2824,7 +2824,7 @@
                 };
 
                 $.ajax({
-                    url: '/api/eklaim/inacbg-procedure-set',
+                    url: '{{url("")}}/api/eklaim/inacbg-procedure-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2834,7 +2834,7 @@
                         let stringData = res.data;
 
                         $.ajax({
-                            url: '/idrg/update-log',
+                            url: '{{url("")}}/idrg/update-log',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
