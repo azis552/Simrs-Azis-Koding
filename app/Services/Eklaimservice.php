@@ -100,11 +100,12 @@ class Eklaimservice
         // ===============================
         if ($this->debug) {
             $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
-
+$timestamp = \Carbon\Carbon::now('Asia/Jakarta')->timestamp;
             $response = Http::withoutRedirecting()
                 ->withHeaders([
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
+'X-timestamp' => $timestamp,
                 ])
                 ->withOptions([
                     'verify' => false, // skip SSL verification (untuk lokal)
