@@ -64,6 +64,7 @@ class InacbgRanapController extends Controller
             ->whereNotNull('kamar_inap.tgl_keluar') // sudah keluar
             ->where('kamar_inap.tgl_keluar', '<>', '0000-00-00') // bukan nol
             ->where('kamar_inap.stts_pulang', '<>', '') // status tidak kosong
+            ->where('kamar_inap.stts_pulang', '<>', 'Pindah Kamar') // status tidak 0
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('kamar_inap.no_rawat', 'like', "%{$search}%")

@@ -101,11 +101,7 @@
                                                         data-bs-toggle="tab" href="#inacbgimport" role="tab">Import
                                                         INA-CBG</a>
                                                 </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" data-bs-toggle="tab" href="#inacbg"
-                                                        role="tab">Data
-                                                        INA-CBG</a>
-                                                </li>
+                                                
                                             @endif
 
                                         </ul>
@@ -736,7 +732,7 @@
                                                         </div>
                                                     @else
                                                         <div class="mt-4">
-                                                            <button type="submit" class="btn btn-success">
+                                                            <button type="submit" class="btn btn-pr">
                                                                 Simpan Data Klaim
                                                             </button>
 
@@ -753,7 +749,9 @@
                                                             value="{{ @$log->nomor_sep ?? '' }}">
                                                         <input type="hidden" name="coder_nik"
                                                             value="{{ @$log->coder_nik ?? '' }}">
+                                                            @if(@$log->response_grouping_idrg == null)
                                                         <button type="submit" class="btn btn-danger">Hapus Klaim</button>
+                                                        @endif
                                                     </form>
                                                 @endif
 
@@ -847,39 +845,57 @@
                                                 {{-- Hasil Grouping iDRG --}}
                                                 {{-- ========================= --}}
                                                 @if ($response_idrg)
-                                                    <table class="table table-bordered mt-3">
-                                                        <thead class="text-center">
-                                                            <tr>
-                                                                <th colspan="3">Hasil Grouping iDRG</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td><b>MDC</b></td>
-                                                                <td>{{ $response_idrg['mdc_description'] ?? '-' }}</td>
-                                                                <td class="text-center">
-                                                                    {{ $response_idrg['mdc_number'] ?? '-' }}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td><b>DRG</b></td>
-                                                                <td>{{ $response_idrg['drg_description'] ?? '-' }}</td>
-                                                                <td class="text-center">
-                                                                    {{ $response_idrg['drg_code'] ?? '-' }}</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+    <table class="table table-bordered mt-3">
+        <thead class="text-center">
+            <tr>
+                <th colspan="3">Hasil Grouping iDRG</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>MDC</b></td>
+                <td>{{ $response_idrg['mdc_description'] ?? '-' }}</td>
+                <td class="text-center">{{ $response_idrg['mdc_number'] ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td><b>DRG</b></td>
+                <td>{{ $response_idrg['drg_description'] ?? '-' }}</td>
+                <td class="text-center">{{ $response_idrg['drg_code'] ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td><b>Cost Weight</b></td>
+                <td colspan="2">{{ $response_idrg['cost_weight'] ?? '0.00' }}</td>
+            </tr>
+            <tr>
+                <td><b>NBR</b></td>
+                <td colspan="2">{{ $response_idrg['nbr'] ?? '-' }}</td>
+            </tr>
 
-                                                    {{-- Tombol Final iDRG --}}
-                                                    <button id="btnFinalIdrg"
-                                                        class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
-                                                        {{ $log->response_grouping_idrg == null ? 'disabled' : '' }}>
-                                                        ✔ Final IDRG
-                                                    </button>
-                                                @else
-                                                    <div class="alert alert-warning mt-3">
-                                                        Belum ada hasil grouping iDRG tersimpan
-                                                    </div>
-                                                @endif
+            <tr>
+                <td><b>Status</b></td>
+                <td colspan="2">{{ $response_idrg['status_cd'] ?? '-' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- Tombol Final iDRG: hanya tampil jika mdc_number ≠ 36 --}}
+    @if ($response_idrg['mdc_number'] != '36')
+        <button id="btnFinalIdrg"
+            class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
+            {{ $log->response_grouping_idrg == null ? 'disabled' : '' }}>
+            ✔ Final IDRG
+        </button>
+    @else
+        <div class="alert alert-danger mt-2">
+            ⚠️ Tidak dapat memfinalkan karena kode MDC 36 (Ungroupable or Unrelated)
+        </div>
+    @endif
+@else
+    <div class="alert alert-warning mt-3">
+        Belum ada hasil grouping iDRG tersimpan
+    </div>
+@endif
+
 
                                                 {{-- ========================= --}}
                                                 {{-- Tempat Hasil Final IDRG --}}
@@ -909,7 +925,7 @@
                                                 id="inacbgimport" role="tabpanel">
                                                 <div class="row">
                                                     <div class="col-12 text-center mb-3">
-                                                        <button id="btnImportInacbg" class="btn btn-primary btn-lg">
+                                                        <button id="btnImportInacbg"  {{ @$log->response_inacbg_final != null ? 'disabled' : '' }} class="btn btn-primary btn-lg">
                                                             <i class="fas fa-exchange-alt"></i> Import iDRG → INA-CBG
                                                         </button>
                                                     </div>
@@ -984,7 +1000,7 @@
                                                     </div>
                                                     <div id="hasil_import_inacbg" class="mt-3"></div>
                                                 </div>
-                                                @if (@$log->response_inacbg_import != null && @$log->procedure_inacbg != null)
+                                                @if (@$log->response_inacbg_import != null || @$log->procedure_inacbg != null)
                                                     <button
                                                         class="btn btn-primary {{ @$log->response_inacbg_final != null ? 'btn-disabled' : '' }}"
                                                         {{ @$log->response_inacbg_final != null ? 'disabled' : '' }}
@@ -1058,7 +1074,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @else
-                                                                    <button id="btnFinalInacbg" class="btn btn-success"
+                                                                    <button id="btnFinalInacbg" class="btn btn-warning"
                                                                         data-nomor-sep="{{ @$log->nomor_sep }}">
                                                                         Grouping Final INA-CBG
                                                                     </button>
@@ -1076,9 +1092,7 @@
 
 
                                             </div>
-                                            <div class="tab-pane fade" id="inacbg" role="tabpanel">
-                                                <p>Data INA-CBG dan hasil grouping.</p>
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -1134,118 +1148,117 @@
             });
         });
     </script>
-    {{-- send klaim --}}
-    <script>
-        $(document).ready(function() {
-            const nomor_sep = '{{ @$log->nomor_sep }}';
+{{-- send klaim --}}
+<script>
+    $(document).ready(function() {
+        const nomor_sep = '{{ @$log->nomor_sep }}';
 
-            // Tampilkan tombol hanya jika ada hasil Claim Final
-            @if (!empty($log->response_claim_final))
-                $('#btnSendClaim').show();
-            @endif
+        // Tampilkan tombol hanya jika ada hasil Claim Final
+        @if (!empty($log->response_claim_final))
+            $('#btnSendClaim').show();
+        @endif
 
-            // Klik tombol kirim klaim
-            $('#btnSendClaim').on('click', function() {
+        // Klik tombol kirim klaim
+        $('#btnSendClaim').on('click', function() {
+            Swal.fire({
+                title: 'Kirim Claim ke e-Klaim?',
+                text: 'Pastikan hasil claim final sudah benar sebelum dikirim.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Kirim',
+                cancelButtonText: 'Batal'
+            }).then((res) => {
+                if (!res.isConfirmed) return;
+
                 Swal.fire({
-                    title: 'Kirim Claim ke e-Klaim?',
-                    text: 'Pastikan hasil claim final sudah benar sebelum dikirim.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Kirim',
-                    cancelButtonText: 'Batal'
-                }).then((res) => {
-                    if (!res.isConfirmed) return;
+                    title: 'Memproses...',
+                    text: 'Mengirim klaim ke e-Klaim...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
 
-                    Swal.fire({
-                        title: 'Memproses...',
-                        text: 'Mengirim klaim ke e-Klaim...',
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
-                    });
-
-                    // === Kirim ke e-Klaim ===
-                    $.ajax({
-                        url: '{{url("")}}/api/eklaim/claim-send',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            metadata: {
-                                method: 'send_claim_individual'
-                            },
-                            data: {
-                                nomor_sep: nomor_sep
-                            }
-                        }),
-                        success: function(response) {
-                            Swal.close();
-                            console.log('Response send_claim_individual:', response);
-
-                            if (response.status !== 'success') {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal Mengirim Claim',
-                                    text: response.message ||
-                                        'Terjadi kesalahan saat mengirim klaim.'
-                                });
-                                return;
-                            }
-
-                            // === Simpan Log ke Database ===
-                            $.ajax({
-                                url: '{{url("")}}/log/claim-send/save',
-                                type: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                data: {
-                                    nomor_sep: nomor_sep,
-                                    response_send_claim_individual: JSON
-                                        .stringify(response.response)
-                                },
-                                beforeSend: function() {
-                                    Swal.fire({
-                                        title: 'Menyimpan Log...',
-                                        text: 'Menyimpan hasil kirim klaim...',
-                                        allowOutsideClick: false,
-                                        didOpen: () => Swal
-                                            .showLoading()
-                                    });
-                                },
-                                success: function(res) {
-                                    Swal.close();
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Klaim Terkirim!',
-                                        text: res.message,
-                                        showConfirmButton: false,
-                                        timer: 2000
-                                    });
-                                    setTimeout(() => location.reload(),
-                                        2000);
-                                },
-                                error: function() {
-                                    Swal.close();
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal Simpan Log',
-                                        text: 'Klaim berhasil dikirim, tapi gagal menyimpan log.'
-                                    });
-                                }
-                            });
+                // === Kirim ke e-Klaim ===
+                $.ajax({
+                    url: '{{ url("") }}/api/eklaim/claim-send',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        metadata: {
+                            method: 'send_claim_individual'
                         },
-                        error: function() {
-                            Swal.close();
+                        data: {
+                            nomor_sep: nomor_sep
+                        }
+                    }),
+                    success: function(response) {
+                        Swal.close();
+                        console.log('Response send_claim_individual:', response);
+
+                        // ✅ Cek berdasarkan metadata.code === 200
+                        if (response.metadata?.code !== 200) {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Error Server',
-                                text: 'Tidak dapat terhubung ke server.'
+                                title: 'Gagal Mengirim Klaim',
+                                text: response.metadata?.message ||
+                                    'Terjadi kesalahan saat mengirim klaim.'
                             });
+                            return;
                         }
-                    });
+
+                        // === Simpan Log ke Database ===
+                        $.ajax({
+                            url: '{{ url("") }}/log/claim-send/save',
+                            type: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            data: {
+                                nomor_sep: nomor_sep,
+                                response_send_claim_individual: JSON.stringify(response.response)
+                            },
+                            beforeSend: function() {
+                                Swal.fire({
+                                    title: 'Menyimpan Log...',
+                                    text: 'Menyimpan hasil kirim klaim...',
+                                    allowOutsideClick: false,
+                                    didOpen: () => Swal.showLoading()
+                                });
+                            },
+                            success: function(res) {
+                                Swal.close();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '✅ Klaim Terkirim!',
+                                    text: res.message || 'Klaim berhasil dikirim dan log disimpan.',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                                setTimeout(() => location.reload(), 2000);
+                            },
+                            error: function() {
+                                Swal.close();
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Klaim Terkirim, Log Gagal Disimpan',
+                                    text: 'Klaim berhasil dikirim, tetapi log gagal disimpan.'
+                                });
+                            }
+                        });
+                    },
+                    error: function() {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error Server',
+                            text: 'Tidak dapat terhubung ke server.'
+                        });
+                    }
                 });
             });
         });
-    </script>
+    });
+</script>
+
     {{-- reedit klaim --}}
     <script>
         $('#btnReeditClaim').on('click', function() {
@@ -1361,6 +1374,7 @@
                                         title: 'Claim Final Berhasil',
                                         text: 'Hasil Claim Final berhasil disimpan ke log.'
                                     });
+                                    setTimeout(() => location.reload(), 2000);
                                 },
                                 error: function() {
                                     Swal.fire({
@@ -1395,8 +1409,6 @@
         $('#btnReeditInacbg').on('click', function() {
             const nomor_sep = '{{ @$log->nomor_sep }}';
 
-            if (!confirm('Yakin ingin melakukan Re-edit INA-CBG? Semua hasil grouping akan dihapus.')) return;
-
             $(this).prop('disabled', true).text('Memproses Re-edit...');
 
             $.ajax({
@@ -1410,7 +1422,7 @@
                     $('#btnReeditInacbg').prop('disabled', false).text('Re-edit INA-CBG');
 
                     if (res.status === 'success') {
-                        alert(res.message);
+                      
                         $('#groupingInacbgResult').html('');
                         $('#stage2Result').html('');
                         location.reload();
@@ -1475,8 +1487,6 @@
                     success: function(response) {
                         console.log('Response e-Klaim:', response);
 
-                        // tampilkan hasil dulu
-                        alert('Proses final berhasil dari e-Klaim. Akan disimpan ke log.');
 
                         // === 2. Simpan hasil ke log (save-final-inacbg-log) ===
                         $.ajax({
@@ -1488,7 +1498,7 @@
                                 response_inacbg_final: JSON.stringify(response)
                             },
                             success: function(res) {
-                                alert(res.message);
+                                
                                 location.reload();
                             },
                             error: function(xhr) {
@@ -1995,120 +2005,134 @@
             });
         });
     </script>
-    <script>
-        $(document).ready(function() {
+{{--  idrg diagnosa dan procedure --}}
+{{-- diagnosa & prosedur idrg --}}
+<script>
+    $(document).ready(function() {
 
-            // ---------- Variabel global ----------
-            window.diagnosaList = [];
-            window.prosedurList = [];
+        // ---------- Variabel global ----------
+        window.diagnosaList = [];
+        window.prosedurList = [];
 
-            // ---------- Inisialisasi Select2 ----------
-            initSelect2('#diagnosa_idrg', '{{ url('') }}/api/icd10', 'tabel_diagnosa', true);
-            initSelect2('#prosedur_idrg', '{{ url('') }}/api/icd9', 'tabel_prosedur', false);
+        // ---------- Inisialisasi Select2 ----------
+        initSelect2('#diagnosa_idrg', "{{ url('/api/icd10') }}", 'tabel_diagnosa', true);
+        initSelect2('#prosedur_idrg', "{{ url('/api/icd9') }}", 'tabel_prosedur', false);
 
-            // ---------- FUNGSI UTAMA ----------
-            function initSelect2(selector, url, tableId, isDiagnosa) {
-                $(selector).select2({
-                    placeholder: 'Cari kode atau deskripsi...',
-                    ajax: {
-                        url: url,
-                        dataType: 'json',
-                        delay: 250,
-                        data: params => ({
-                            q: params.term
-                        }),
-                        processResults: data => ({
-                            results: data
-                        })
-                    },
-                    templateResult: function(item) {
-                        if (!item.id) return item.text;
-                        return $('<div>')
-                            .append($('<b>').text(item.code))
-                            .append(' — ' + item.description);
-                    },
-                    templateSelection: item => item.text,
-                    multiple: true
-                });
+        // ---------- FUNGSI UTAMA ----------
+        function initSelect2(selector, url, tableId, isDiagnosa) {
+            $(selector).select2({
+                placeholder: 'Cari kode atau deskripsi...',
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({
+                        q: params.term
+                    }),
+                    processResults: data => ({
+                        results: data
+                    })
+                },
+                templateResult: function(item) {
+                    if (!item.id) return item.text;
+                    return $('<div>')
+                        .append($('<b>').text(item.code))
+                        .append(' — ' + item.description);
+                },
+                templateSelection: item => item.text,
+                multiple: true
+            });
 
-                // Saat memilih item
-                $(selector).on('select2:select', function(e) {
-                    let data = e.params.data;
-                    let list = isDiagnosa ? diagnosaList : prosedurList;
+            // Saat memilih item
+            $(selector).on('select2:select', function(e) {
+                let data = e.params.data;
+                let list = isDiagnosa ? diagnosaList : prosedurList;
 
-                    // Validasi Diagnosa Primer
-                    if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Tidak dapat dijadikan Primer',
-                            text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
-                            timer: 2500
-                        });
-                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                        return;
+                console.log("🟢 SELECT ITEM:", data);
+
+                // Validasi Diagnosa Primer
+                if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tidak dapat dijadikan Primer',
+                        text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
+                        timer: 2500
+                    });
+                    $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                    return;
+                }
+
+                // Cegah duplikat
+                if (list.some(d => d.code === data.code)) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Data sudah ada',
+                        text: 'Data ini sudah ditambahkan sebelumnya.',
+                        timer: 2000
+                    });
+                    $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                    return;
+                }
+
+                // Tambah item baru (otomatis Primer jika pertama)
+                let item = {
+                    code: data.code,
+                    desc: data.description,
+                    status: list.length === 0 ? 'Primer' : 'Sekunder'
+                };
+
+                if (!isDiagnosa) item.qty = 1;
+
+                list.push(item);
+
+                if (isDiagnosa) diagnosaList = list;
+                else prosedurList = list;
+
+                console.log("📋 Setelah tambah:", list);
+
+                renderTable(list, '#' + tableId, isDiagnosa);
+            });
+
+            // Saat unselect item dari select2 langsung
+            $(selector).on('select2:unselect', function(e) {
+                let id = e.params.data.id;
+                let list = isDiagnosa ? diagnosaList : prosedurList;
+
+                console.log("🔴 UNSELECT:", id);
+
+                list = list.filter(d => d.code !== id);
+
+                if (isDiagnosa) {
+                    diagnosaList = list;
+                    if (diagnosaList.length > 0) {
+                        diagnosaList[0].status = 'Primer';
+                        diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
                     }
-
-                    // Cegah duplikat
-                    if (list.some(d => d.code === data.code)) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Data sudah ada',
-                            text: 'Data ini sudah ditambahkan sebelumnya.',
-                            timer: 2000
-                        });
-                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                        return;
+                } else {
+                    prosedurList = list;
+                    if (prosedurList.length > 0) {
+                        prosedurList[0].status = 'Primer';
+                        prosedurList.slice(1).forEach(d => d.status = 'Sekunder');
                     }
+                }
 
-                    // Tambah item baru
-                    let item = {
-                        code: data.code,
-                        desc: data.description,
-                        status: isDiagnosa && list.length === 0 ? 'Primer' : 'Sekunder'
-                    };
+                renderTable(list, '#' + tableId, isDiagnosa);
+            });
+        }
 
-                    if (!isDiagnosa) item.qty = 1;
-
-                    list.push(item);
-                    if (isDiagnosa) diagnosaList = list;
-                    else prosedurList = list;
-
-                    renderTable(list, '#' + tableId, isDiagnosa);
-                });
-
-                // Saat unselect item
-                $(selector).on('select2:unselect', function(e) {
-                    let id = e.params.data.id;
-                    let list = isDiagnosa ? diagnosaList : prosedurList;
-
-                    list = list.filter(d => d.code !== id);
-                    if (isDiagnosa) {
-                        diagnosaList = list;
-                        if (diagnosaList.length > 0) {
-                            diagnosaList[0].status = 'Primer';
-                            diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
-                        }
-                    } else {
-                        prosedurList = list;
-                    }
-
-                    renderTable(list, '#' + tableId, isDiagnosa);
-                });
-            }
-
-            // ---------- Render Tabel ----------
-            function renderTable(list, tableId, isDiagnosa) {
-                let tbody = $(tableId + ' tbody');
-                tbody.empty();
-                list.forEach((d, i) => {
-                    tbody.append(`
+        // ---------- Render Tabel ----------
+        function renderTable(list, tableId, isDiagnosa) {
+            let tbody = $(tableId + ' tbody');
+            tbody.empty();
+            list.forEach((d, i) => {
+                tbody.append(`
                     <tr>
                         <td>${i + 1}</td>
                         <td>${d.code}</td>
                         <td>${d.desc}</td>
                         ${!isDiagnosa
                             ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                                                                                                                                                                                                                                                                                                                                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
+                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
                         }
                         <td>${d.status}</td>
                         <td>
@@ -2117,63 +2141,82 @@
                         </td>
                     </tr>
                 `);
-                });
-            }
-
-            // ---------- Update Qty ----------
-            $(document).on('change', '.qty-input', function() {
-                const code = $(this).data('code');
-                const qty = parseInt($(this).val()) || 1;
-                const item = prosedurList.find(p => p.code === code);
-                if (item) item.qty = qty;
             });
+        }
 
-            // ---------- Hapus Item ----------
-            window.hapusItem = function(code, table) {
-                let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
-                let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
-
-                list = list.filter(d => d.code !== code);
-                if (table === 'tabel_diagnosa') {
-                    diagnosaList = list;
-                    if (diagnosaList.length > 0) {
-                        diagnosaList[0].status = 'Primer';
-                        diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
-                    }
-                } else {
-                    prosedurList = list;
-                }
-
-                $(selector).val($(selector).val().filter(v => v !== code)).trigger('change');
-                renderTable(list, '#' + table, table === 'tabel_diagnosa');
-            };
-
-            // ---------- Load Data dari Log ----------
-            let diagnosaLog = @json($log->diagnosa_idrg ?? '');
-            let prosedurLog = @json($log->procedure_idrg ?? '');
-
-            // Diagnosa
-            if (diagnosaLog && diagnosaLog.expanded) {
-                diagnosaList = diagnosaLog.expanded.map((d, i) => ({
-                    code: d.code,
-                    desc: d.display,
-                    status: i === 0 ? 'Primer' : 'Sekunder'
-                }));
-                renderTable(diagnosaList, '#tabel_diagnosa', true);
-            }
-
-            // Prosedur
-            if (prosedurLog && prosedurLog.expanded) {
-                prosedurList = prosedurLog.expanded.map((d) => ({
-                    code: d.code,
-                    desc: d.display,
-                    qty: d.multiplicity || 1,
-                    status: 'Primer' // atau 'Sekunder' sesuai log kamu
-                }));
-                renderTable(prosedurList, '#tabel_prosedur', false);
-            }
+        // ---------- Update Qty ----------
+        $(document).on('change', '.qty-input', function() {
+            const code = $(this).data('code');
+            const qty = parseInt($(this).val()) || 1;
+            const item = prosedurList.find(p => p.code === code);
+            if (item) item.qty = qty;
         });
-    </script>
+
+        // ---------- Hapus Item ----------
+        window.hapusItem = function(code, table) {
+            console.log("🗑️ Menghapus item:", code, "dari", table);
+
+            let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
+            let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
+
+            // Hapus item dari list
+            list = list.filter(d => d.code !== code);
+
+            // Update global list
+            if (table === 'tabel_diagnosa') {
+                diagnosaList = list;
+                if (diagnosaList.length > 0) {
+                    diagnosaList[0].status = 'Primer';
+                    diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
+                }
+            } else {
+                prosedurList = list;
+                if (prosedurList.length > 0) {
+                    prosedurList[0].status = 'Primer';
+                    prosedurList.slice(1).forEach(d => d.status = 'Sekunder');
+                }
+            }
+
+            // Sinkronisasi dengan Select2 (hapus dari tampilan)
+            let currentVal = $(selector).val() || [];
+            currentVal = currentVal.filter(v => v !== code);
+            $(selector).val(currentVal).trigger('change');
+
+            // Render ulang tabel
+            renderTable(list, '#' + table, table === 'tabel_diagnosa');
+        };
+
+        // ---------- Load Data dari Log (Database) ----------
+        let diagnosaLog = @json($log->diagnosa_idrg ?? '');
+        let prosedurLog = @json($log->procedure_idrg ?? '');
+
+        console.log("📂 Load Log Diagnosa:", diagnosaLog);
+        console.log("📂 Load Log Prosedur:", prosedurLog);
+
+        // Diagnosa
+        if (diagnosaLog && diagnosaLog.expanded) {
+            diagnosaList = diagnosaLog.expanded.map((d, i) => ({
+                code: d.code,
+                desc: d.display,
+                status: i === 0 ? 'Primer' : 'Sekunder'
+            }));
+            renderTable(diagnosaList, '#tabel_diagnosa', true);
+        }
+
+        // Prosedur
+        if (prosedurLog && prosedurLog.expanded) {
+            prosedurList = prosedurLog.expanded.map((d, i) => ({
+                code: d.code,
+                desc: d.display,
+                qty: d.multiplicity || 1,
+                status: i === 0 ? 'Primer' : 'Sekunder'
+            }));
+            renderTable(prosedurList, '#tabel_prosedur', false);
+        }
+    });
+</script>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const rupiahInputs = document.querySelectorAll('.rupiah');
