@@ -749,9 +749,8 @@
                                                             value="{{ @$log->nomor_sep ?? '' }}">
                                                         <input type="hidden" name="coder_nik"
                                                             value="{{ @$log->coder_nik ?? '' }}">
-                                                            @if(@$log->response_grouping_idrg == null)
                                                         <button type="submit" class="btn btn-danger">Hapus Klaim</button>
-                                                        @endif
+                                                        
                                                     </form>
                                                 @endif
 
@@ -1139,7 +1138,7 @@
                     const fileURL = URL.createObjectURL(blob);
                     window.open(fileURL, '_blank'); // tampilkan di tab baru
                 },
-                error: function(xhr) {
+                error: function(xhr) { 
                     alert('Gagal mencetak klaim.\n' + xhr.responseText);
                 },
                 complete: function() {
@@ -2006,214 +2005,270 @@
         });
     </script>
 {{--  idrg diagnosa dan procedure --}}
+<script>
+    const logDiagnosa = @json($log->diagnosa_idrg ?? null);
+    const logProsedur = @json($log->procedure_idrg ?? null);
+</script>
 {{-- diagnosa & prosedur idrg --}}
 <script>
-    $(document).ready(function() {
+$(document).ready(function () {
 
-        // ---------- Variabel global ----------
-        window.diagnosaList = [];
-        window.prosedurList = [];
+    // =====================================================
+    // 🔹 SETUP CSRF TOKEN GLOBAL
+    // =====================================================
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+    });
 
-        // ---------- Inisialisasi Select2 ----------
-        initSelect2('#diagnosa_idrg', "{{ url('/api/icd10') }}", 'tabel_diagnosa', true);
-        initSelect2('#prosedur_idrg', "{{ url('/api/icd9') }}", 'tabel_prosedur', false);
+    // =====================================================
+    // 🔹 VARIABEL GLOBAL
+    // =====================================================
+    let diagnosaList = [];
+    let prosedurList = [];
+    const updateLogURL = "{{ url('') }}/idrg/update-log";
 
-        // ---------- FUNGSI UTAMA ----------
-        function initSelect2(selector, url, tableId, isDiagnosa) {
-            $(selector).select2({
-                placeholder: 'Cari kode atau deskripsi...',
-                ajax: {
-                    url: url,
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({
-                        q: params.term
-                    }),
-                    processResults: data => ({
-                        results: data
-                    })
-                },
-                templateResult: function(item) {
-                    if (!item.id) return item.text;
-                    return $('<div>')
-                        .append($('<b>').text(item.code))
-                        .append(' — ' + item.description);
-                },
-                templateSelection: item => item.text,
-                multiple: true
-            });
-
-            // Saat memilih item
-            $(selector).on('select2:select', function(e) {
-                let data = e.params.data;
-                let list = isDiagnosa ? diagnosaList : prosedurList;
-
-                console.log("🟢 SELECT ITEM:", data);
-
-                // Validasi Diagnosa Primer
-                if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Tidak dapat dijadikan Primer',
-                        text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
-                        timer: 2500
-                    });
-                    $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                    return;
-                }
-
-                // Cegah duplikat
-                if (list.some(d => d.code === data.code)) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Data sudah ada',
-                        text: 'Data ini sudah ditambahkan sebelumnya.',
-                        timer: 2000
-                    });
-                    $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                    return;
-                }
-
-                // Tambah item baru (otomatis Primer jika pertama)
-                let item = {
-                    code: data.code,
-                    desc: data.description,
-                    status: list.length === 0 ? 'Primer' : 'Sekunder'
-                };
-
-                if (!isDiagnosa) item.qty = 1;
-
-                list.push(item);
-
-                if (isDiagnosa) diagnosaList = list;
-                else prosedurList = list;
-
-                console.log("📋 Setelah tambah:", list);
-
-                renderTable(list, '#' + tableId, isDiagnosa);
-            });
-
-            // Saat unselect item dari select2 langsung
-            $(selector).on('select2:unselect', function(e) {
-                let id = e.params.data.id;
-                let list = isDiagnosa ? diagnosaList : prosedurList;
-
-                console.log("🔴 UNSELECT:", id);
-
-                list = list.filter(d => d.code !== id);
-
-                if (isDiagnosa) {
-                    diagnosaList = list;
-                    if (diagnosaList.length > 0) {
-                        diagnosaList[0].status = 'Primer';
-                        diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
-                    }
-                } else {
-                    prosedurList = list;
-                    if (prosedurList.length > 0) {
-                        prosedurList[0].status = 'Primer';
-                        prosedurList.slice(1).forEach(d => d.status = 'Sekunder');
-                    }
-                }
-
-                renderTable(list, '#' + tableId, isDiagnosa);
-            });
+    // =====================================================
+    // 🔹 LOAD DATA DARI LOG DATABASE
+    // =====================================================
+    function loadFromLog() {
+        if (logDiagnosa) {
+            try {
+                const parsed = typeof logDiagnosa === 'string' ? JSON.parse(logDiagnosa) : logDiagnosa;
+                const expanded = parsed.expanded || [];
+                diagnosaList = expanded.map((d, i) => ({
+                    code: d.code,
+                    desc: d.display || d.description,
+                    status: i === 0 ? 'Primer' : 'Sekunder'
+                }));
+                renderTable(diagnosaList, '#tabel_diagnosa', true);
+            } catch (e) {
+                console.warn("⚠️ Gagal parsing logDiagnosa:", e);
+            }
         }
 
-        // ---------- Render Tabel ----------
-        function renderTable(list, tableId, isDiagnosa) {
-            let tbody = $(tableId + ' tbody');
-            tbody.empty();
-            list.forEach((d, i) => {
-                tbody.append(`
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${d.code}</td>
-                        <td>${d.desc}</td>
-                        ${!isDiagnosa
-                            ? `<td><input type="number" min="1" class="form-control form-control-sm qty-input"
-                                data-code="${d.code}" value="${d.qty}" style="width:80px"></td>` : ''
-                        }
-                        <td>${d.status}</td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm"
-                                onclick="hapusItem('${d.code}', '${tableId.replace('#','')}')">X</button>
-                        </td>
-                    </tr>
-                `);
-            });
+        if (logProsedur) {
+            try {
+                const parsed = typeof logProsedur === 'string' ? JSON.parse(logProsedur) : logProsedur;
+                const expanded = parsed.expanded || [];
+                prosedurList = expanded.map(d => ({
+                    code: d.code,
+                    desc: d.display || d.description,
+                    qty: d.qty || 1,
+                    status: ''
+                }));
+                renderTable(prosedurList, '#tabel_prosedur', false);
+            } catch (e) {
+                console.warn("⚠️ Gagal parsing logProsedur:", e);
+            }
         }
+    }
+    loadFromLog();
 
-        // ---------- Update Qty ----------
-        $(document).on('change', '.qty-input', function() {
-            const code = $(this).data('code');
-            const qty = parseInt($(this).val()) || 1;
-            const item = prosedurList.find(p => p.code === code);
-            if (item) item.qty = qty;
+    // =====================================================
+    // 🔹 INISIALISASI SELECT2
+    // =====================================================
+    initSelect2('#diagnosa_idrg', "{{ url('/api/icd10_idrg') }}", '#tabel_diagnosa', true);
+    initSelect2('#prosedur_idrg', "{{ url('/api/icd9_idrg') }}", '#tabel_prosedur', false);
+
+    function initSelect2(selector, url, tableId, isDiagnosa) {
+        $(selector).select2({
+            placeholder: 'Cari kode atau deskripsi...',
+            ajax: {
+                url: url,
+                dataType: 'json',
+                delay: 250,
+                data: params => ({ q: params.term }),
+                processResults: data => ({ results: data })
+            },
+            templateResult: item => {
+                if (!item.id) return item.text;
+                return $('<div>').append($('<b>').text(item.code)).append(' — ' + item.description);
+            },
+            templateSelection: item => item.text,
+            multiple: true
         });
 
-        // ---------- Hapus Item ----------
-        window.hapusItem = function(code, table) {
-            console.log("🗑️ Menghapus item:", code, "dari", table);
+        // Saat pilih item
+        $(selector).on('select2:select', function (e) {
+            const data = e.params.data;
+            let list = isDiagnosa ? diagnosaList : prosedurList;
 
-            let selector = table === 'tabel_diagnosa' ? '#diagnosa_idrg' : '#prosedur_idrg';
-            let list = table === 'tabel_diagnosa' ? diagnosaList : prosedurList;
-
-            // Hapus item dari list
-            list = list.filter(d => d.code !== code);
-
-            // Update global list
-            if (table === 'tabel_diagnosa') {
-                diagnosaList = list;
-                if (diagnosaList.length > 0) {
-                    diagnosaList[0].status = 'Primer';
-                    diagnosaList.slice(1).forEach(d => d.status = 'Sekunder');
-                }
-            } else {
-                prosedurList = list;
-                if (prosedurList.length > 0) {
-                    prosedurList[0].status = 'Primer';
-                    prosedurList.slice(1).forEach(d => d.status = 'Sekunder');
-                }
+            if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
+                Swal.fire({ icon: 'warning', title: 'Tidak valid sebagai Primer', timer: 2500 });
+                $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                return;
             }
 
-            // Sinkronisasi dengan Select2 (hapus dari tampilan)
-            let currentVal = $(selector).val() || [];
-            currentVal = currentVal.filter(v => v !== code);
-            $(selector).val(currentVal).trigger('change');
+            if (list.some(d => d.code === data.code)) {
+                Swal.fire({ icon: 'info', title: 'Data sudah ada', timer: 1500 });
+                $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                return;
+            }
 
-            // Render ulang tabel
-            renderTable(list, '#' + table, table === 'tabel_diagnosa');
+            const item = {
+                code: data.code,
+                desc: data.description,
+                status: list.length === 0 ? 'Primer' : 'Sekunder',
+                qty: isDiagnosa ? undefined : 1
+            };
+            list.push(item);
+
+            if (isDiagnosa) diagnosaList = list;
+            else prosedurList = list;
+
+            renderTable(list, tableId, isDiagnosa);
+            sendToEklaim(isDiagnosa);
+        });
+
+        // Saat unselect
+        $(selector).on('select2:unselect', function (e) {
+            const id = e.params.data.id;
+            let list = isDiagnosa ? diagnosaList : prosedurList;
+            list = list.filter(d => d.code !== id);
+
+            if (isDiagnosa) diagnosaList = list;
+            else prosedurList = list;
+
+            renderTable(list, tableId, isDiagnosa);
+            sendToEklaim(isDiagnosa);
+        });
+    }
+
+    // =====================================================
+    // 🔹 RENDER TABEL
+    // =====================================================
+    function renderTable(list, tableId, isDiagnosa) {
+        const tbody = $(tableId + ' tbody');
+        tbody.empty();
+        if (!list.length) {
+            tbody.append(`<tr><td colspan="5" class="text-center text-muted">Belum ada data</td></tr>`);
+            return;
+        }
+        list.forEach((d, i) => {
+            tbody.append(`
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${d.code}</td>
+                    <td>${d.desc}</td>
+                    ${!isDiagnosa ? `<td><input type="number" min="1" value="${d.qty}" data-code="${d.code}" class="form-control form-control-sm qty-input" style="width:80px"></td>` : ''}
+                    <td>${d.status}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="hapusItem('${d.code}', ${isDiagnosa})">X</button></td>
+                </tr>
+            `);
+        });
+    }
+
+    // =====================================================
+    // 🔹 HAPUS ITEM
+    // =====================================================
+    window.hapusItem = function (code, isDiagnosa) {
+        let list = isDiagnosa ? diagnosaList : prosedurList;
+        list = list.filter(d => d.code !== code);
+
+        if (isDiagnosa) diagnosaList = list;
+        else prosedurList = list;
+
+        const selector = isDiagnosa ? '#diagnosa_idrg' : '#prosedur_idrg';
+        $(selector).val((($(selector).val()) || []).filter(v => v !== code)).trigger('change');
+
+        renderTable(list, isDiagnosa ? '#tabel_diagnosa' : '#tabel_prosedur', isDiagnosa);
+        sendToEklaim(isDiagnosa);
+    };
+
+    // =====================================================
+    // 🔹 UPDATE QTY
+    // =====================================================
+    $(document).on('change', '.qty-input', function () {
+        const code = $(this).data('code');
+        const qty = parseInt($(this).val()) || 1;
+        const item = prosedurList.find(p => p.code === code);
+        if (item) item.qty = qty;
+        sendToEklaim(false);
+    });
+
+    // =====================================================
+    // 🔹 KIRIM KE EKLAIM
+    // =====================================================
+    async function sendToEklaim(isDiagnosa) {
+        const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+        if (!nomor_sep) return;
+
+        const endpoint = isDiagnosa
+            ? "{{ url('') }}/api/eklaim/idrg-diagnosa-set"
+            : "{{ url('') }}/api/eklaim/idrg-procedure-set";
+
+        const list = isDiagnosa ? diagnosaList : prosedurList;
+        const codes = list.map(d => d.code).join('#') || '#';
+
+        const payload = {
+            metadata: { method: isDiagnosa ? 'idrg_diagnosa_set' : 'idrg_procedure_set', nomor_sep },
+            data: { [isDiagnosa ? 'diagnosa' : 'procedure']: codes }
         };
 
-        // ---------- Load Data dari Log (Database) ----------
-        let diagnosaLog = @json($log->diagnosa_idrg ?? '');
-        let prosedurLog = @json($log->procedure_idrg ?? '');
+        try {
+            const res = await $.ajax({
+                url: endpoint,
+                method: 'POST',
+                data: JSON.stringify(payload),
+                contentType: 'application/json'
+            });
 
-        console.log("📂 Load Log Diagnosa:", diagnosaLog);
-        console.log("📂 Load Log Prosedur:", prosedurLog);
-
-        // Diagnosa
-        if (diagnosaLog && diagnosaLog.expanded) {
-            diagnosaList = diagnosaLog.expanded.map((d, i) => ({
-                code: d.code,
-                desc: d.display,
-                status: i === 0 ? 'Primer' : 'Sekunder'
-            }));
-            renderTable(diagnosaList, '#tabel_diagnosa', true);
+            if (res.metadata?.code === 200 || res.code === 200) {
+                await getFromEklaim(isDiagnosa);
+            }
+        } catch (err) {
+            console.error("❌ Error kirim:", err);
         }
+    }
 
-        // Prosedur
-        if (prosedurLog && prosedurLog.expanded) {
-            prosedurList = prosedurLog.expanded.map((d, i) => ({
-                code: d.code,
-                desc: d.display,
-                qty: d.multiplicity || 1,
-                status: i === 0 ? 'Primer' : 'Sekunder'
-            }));
-            renderTable(prosedurList, '#tabel_prosedur', false);
+    // =====================================================
+    // 🔹 GET DARI EKLAIM & SIMPAN LOG
+    // =====================================================
+    async function getFromEklaim(isDiagnosa) {
+        const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+        const endpoint = isDiagnosa
+            ? "{{ url('') }}/api/eklaim/idrg-diagnosa-get"
+            : "{{ url('') }}/api/eklaim/idrg-procedure-get";
+
+        const payload = {
+            metadata: { method: isDiagnosa ? 'idrg_diagnosa_get' : 'idrg_procedure_get' },
+            data: { nomor_sep }
+        };
+
+        try {
+            const res = await $.ajax({
+                url: endpoint,
+                method: 'POST',
+                data: JSON.stringify(payload),
+                contentType: 'application/json'
+            });
+
+            const resultData = res.data || res.response?.data || null;
+
+            if (resultData) {
+                await $.ajax({
+                    url: updateLogURL,
+                    method: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        nomor_sep,
+                        field: isDiagnosa ? 'diagnosa_idrg' : 'procedure_idrg',
+                        value: JSON.stringify(resultData)
+                    }
+                });
+                console.log("💾 Log diperbarui:", resultData);
+            }
+        } catch (err) {
+            console.error("❌ Gagal GET dari e-Klaim:", err);
         }
-    });
+    }
+
+});
+
+
+
+
+
 </script>
 
 

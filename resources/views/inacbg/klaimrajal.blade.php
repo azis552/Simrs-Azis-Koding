@@ -741,7 +741,7 @@
 
                                                 </form>
                                                 @if ($isReadonly)
-                                                    <form action="{{ route('inacbg.hapusklaim') }}" method="POST">
+                                                    <form action="{{ route('inacbg.hapusklaimrajal') }}" method="POST">
                                                         @csrf
                                                         <input type="hidden" name="no_rawat"
                                                             value="{{ $pasien->no_rawat ?? '' }}">
@@ -749,10 +749,9 @@
                                                             value="{{ @$log->nomor_sep ?? '' }}">
                                                         <input type="hidden" name="coder_nik"
                                                             value="{{ @$log->coder_nik ?? '' }}">
-                                                        @if(@$log->response_grouping_idrg == null)
                                                             
                                                         <button type="submit" class="btn btn-danger">Hapus Klaim</button>
-                                                        @endif
+                                                       
                                                     </form>
                                                 @endif
 

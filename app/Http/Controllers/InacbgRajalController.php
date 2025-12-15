@@ -67,11 +67,12 @@ class InacbgRajalController extends Controller
             return redirect()->back()->with('error', 'Parameter no_rawat diperlukan.');
         }
 
+        
+
         $sep = DB::table('bridging_sep')
             ->where('no_rawat', $no_rawat)
             ->where('jnspelayanan', '2')
             ->first();
-
         $log = LogEklaimRajal::where('nomor_sep', $sep->no_sep)->first();
 
 
@@ -496,7 +497,7 @@ class InacbgRajalController extends Controller
 
         // Hapus log berdasarkan nomor rawat
         LogEklaimRajal::where('nomor_sep', $request->nomor_sep)->delete();
-
+   
         // Cek hasil respons dari e-Klaim
         $status = $response['metadata']['code'] ?? null;
 
@@ -508,8 +509,8 @@ class InacbgRajalController extends Controller
             $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
             return $this->show($requestShow)->with('success', 'Berhasil menghapus e-Klaim dan log terkait.');
         } else {
-            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-            return $this->show($requestShow)->with('error', 'Gagal menghapus e-Klaim. Silakan cek koneksi atau respon server.');
+            $requestIndex = new Request([]);
+            return $this->index($requestIndex)->with('error', 'Gagal menghapus e-Klaim. Silakan cek koneksi atau respon server.');
         }
     }
 

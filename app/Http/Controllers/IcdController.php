@@ -11,11 +11,11 @@ class IcdController extends Controller
     // ==========================
     // ICD-10
     // ==========================
-    public function icd10(Request $request)
+    public function icd10_idrg(Request $request)
     {
         $search = $request->get('q');
 
-        $data = DB::table('icd10_codes')
+        $data = DB::table('icd10_codes_idrg')
             ->select('code', 'description', 'system', 'validcode', 'accpdx', 'asterisk', 'im')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
@@ -40,11 +40,11 @@ class IcdController extends Controller
     // ==========================
     // ICD-9 (Prosedur)
     // ==========================
-    public function icd9(Request $request)
+    public function icd9_idrg(Request $request)
     {
         $search = $request->get('q');
 
-        $data = DB::table('icd9cm_codes')
+        $data = DB::table('icd9cm_codes_idrg')
             ->select('code', 'description', 'system', 'validcode', 'accpdx', 'asterisk', 'im')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")

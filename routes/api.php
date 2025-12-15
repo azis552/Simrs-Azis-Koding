@@ -49,5 +49,5 @@ Route::prefix('eklaim')->group(function () {
 
 
 });
-Route::get('/icd10', [IcdController::class, 'icd10']);
-Route::get('/icd9', [IcdController::class, 'icd9']);
+Route::get('/icd10_idrg', [IcdController::class, 'icd10_idrg']);
+Route::get('/icd9_idrg', [IcdController::class, 'icd9_idrg']);

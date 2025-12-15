@@ -107,9 +107,10 @@ class InacbgRanapController extends Controller
             ->where('no_rawat', $no_rawat)
             ->where('jnspelayanan', '1')
             ->first();
-
+        
+        // dd($sep);
         $log = LogEklaimRanap::where('nomor_sep', $sep->no_sep)->first();
-
+        // dd($log);
 
 
         // Ambil data pasien dan rawat inap
