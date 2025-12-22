@@ -517,8 +517,16 @@ class InacbgRanapController extends Controller
         $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
 
         return $status === 'proses klaim'
-            ? $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim')
-            : $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
+    ? redirect()
+        ->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])
+        ->with('success', 'Berhasil mengirim e-Klaim')
+    : redirect()
+        ->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])
+        ->with('error', 'Gagal mengirim e-Klaim');
+
+        // return $status === 'proses klaim'
+        //     ? $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim')
+        //     : $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
     }
     public function hapusKlaim(Request $request)
     {

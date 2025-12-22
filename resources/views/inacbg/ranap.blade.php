@@ -66,15 +66,10 @@
                                                     </td>
                                                     <td>{{ $row->no_rawat }}</td>
                                                     <td class="text-center">
-                                                        <form action="{{ route('inacbg-ranap.show') }}" method="POST"
-                                                            style="display:inline;">
-                                                            @csrf
-                                                            <input type="hidden" name="no_rawat"
-                                                                value="{{ $row->no_rawat }}">
-                                                            <button type="submit" class="btn btn-sm btn-info">
-                                                                <i class="fa fa-folder-open"></i> Klaim
-                                                            </button>
-                                                        </form>
+                                                        <a href="{{ route('inacbg-ranap.show', ['no_rawat' => $row->no_rawat]) }}"
+                                                            class="btn btn-sm btn-info">
+                                                            Klaim
+                                                        </a>
                                                     </td>
 
                                                     <td>{{ $row->no_rkm_medis }}</td>

@@ -23,7 +23,59 @@
                 font-size: 14px;
             }
         }
+
+        /* Gaya untuk input Select2 */
+        .select2-container .select2-selection--single {
+            background-color: white !important;
+            /* Ganti background menjadi putih */
+            color: black !important;
+            /* Warna teks hitam */
+            border: 1px solid black !important;
+            /* Border hitam */
+            border-radius: 4px;
+            /* Radius border agar lebih rapi */
+            height: 38px;
+            /* Sesuaikan tinggi input */
+        }
+
+        /* Gaya untuk dropdown Select2 */
+        .select2-container .select2-dropdown {
+            background-color: white !important;
+            /* Ganti background dropdown menjadi putih */
+            color: black !important;
+            /* Warna teks hitam */
+            border: 1px solid black !important;
+            /* Border hitam pada dropdown */
+            border-radius: 4px;
+        }
+
+        /* Gaya untuk pilihan dropdown */
+        .select2-container .select2-results__option {
+            color: black !important;
+            /* Warna teks pilihan dropdown */
+        }
+
+        /* Gaya untuk placeholder */
+        .select2-container .select2-selection__placeholder {
+            color: black !important;
+            /* Ubah warna placeholder menjadi hitam */
+            font-weight: normal !important;
+            /* Gaya font normal pada placeholder */
+        }
+
+        /* Gaya untuk teks yang dipilih */
+        .select2-container .select2-selection__rendered {
+            color: black !important;
+            /* Warna teks yang dipilih */
+            background-color: white !important;
+            /* Background putih pada teks yang dipilih */
+        }
     </style>
+    <script>
+        window.isFinalIdrg = {{ @$log->response_idrg_grouper_final != null ? 'true' : 'false' }};
+        window.isFinalInacbg  = {{ @$log->response_inacbg_final != null ? 'true' : 'false' }};
+    </script>
+
     <div class="pcoded-content">
         <div class="pcoded-inner-content">
             <div class="main-body">
@@ -101,7 +153,6 @@
                                                         data-bs-toggle="tab" href="#inacbgimport" role="tab">Import
                                                         INA-CBG</a>
                                                 </li>
-                                                
                                             @endif
 
                                         </ul>
@@ -714,7 +765,7 @@
                                                         </div>
                                                         <div class="col-md-3">
                                                             <label>Kode Tarif</label>
-                                                            <input type="text" name="kode_tarif" value="DS"
+                                                            <input type="text" name="kode_tarif" value="AP"
                                                                 class="form-control" readonly>
                                                         </div>
                                                         <div class="col-md-3">
@@ -750,7 +801,7 @@
                                                         <input type="hidden" name="coder_nik"
                                                             value="{{ @$log->coder_nik ?? '' }}">
                                                         <button type="submit" class="btn btn-danger">Hapus Klaim</button>
-                                                        
+
                                                     </form>
                                                 @endif
 
@@ -810,6 +861,7 @@
                                                                                 <th>Qty</th>
                                                                                 <th>Status</th>
                                                                                 <th>Hapus</th>
+
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody></tbody>
@@ -844,56 +896,62 @@
                                                 {{-- Hasil Grouping iDRG --}}
                                                 {{-- ========================= --}}
                                                 @if ($response_idrg)
-    <table class="table table-bordered mt-3">
-        <thead class="text-center">
-            <tr>
-                <th colspan="3">Hasil Grouping iDRG</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><b>MDC</b></td>
-                <td>{{ $response_idrg['mdc_description'] ?? '-' }}</td>
-                <td class="text-center">{{ $response_idrg['mdc_number'] ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td><b>DRG</b></td>
-                <td>{{ $response_idrg['drg_description'] ?? '-' }}</td>
-                <td class="text-center">{{ $response_idrg['drg_code'] ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td><b>Cost Weight</b></td>
-                <td colspan="2">{{ $response_idrg['cost_weight'] ?? '0.00' }}</td>
-            </tr>
-            <tr>
-                <td><b>NBR</b></td>
-                <td colspan="2">{{ $response_idrg['nbr'] ?? '-' }}</td>
-            </tr>
+                                                    <table class="table table-bordered mt-3">
+                                                        <thead class="text-center">
+                                                            <tr>
+                                                                <th colspan="3">Hasil Grouping iDRG</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td><b>MDC</b></td>
+                                                                <td>{{ $response_idrg['mdc_description'] ?? '-' }}</td>
+                                                                <td class="text-center">
+                                                                    {{ $response_idrg['mdc_number'] ?? '-' }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><b>DRG</b></td>
+                                                                <td>{{ $response_idrg['drg_description'] ?? '-' }}</td>
+                                                                <td class="text-center">
+                                                                    {{ $response_idrg['drg_code'] ?? '-' }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><b>Cost Weight</b></td>
+                                                                <td colspan="2">
+                                                                    {{ $response_idrg['cost_weight'] ?? '0.00' }}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><b>NBR</b></td>
+                                                                <td colspan="2">{{ $response_idrg['nbr'] ?? '-' }}
+                                                                </td>
+                                                            </tr>
 
-            <tr>
-                <td><b>Status</b></td>
-                <td colspan="2">{{ $response_idrg['status_cd'] ?? '-' }}</td>
-            </tr>
-        </tbody>
-    </table>
+                                                            <tr>
+                                                                <td><b>Status</b></td>
+                                                                <td colspan="2">
+                                                                    {{ $response_idrg['status_cd'] ?? '-' }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
 
-    {{-- Tombol Final iDRG: hanya tampil jika mdc_number ≠ 36 --}}
-    @if ($response_idrg['mdc_number'] != '36')
-        <button id="btnFinalIdrg"
-            class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
-            {{ $log->response_grouping_idrg == null ? 'disabled' : '' }}>
-            ✔ Final IDRG
-        </button>
-    @else
-        <div class="alert alert-danger mt-2">
-            ⚠️ Tidak dapat memfinalkan karena kode MDC 36 (Ungroupable or Unrelated)
-        </div>
-    @endif
-@else
-    <div class="alert alert-warning mt-3">
-        Belum ada hasil grouping iDRG tersimpan
-    </div>
-@endif
+                                                    {{-- Tombol Final iDRG: hanya tampil jika mdc_number ≠ 36 --}}
+                                                    @if ($response_idrg['mdc_number'] != '36')
+                                                        <button id="btnFinalIdrg"
+                                                            class="btn {{ @$log->response_idrg_grouper_final != null ? 'btn-disabled' : 'btn-primary' }} mt-2"
+                                                            {{ $log->response_grouping_idrg == null ? 'disabled' : '' }}>
+                                                            ✔ Final IDRG
+                                                        </button>
+                                                    @else
+                                                        <div class="alert alert-danger mt-2">
+                                                            ⚠️ Tidak dapat memfinalkan karena kode MDC 36 (Ungroupable or
+                                                            Unrelated)
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    <div class="alert alert-warning mt-3">
+                                                        Belum ada hasil grouping iDRG tersimpan
+                                                    </div>
+                                                @endif
 
 
                                                 {{-- ========================= --}}
@@ -924,7 +982,9 @@
                                                 id="inacbgimport" role="tabpanel">
                                                 <div class="row">
                                                     <div class="col-12 text-center mb-3">
-                                                        <button id="btnImportInacbg"  {{ @$log->response_inacbg_final != null ? 'disabled' : '' }} class="btn btn-primary btn-lg">
+                                                        <button id="btnImportInacbg"
+                                                            {{ @$log->response_inacbg_final != null ? 'disabled' : '' }}
+                                                            class="btn btn-primary btn-lg">
                                                             <i class="fas fa-exchange-alt"></i> Import iDRG → INA-CBG
                                                         </button>
                                                     </div>
@@ -1091,7 +1151,7 @@
 
 
                                             </div>
-                                            
+
                                         </div>
                                     </div>
                                 </div>
@@ -1121,7 +1181,7 @@
 
             // Kirim request ke backend
             $.ajax({
-                url: '{{url("")}}/api/eklaim/claim-print',
+                url: '{{ url('') }}/api/eklaim/claim-print',
                 method: 'POST',
                 xhrFields: {
                     responseType: 'blob' // penting untuk PDF!
@@ -1138,7 +1198,7 @@
                     const fileURL = URL.createObjectURL(blob);
                     window.open(fileURL, '_blank'); // tampilkan di tab baru
                 },
-                error: function(xhr) { 
+                error: function(xhr) {
                     alert('Gagal mencetak klaim.\n' + xhr.responseText);
                 },
                 complete: function() {
@@ -1147,116 +1207,120 @@
             });
         });
     </script>
-{{-- send klaim --}}
-<script>
-    $(document).ready(function() {
-        const nomor_sep = '{{ @$log->nomor_sep }}';
+    {{-- send klaim --}}
+    <script>
+        $(document).ready(function() {
+            const nomor_sep = '{{ @$log->nomor_sep }}';
 
-        // Tampilkan tombol hanya jika ada hasil Claim Final
-        @if (!empty($log->response_claim_final))
-            $('#btnSendClaim').show();
-        @endif
+            // Tampilkan tombol hanya jika ada hasil Claim Final
+            @if (!empty($log->response_claim_final))
+                $('#btnSendClaim').show();
+            @endif
 
-        // Klik tombol kirim klaim
-        $('#btnSendClaim').on('click', function() {
-            Swal.fire({
-                title: 'Kirim Claim ke e-Klaim?',
-                text: 'Pastikan hasil claim final sudah benar sebelum dikirim.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Kirim',
-                cancelButtonText: 'Batal'
-            }).then((res) => {
-                if (!res.isConfirmed) return;
-
+            // Klik tombol kirim klaim
+            $('#btnSendClaim').on('click', function() {
                 Swal.fire({
-                    title: 'Memproses...',
-                    text: 'Mengirim klaim ke e-Klaim...',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
+                    title: 'Kirim Claim ke e-Klaim?',
+                    text: 'Pastikan hasil claim final sudah benar sebelum dikirim.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Kirim',
+                    cancelButtonText: 'Batal'
+                }).then((res) => {
+                    if (!res.isConfirmed) return;
 
-                // === Kirim ke e-Klaim ===
-                $.ajax({
-                    url: '{{ url("") }}/api/eklaim/claim-send',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        metadata: {
-                            method: 'send_claim_individual'
-                        },
-                        data: {
-                            nomor_sep: nomor_sep
-                        }
-                    }),
-                    success: function(response) {
-                        Swal.close();
-                        console.log('Response send_claim_individual:', response);
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Mengirim klaim ke e-Klaim...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
 
-                        // ✅ Cek berdasarkan metadata.code === 200
-                        if (response.metadata?.code !== 200) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Mengirim Klaim',
-                                text: response.metadata?.message ||
-                                    'Terjadi kesalahan saat mengirim klaim.'
-                            });
-                            return;
-                        }
-
-                        // === Simpan Log ke Database ===
-                        $.ajax({
-                            url: '{{ url("") }}/log/claim-send/save',
-                            type: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    // === Kirim ke e-Klaim ===
+                    $.ajax({
+                        url: '{{ url('') }}/api/eklaim/claim-send',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            metadata: {
+                                method: 'send_claim_individual'
                             },
                             data: {
-                                nomor_sep: nomor_sep,
-                                response_send_claim_individual: JSON.stringify(response.response)
-                            },
-                            beforeSend: function() {
-                                Swal.fire({
-                                    title: 'Menyimpan Log...',
-                                    text: 'Menyimpan hasil kirim klaim...',
-                                    allowOutsideClick: false,
-                                    didOpen: () => Swal.showLoading()
-                                });
-                            },
-                            success: function(res) {
-                                Swal.close();
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '✅ Klaim Terkirim!',
-                                    text: res.message || 'Klaim berhasil dikirim dan log disimpan.',
-                                    showConfirmButton: false,
-                                    timer: 2000
-                                });
-                                setTimeout(() => location.reload(), 2000);
-                            },
-                            error: function() {
-                                Swal.close();
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Klaim Terkirim, Log Gagal Disimpan',
-                                    text: 'Klaim berhasil dikirim, tetapi log gagal disimpan.'
-                                });
+                                nomor_sep: nomor_sep
                             }
-                        });
-                    },
-                    error: function() {
-                        Swal.close();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error Server',
-                            text: 'Tidak dapat terhubung ke server.'
-                        });
-                    }
+                        }),
+                        success: function(response) {
+                            Swal.close();
+                            console.log('Response send_claim_individual:', response);
+
+                            // ✅ Cek berdasarkan metadata.code === 200
+                            if (response.metadata?.code !== 200) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal Mengirim Klaim',
+                                    text: response.metadata?.message ||
+                                        'Terjadi kesalahan saat mengirim klaim.'
+                                });
+                                return;
+                            }
+
+                            // === Simpan Log ke Database ===
+                            $.ajax({
+                                url: '{{ url('') }}/log/claim-send/save',
+                                type: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                data: {
+                                    nomor_sep: nomor_sep,
+                                    response_send_claim_individual: JSON
+                                        .stringify(response.response)
+                                },
+                                beforeSend: function() {
+                                    Swal.fire({
+                                        title: 'Menyimpan Log...',
+                                        text: 'Menyimpan hasil kirim klaim...',
+                                        allowOutsideClick: false,
+                                        didOpen: () => Swal
+                                            .showLoading()
+                                    });
+                                },
+                                success: function(res) {
+                                    Swal.close();
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '✅ Klaim Terkirim!',
+                                        text: res.message ||
+                                            'Klaim berhasil dikirim dan log disimpan.',
+                                        showConfirmButton: false,
+                                        timer: 2000
+                                    });
+                                    setTimeout(() => location.reload(),
+                                        2000);
+                                },
+                                error: function() {
+                                    Swal.close();
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Klaim Terkirim, Log Gagal Disimpan',
+                                        text: 'Klaim berhasil dikirim, tetapi log gagal disimpan.'
+                                    });
+                                }
+                            });
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error Server',
+                                text: 'Tidak dapat terhubung ke server.'
+                            });
+                        }
+                    });
                 });
             });
         });
-    });
-</script>
+    </script>
 
     {{-- reedit klaim --}}
     <script>
@@ -1271,7 +1335,7 @@
             if (!confirm('Yakin ingin melakukan re-edit claim untuk SEP ini?')) return;
 
             $.ajax({
-                url: '{{url("")}}/reedit-claim',
+                url: '{{ url('') }}/reedit-claim',
                 type: 'POST',
                 data: {
 
@@ -1314,7 +1378,7 @@
                     btn.prop('disabled', true);
 
                     $.ajax({
-                        url: '{{url("")}}/api/eklaim/claim-final',
+                        url: '{{ url('') }}/api/eklaim/claim-final',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -1355,7 +1419,7 @@
 
                             // ✅ Simpan hasil ke log
                             $.ajax({
-                                url: '{{url("")}}/save-claim-final-log',
+                                url: '{{ url('') }}/save-claim-final-log',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1373,7 +1437,8 @@
                                         title: 'Claim Final Berhasil',
                                         text: 'Hasil Claim Final berhasil disimpan ke log.'
                                     });
-                                    setTimeout(() => location.reload(), 2000);
+                                    setTimeout(() => location.reload(),
+                                        2000);
                                 },
                                 error: function() {
                                     Swal.fire({
@@ -1411,7 +1476,7 @@
             $(this).prop('disabled', true).text('Memproses Re-edit...');
 
             $.ajax({
-                url: '{{url("")}}/grouping-inacbg-reedit-final',
+                url: '{{ url('') }}/grouping-inacbg-reedit-final',
                 type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -1421,7 +1486,7 @@
                     $('#btnReeditInacbg').prop('disabled', false).text('Re-edit INA-CBG');
 
                     if (res.status === 'success') {
-                      
+
                         $('#groupingInacbgResult').html('');
                         $('#stage2Result').html('');
                         location.reload();
@@ -1472,7 +1537,7 @@
 
                 // === 1. Kirim ke e-Klaim (final-inacbg) ===
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/final-inacbg', // <---- langsung pakai URL
+                    url: '{{ url('') }}/api/eklaim/final-inacbg', // <---- langsung pakai URL
                     type: 'POST',
                     data: {
                         _token: "{{ csrf_token() }}",
@@ -1489,7 +1554,7 @@
 
                         // === 2. Simpan hasil ke log (save-final-inacbg-log) ===
                         $.ajax({
-                            url: '{{url("")}}/save-final-inacbg-log', // <---- langsung pakai URL
+                            url: '{{ url('') }}/save-final-inacbg-log', // <---- langsung pakai URL
                             type: 'POST',
                             data: {
                                 _token: "{{ csrf_token() }}",
@@ -1497,7 +1562,7 @@
                                 response_inacbg_final: JSON.stringify(response)
                             },
                             success: function(res) {
-                                
+
                                 location.reload();
                             },
                             error: function(xhr) {
@@ -1524,43 +1589,52 @@
 
             let selectedCmgCode = null;
 
-            // --- Auto-load Stage 2 (cek CMG yang dipakai) ---
+
+
+            // --- Auto-load hasil Stage 2 dari log, jika ada ---
+            // Cek apakah Stage 2 ada
             if (existingStage2) {
                 try {
-                    const parsed2 = typeof existingStage2 === 'string' ? JSON.parse(existingStage2) :
+                    const parsedStage2 = typeof existingStage2 === 'string' ? JSON.parse(existingStage2) :
                         existingStage2;
-                    if (parsed2.response_inacbg) {
-                        renderStage2Result(parsed2.response_inacbg);
-                        // Ambil kode CMG terakhir dari log stage2
-                        if (parsed2.metadata && parsed2.metadata.special_cmg) {
-                            selectedCmgCode = parsed2.metadata.special_cmg;
-                        } else if (parsed2.data && parsed2.data.special_cmg) {
-                            selectedCmgCode = parsed2.data.special_cmg;
-                        }
+
+                    if (parsedStage2) {
+                        // Gunakan data Stage 2 jika ada
+                        renderGroupingResult(parsedStage2);
+                    } else {
+                        // Jika Stage 2 tidak ada datanya
+                        console.warn("Data Stage 2 tidak ditemukan.");
                     }
                 } catch (e) {
                     console.warn('Gagal parse response_inacbg_stage2:', e);
                 }
             }
-
-            // --- Auto-load hasil Stage 1 dari log ---
-            if (existingStage1) {
+            // --- Jika Stage 2 tidak ada, fallback ke Stage 1 ---
+            else if (existingStage1) {
                 try {
-                    const parsed = typeof existingStage1 === 'string' ? JSON.parse(existingStage1) : existingStage1;
-                    if (parsed.response_inacbg) {
-                        renderGroupingResult(parsed.response_inacbg, parsed.special_cmg_option || []);
+                    const parsedStage1 = typeof existingStage1 === 'string' ? JSON.parse(existingStage1) :
+                        existingStage1;
+
+                    if (parsedStage1) {
+                        // Gunakan data Stage 1 jika Stage 2 tidak ada
+                        renderGroupingResult(parsedStage1);
+                    } else {
+                        console.warn("Data Stage 1 tidak ditemukan.");
                     }
                 } catch (e) {
                     console.warn('Gagal parse response_inacbg_stage1:', e);
                 }
+            } else {
+                console.warn('Tidak ada data Stage 1 atau Stage 2.');
             }
+
 
             // --- Tombol grouping stage 1 ---
             $('#btnGroupingInacbg').on('click', function() {
                 $(this).prop('disabled', true).text('Processing...');
 
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/grouping-inacbg-stage-1',
+                    url: '{{ url('') }}/api/eklaim/grouping-inacbg-stage-1',
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1581,11 +1655,10 @@
                             'Grouping INA-CBG');
 
                         if (response.response_inacbg) {
-                            renderGroupingResult(response.response_inacbg, response
-                                .special_cmg_option || []);
+                            renderGroupingResult(response);
 
                             // --- Simpan log stage 1 (full JSON) ---
-                            $.post('{{ url("") }}/save-grouping-inacbg-stage1-log', {
+                            $.post('{{ url('') }}/save-grouping-inacbg-stage1-log', {
                                 _token: '{{ csrf_token() }}',
                                 nomor_sep: nomor_sep,
                                 response_inacbg_stage1: JSON.stringify(response)
@@ -1607,159 +1680,309 @@
             });
 
             // --- Render Stage 1 result ---
-            function renderGroupingResult(response_inacbg, specialOptions) {
-                const cbg = response_inacbg.cbg || {};
-                const tarif = parseInt(response_inacbg.tariff || 0).toLocaleString('id-ID');
-                const version = response_inacbg.inacbg_version || '-';
+           // Variabel untuk menyimpan kode dan tarif yang dipilih
 
-                let html = `
-            <div class="card shadow-sm border p-3" style="color:#000;">
-                <h5 class="mb-3" style="font-weight:600;">
-                    <i class="bi bi-hospital"></i> Hasil Grouping INA-CBG (Stage 1)
-                </h5>
-                <table class="table table-sm table-striped">
-                    <tr><td width="35%">Kode CBG</td><td><b>${cbg.code || '-'}</b></td></tr>
-                    <tr><td>Deskripsi</td><td>${cbg.description || '-'}</td></tr>
-                    <tr><td>Tarif</td><td><b>Rp ${tarif}</b></td></tr>
-                    <tr><td>Versi INA-CBG</td><td>${version}</td></tr>
-                </table>
-        `;
 
-                if (specialOptions && specialOptions.length > 0) {
-                    html += `
-                <div class="mt-3 p-3 border rounded bg-light" style="color:#000;">
-                    <h6><i class="bi bi-stars"></i> Special CMG Ditemukan</h6>
-                    <p class="text-muted small">Silakan pilih salah satu opsi berikut untuk melanjutkan Grouping Stage 2:</p>
-                    <select id="specialCmgSelect" class="form-control mt-2">
-                        <option value="">-- Pilih Special CMG --</option>`;
-                    specialOptions.forEach(opt => {
-                        const selected = (opt.code === selectedCmgCode) ? 'selected' : '';
-                        html += `<option value="${opt.code}" data-field="${opt.type}" ${selected}>
-                            ${opt.code} - ${opt.description} (${opt.type})
-                        </option>`;
-                    });
-                    html += `
-                    </select>
-                    <button id="btnCancelCmg" class="btn btn-outline-danger btn-sm mt-2">Batal Pilih CMG</button>
-                </div>
-                <div id="stage2Result" class="mt-3"></div>
-            `;
+function renderGroupingResult(response_inacbg) {
+    const cbg = response_inacbg.response_inacbg.cbg || {};
+    const tarif = parseInt(response_inacbg.response_inacbg.tariff || 0).toLocaleString('id-ID');
+    const specialCmgOptions = response_inacbg.special_cmg_option || [];
+    const specialCmg = response_inacbg.response_inacbg.special_cmg || [];
+let selectedSpecialCmgs = {
+    specialProcedure: { code: '', tariff: 0 },
+    specialProsthesis: { code: '', tariff: 0 },
+    specialInvestigation: { code: '', tariff: 0 },
+    specialDrug: { code: '', tariff: 0 }
+};
+    let html = `
+    <div class="card shadow-sm border p-3" style="color:#000;">
+        <h5 class="mb-3" style="font-weight:600;">
+            <i class="bi bi-hospital"></i> Hasil Grouping INA-CBG
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <tr>
+                    <td style="font-weight: bold;" class="w-25">Info</td>
+                    <td colspan="3">${response_inacbg.response_inacbg.inacbg_version}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;" class="w-25">Kelas Rawat</td>
+                    <td colspan="3">${response_inacbg.response_inacbg.kelas}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Group</td>
+                    <td colspan="1">${cbg.description || 'N/A'}</td>
+                    <td> ${cbg.code || 'N/A'}</td>
+                    <td>Rp ${parseInt(response_inacbg.response_inacbg.base_tariff || 0).toLocaleString('id-ID')} </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Sub Acute</td>
+                    <td colspan="1">-</td>
+                    <td colspan="1">-</td>
+                    <td colspan="1">-</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Chronic</td>
+                    <td colspan="1">-</td>
+                    <td colspan="1">-</td>
+                    <td colspan="1">-</td>
+                </tr>
+
+                <!-- Special Procedure -->
+                <tr>
+                    <td style="font-weight: bold;">Special Procedure</td>
+                    <td>
+                        <select class="form-control" id="specialProcedureSelect" onchange="updateSelectedCmg('specialProcedure')" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>
+                            <option value="None">None</option>`;
+
+    // Menambahkan data Special Procedure
+    specialCmgOptions.forEach(option => {
+        if (option.type === "Special Procedure") {
+            // Mencari nilai tarif dan kode berdasarkan deskripsi
+            const matchingCmg = specialCmg.find(cmg => cmg.description.toLowerCase() === option.description.toLowerCase());
+            const isSelected = matchingCmg ? true : false;
+            if (isSelected) {
+            selectedSpecialCmgs.specialProcedure = isSelected ? { code: matchingCmg.code, tariff: matchingCmg.tariff } : { code: '', tariff: 0 };
+            }
+            html += `
+                <option value="${option.code}" data-tarif="${option.tariff}" ${isSelected ? 'selected' : ''}>
+                    ${option.description}
+                </option>`;
+        }
+    });
+
+    html += `</select></td>
+                    <td id="specialProcedureCode">${selectedSpecialCmgs.specialProcedure.code}</td>
+                    <td id="specialProcedurePrice">Rp ${selectedSpecialCmgs.specialProcedure.tariff.toLocaleString('id-ID')}</td>
+                </tr>
+
+                <!-- Special Prosthesis -->
+                <tr>
+                    <td style="font-weight: bold;">Special Prosthesis</td>
+                    <td>
+                        <select class="form-control" id="specialProsthesisSelect" onchange="updateSelectedCmg('specialProsthesis')" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>
+                            <option value="None">None</option>`;
+
+    // Menambahkan data Special Prosthesis
+    specialCmgOptions.forEach(option => {
+        if (option.type === "Special Prosthesis") {
+            // Mencari nilai tarif dan kode berdasarkan deskripsi
+            const matchingCmg = specialCmg.find(cmg => cmg.description.toLowerCase() === option.description.toLowerCase());
+            const isSelected = matchingCmg ? true : false;
+            if (isSelected) {
+                selectedSpecialCmgs.specialProsthesis = isSelected ? { code: matchingCmg.code, tariff: matchingCmg.tariff } : { code: '', tariff: 0 };
+            }
+            html += `
+                <option value="${option.code}" data-tarif="${option.tariff}" ${isSelected ? 'selected' : ''}>
+                    ${option.description}
+                </option>`;
+        }
+    });
+
+    html += `</select></td>
+                    <td id="specialProsthesisCode">${selectedSpecialCmgs.specialProsthesis.code}</td>
+                    <td id="specialProsthesisPrice">Rp ${selectedSpecialCmgs.specialProsthesis.tariff.toLocaleString('id-ID')}</td>
+                </tr>
+
+                <!-- Special Investigation Section -->
+                <tr>
+                    <td style="font-weight: bold;">Special Investigation</td>
+                    <td>
+                        <select class="form-control" id="specialInvestigationSelect" onchange="updateSelectedCmg('specialInvestigation')" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>
+                            <option value="None">None</option>`;
+
+    // Menambahkan data Special Investigation
+    specialCmgOptions.forEach(option => {
+        if (option.type === "Special Investigation") {
+            html += `
+                <option value="${option.code}" data-kode="${option.code}">
+                    ${option.description}
+                </option>`;
+        }
+    });
+
+    html += `</select></td>
+                    <td id="specialInvestigationCode">${selectedSpecialCmgs.specialInvestigation.code}</td>
+                    <td id="specialInvestigationPrice">Rp ${selectedSpecialCmgs.specialInvestigation.tariff.toLocaleString('id-ID')}</td>
+                </tr>
+
+                <!-- Special Drug Section -->
+                <tr>
+                    <td style="font-weight: bold;">Special Drug</td>
+                    <td>
+                        <select class="form-control" id="specialDrugSelect" onchange="updateSelectedCmg('specialDrug')" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>
+                            <option value="None">None</option>`;
+
+    // Menambahkan data Special Drug
+    specialCmgOptions.forEach(option => {
+        if (option.type === "Special Drug") {
+            html += `
+                <option value="${option.code}" data-kode="${option.code}">
+                    ${option.description}
+                </option>`;
+        }
+    });
+
+    html += `</select></td>
+                    <td id="specialDrugCode">${selectedSpecialCmgs.specialDrug.code}</td>
+                    <td id="specialDrugPrice">Rp ${selectedSpecialCmgs.specialDrug.tariff.toLocaleString('id-ID')}</td>
+                </tr>
+
+                <tr>
+                    <td style="font-weight: bold;">Total Klaim</td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="1" id="totalKlaim">Rp ${tarif}</td>
+                </tr>
+            </table>
+        </div>
+    </div>`;
+
+    $('#groupingInacbgResult').html(html);
+}
+
+// Fungsi untuk memperbarui pilihan yang dipilih dan menyimpan ke dalam variabel
+function updateSelectedCmg(type) {
+    const selectedSelect = document.getElementById(`${type}Select`);
+    const selectedOption = selectedSelect.options[selectedSelect.selectedIndex];
+    
+    // Ambil nilai kode dan tarif yang dipilih
+    const selectedCode = selectedOption.value;
+    const selectedTariff = selectedOption.getAttribute('data-tarif');
+
+    // Update variabel sesuai dengan tipe (specialProcedure, specialProsthesis, specialInvestigation, specialDrug)
+    selectedSpecialCmgs[type] = { code: selectedCode, tariff: parseInt(selectedTariff) || 0 };
+
+    // Perbarui tampilan harga dan kode
+    document.getElementById(`${type}Code`).innerHTML = selectedSpecialCmgs[type].code;
+    document.getElementById(`${type}Price`).innerHTML = `Rp ${selectedSpecialCmgs[type].tariff.toLocaleString('id-ID')}`;
+
+    // Menghitung total klaim
+    const total = Object.values(selectedSpecialCmgs).reduce((acc, cmg) => acc + cmg.tariff, parseInt($('#totalKlaim').text().replace('Rp ', '').replace(',', '') || 0));
+
+    // Update total klaim
+    document.getElementById('totalKlaim').innerHTML = `Rp ${total.toLocaleString('id-ID')}`;
+}
+
+
+
+            // Fungsi untuk mengirimkan request AJAX dengan special_cmg yang dipilih
+            function sendGroupingStage2Request() {
+                const nomor_sep = '{{ @$log->nomor_sep }}';
+
+                // Ambil nilai dari dropdown dan simpan dalam array
+                const selectedSpecialCmgs = [];
+
+                // Ambil nilai dari dropdown Special Procedure
+                const specialProcedureSelect = document.getElementById('specialProcedureSelect');
+                const selectedSpecialProcedure = specialProcedureSelect.value;
+                if (selectedSpecialProcedure !== "None") {
+                    selectedSpecialCmgs.push(selectedSpecialProcedure);
                 }
 
-                html += `</div>`;
-                $('#groupingInacbgResult').html(html);
+                // Ambil nilai dari dropdown Special Prosthesis
+                const specialProsthesisSelect = document.getElementById('specialProsthesisSelect');
+                const selectedSpecialProsthesis = specialProsthesisSelect.value;
+                if (selectedSpecialProsthesis !== "None") {
+                    selectedSpecialCmgs.push(selectedSpecialProsthesis);
+                }
 
-                // Jika sudah ada hasil stage 2 dari log, tampilkan ulang
-                if (existingStage2) {
-                    const parsed2 = typeof existingStage2 === 'string' ? JSON.parse(existingStage2) :
-                        existingStage2;
-                    if (parsed2.response_inacbg) {
-                        renderStage2Result(parsed2.response_inacbg);
+                // Ambil nilai dari dropdown Special Investigation
+                const specialInvestigationSelect = document.getElementById('specialInvestigationSelect');
+                const selectedSpecialInvestigation = specialInvestigationSelect.value;
+                if (selectedSpecialInvestigation !== "None") {
+                    selectedSpecialCmgs.push(selectedSpecialInvestigation);
+                }
+
+                // Ambil nilai dari dropdown Special Drug
+                const specialDrugSelect = document.getElementById('specialDrugSelect');
+                const selectedSpecialDrug = specialDrugSelect.value;
+                if (selectedSpecialDrug !== "None") {
+                    selectedSpecialCmgs.push(selectedSpecialDrug);
+                }
+
+
+
+                // Gabungkan semua pilihan special_cmg dengan tanda #
+                const specialCmg = selectedSpecialCmgs.join('#'); // Misalnya, "RR04#YY01"
+
+                // Menyiapkan data untuk dikirim ke server
+                const data = {
+                    metadata: {
+                        method: 'grouper',
+                        stage: '2',
+                        grouper: 'inacbg',
+                        special_cmg: specialCmg // Menggunakan special_cmg yang digabungkan
+                    },
+                    data: {
+                        nomor_sep: nomor_sep,
+                        special_cmg: specialCmg // Mengirimkan special_cmg yang digabungkan ke API
                     }
-                }
-            }
+                };
 
-            // --- Render Stage 2 result ---
-            function renderStage2Result(response_inacbg) {
-                const cbg = response_inacbg.cbg || {};
-                const tarif = parseInt(response_inacbg.tariff || 0).toLocaleString('id-ID');
-
-                const html = `
-            <div class="card border shadow-sm p-3 mt-3" style="color:#000;">
-                <h6 style="font-weight:600;">
-                    <i class="bi bi-cpu"></i> Hasil Grouping Stage 2 (Special CMG)
-                </h6>
-                <table class="table table-sm table-hover mt-2">
-                    <tr><td width="35%">Kode CBG</td><td><b>${cbg.code}</b></td></tr>
-                    <tr><td>Deskripsi</td><td>${cbg.description}</td></tr>
-                    <tr><td>Tarif Akhir</td><td><b>Rp ${tarif}</b></td></tr>
-                </table>
-                <span class="badge bg-secondary text-light">Special CMG Applied</span>
-            </div>
-        `;
-                $('#stage2Result').html(html);
-            }
-
-            // --- Event Stage 2 grouping ---
-            $(document).on('change', '#specialCmgSelect', function() {
-                const code = $(this).val();
-                if (!code) {
-                    $('#stage2Result').html('');
-                    return;
-                }
-
-                $('#stage2Result').html('<div class="text-muted">Memproses Stage 2...</div>');
-
+                // Mengirim request menggunakan AJAX
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/grouping-inacbg-stage-2',
+                    url: '{{ url('') }}/api/eklaim/grouping-inacbg-stage-2', // URL untuk API
                     type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     contentType: 'application/json',
-                    data: JSON.stringify({
-                        metadata: {
-                            method: 'grouper',
-                            stage: '2',
-                            grouper: 'inacbg',
-                            special_cmg: code
-                        },
-                        data: {
-                            nomor_sep: nomor_sep,
-                            special_cmg: code
-                        }
-                    }),
-                    success: function(res) {
-                        if (res.response_inacbg) {
-                            renderStage2Result(res.response_inacbg);
+                    data: JSON.stringify(data), // Mengirimkan data dalam format JSON
+                    success: function(response) {
+                        // Proses hasil dari API
+                        if (response && response.response_inacbg) {
+                            console.log('Hasil Grouping Stage 2:', response);
 
-                            // --- Simpan log Stage 2 (full JSON) ---
-                            $.post('{{ url("") }}/save-grouping-inacbg-stage2-log', {
-                                _token: '{{ csrf_token() }}',
-                                nomor_sep: nomor_sep,
-                                response_inacbg_stage2: JSON.stringify(res)
-                            });
+                            if (response.response_inacbg) {
 
-                            selectedCmgCode = code; // simpan CMG terakhir
-                            location.reload();
+
+                                // --- Simpan log stage 1 (full JSON) ---
+                                $.post('{{ url('') }}/save-grouping-inacbg-stage2-log', {
+                                    _token: '{{ csrf_token() }}',
+                                    nomor_sep: nomor_sep,
+                                    response_inacbg_stage2: JSON.stringify(response)
+                                });
+                                location.reload();
+                            } else {
+                                $('#groupingInacbgResult').html(
+                                    '<div class="alert alert-danger">Tidak ada hasil grouping.</div>'
+                                );
+                            }
+
+
+
+                            // Tampilkan hasil grouping atau lakukan aksi lain
+                            alert("Proses Grouping Stage 2 berhasil!");
                         } else {
-                            $('#stage2Result').html(
-                                '<div class="alert alert-warning">Gagal memproses Stage 2.</div>'
-                            );
+                            alert("Gagal memproses Stage 2!");
                         }
                     },
                     error: function(err) {
-                        console.error('Stage 2 error:', err.responseJSON || err);
-                        $('#stage2Result').html(
-                            '<div class="alert alert-danger">Terjadi kesalahan pada proses Stage 2.</div>'
-                        );
+                        console.error('Error dalam pengiriman Stage 2:', err.responseJSON || err);
+                        alert('Terjadi kesalahan dalam proses Grouping Stage 2!');
                     }
                 });
+            }
+
+            // Event listener untuk menangani perubahan pada dropdown
+            document.getElementById('specialProcedureSelect').addEventListener('change', function() {
+                sendGroupingStage2Request();
             });
 
-            // --- Tombol batal pilih CMG ---
-            $(document).on('click', '#btnCancelCmg', function() {
-                if (!confirm('Yakin ingin membatalkan CMG?')) return;
-                $('#specialCmgSelect').val('');
-                $('#stage2Result').html('<div class="text-muted">CMG dibatalkan...</div>');
-
-                // Update log: hapus response_inacbg_stage2
-                $.ajax({
-                    url: '{{url("")}}/save-grouping-inacbg-stage2-log',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        nomor_sep: nomor_sep,
-                        response_inacbg_stage2: null
-                    },
-                    success: function() {
-                        $('#stage2Result').html(
-                            '<div class="alert alert-secondary">CMG dibatalkan dan log diperbarui.</div>'
-                        );
-                        selectedCmgCode = null;
-                    }
-                });
+            document.getElementById('specialProsthesisSelect').addEventListener('change', function() {
+                sendGroupingStage2Request();
             });
+
+            document.getElementById('specialInvestigationSelect').addEventListener('change', function() {
+                sendGroupingStage2Request();
+            });
+
+            document.getElementById('specialDrugSelect').addEventListener('change', function() {
+                sendGroupingStage2Request();
+            });
+
+
         });
     </script>
 
@@ -1791,7 +2014,7 @@
 
                     // 🔹 1. Panggil endpoint idrg_grouper_reedit
                     $.ajax({
-                        url: '{{url("")}}/idrg-grouper-reedit',
+                        url: '{{ url('') }}/idrg-grouper-reedit',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
@@ -1811,7 +2034,7 @@
                             // 🔹 2. Jika sukses dari WS, hapus final IDRG di DB
                             if (response.metadata && response.metadata.code == 200) {
                                 $.ajax({
-                                    url: '{{url("")}}/hapus-final-idrg',
+                                    url: '{{ url('') }}/hapus-final-idrg',
                                     type: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
@@ -1845,7 +2068,7 @@
                 let nomor_sep = '{{ @$log->nomor_sep ?? '' }}';
 
                 $.ajax({
-                    url: '{{url("")}}/grouping-idrg',
+                    url: '{{ url('') }}/grouping-idrg',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -1873,7 +2096,7 @@
                         console.log(response);
 
                         $.ajax({
-                            url: '{{url("")}}/save-grouping-idrg-log',
+                            url: '{{ url('') }}/save-grouping-idrg-log',
                             type: 'POST',
                             data: {
                                 _token: '{{ csrf_token() }}',
@@ -1922,7 +2145,7 @@
                 }
 
                 $.ajax({
-                    url: '{{url("")}}/final-idrg',
+                    url: '{{ url('') }}/final-idrg',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -1950,7 +2173,7 @@
                         if (response.metadata && response.metadata.code === 200) {
                             // Simpan log ke database tanpa reload
                             $.ajax({
-                                url: '{{url("")}}/save-final-idrg-log',
+                                url: '{{ url('') }}/save-final-idrg-log',
                                 type: 'POST',
                                 headers: {
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -2004,272 +2227,407 @@
             });
         });
     </script>
-{{--  idrg diagnosa dan procedure --}}
-<script>
-    const logDiagnosa = @json($log->diagnosa_idrg ?? null);
-    const logProsedur = @json($log->procedure_idrg ?? null);
-</script>
-{{-- diagnosa & prosedur idrg --}}
-<script>
-$(document).ready(function () {
+    {{--  idrg diagnosa dan procedure --}}
+    <script>
+        const logDiagnosa = @json($log->diagnosa_idrg ?? null);
+        const logProsedur = @json($log->procedure_idrg ?? null);
+    </script>
+    {{-- diagnosa & prosedur idrg --}}
+    <script>
+        $(document).ready(function() {
 
-    // =====================================================
-    // 🔹 SETUP CSRF TOKEN GLOBAL
-    // =====================================================
-    $.ajaxSetup({
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-    });
+            // =====================================================
+            // 🔹 SETUP CSRF TOKEN GLOBAL
+            // =====================================================
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
 
-    // =====================================================
-    // 🔹 VARIABEL GLOBAL
-    // =====================================================
-    let diagnosaList = [];
-    let prosedurList = [];
-    const updateLogURL = "{{ url('') }}/idrg/update-log";
+            // =====================================================
+            // 🔹 VARIABEL GLOBAL
+            // =====================================================
+            let diagnosaList = [];
+            let prosedurList = [];
+            const updateLogURL = "{{ url('') }}/idrg/update-log";
 
-    // =====================================================
-    // 🔹 LOAD DATA DARI LOG DATABASE
-    // =====================================================
-    function loadFromLog() {
-        if (logDiagnosa) {
-            try {
-                const parsed = typeof logDiagnosa === 'string' ? JSON.parse(logDiagnosa) : logDiagnosa;
-                const expanded = parsed.expanded || [];
-                diagnosaList = expanded.map((d, i) => ({
-                    code: d.code,
-                    desc: d.display || d.description,
-                    status: i === 0 ? 'Primer' : 'Sekunder'
+            // =====================================================
+            // 🔹 LOAD DATA DARI LOG DATABASE
+            // =====================================================
+            function loadFromLog() {
+                if (logDiagnosa) {
+                    try {
+                        const parsed = typeof logDiagnosa === 'string' ? JSON.parse(logDiagnosa) : logDiagnosa;
+                        const expanded = parsed.expanded || [];
+                        diagnosaList = expanded.map((d, i) => ({
+                            code: d.code,
+                            desc: d.display || d.description,
+                            status: i === 0 ? 'Primer' : 'Sekunder'
+                        }));
+                        renderTable(diagnosaList, '#tabel_diagnosa', true);
+                    } catch (e) {
+                        console.warn("⚠️ Gagal parsing logDiagnosa:", e);
+                    }
+                }
+
+                if (logProsedur) {
+                    try {
+                        const parsed = typeof logProsedur === 'string' ?
+                            JSON.parse(logProsedur) :
+                            logProsedur;
+
+                        const expanded = parsed.expanded || [];
+
+                        prosedurList = expanded.map((d, i) => ({
+                            code: d.code,
+                            desc: d.display || d.description,
+                            qty: d.multiplicity ? Number(d.multiplicity) : 1,
+                            status: i === 0 ? 'Primer' : 'Sekunder'
+                        }));
+
+                        renderTable(prosedurList, '#tabel_prosedur', false);
+
+                    } catch (e) {
+                        console.warn("⚠️ Gagal parsing logProsedur:", e);
+                    }
+
+                }
+            }
+            loadFromLog();
+
+            // =====================================================
+            // 🔹 INISIALISASI SELECT2
+            // =====================================================
+            initSelect2('#diagnosa_idrg', "{{ url('/api/icd10_idrg') }}", '#tabel_diagnosa', true);
+            initSelect2('#prosedur_idrg', "{{ url('/api/icd9_idrg') }}", '#tabel_prosedur', false);
+
+            function initSelect2(selector, url, tableId, isDiagnosa) {
+                $(selector).select2({
+                    placeholder: 'Cari kode atau deskripsi...',
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({
+                            q: params.term
+                        }),
+                        processResults: data => ({
+                            results: data
+                        })
+                    },
+                    templateResult: item => {
+                        if (!item.id) return item.text;
+                        return $('<div>').append($('<b>').text(item.code)).append(' — ' + item
+                            .description);
+                    },
+                    templateSelection: item => item.text,
+                    // Nonaktifkan multiple selection
+                    multiple: false,
+                    bootstrap4: true,
+                });
+
+                // Reset select2 setelah pemilihan item
+                $(selector).on('select2:select', function(e) {
+                    // Reset input setelah memilih
+                    $(selector).val(null).trigger('change');
+                });
+                // Saat pilih item
+                $(selector).on('select2:select', function(e) {
+                    const data = e.params.data;
+                    let list = isDiagnosa ? diagnosaList : prosedurList;
+
+                    if (list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak valid sebagai Primer',
+                            timer: 2500
+                        });
+                        $(this).val(null).trigger('change');
+                        return;
+                    }
+
+                    // 🔴 CEK DUPLIKASI → HANYA UNTUK DIAGNOSA
+                    if (isDiagnosa && list.some(d => d.code === data.code)) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Diagnosa sudah ada',
+                            timer: 1500
+                        });
+                        $(this).val(null).trigger('change');
+                        return;
+                    }
+
+                    const item = {
+                        code: data.code,
+                        desc: data.description,
+                        status: list.length === 0 ? 'Primer' : 'Sekunder',
+                        qty: isDiagnosa ? undefined : 1
+                    };
+                    list.push(item);
+
+                    if (isDiagnosa) diagnosaList = list;
+                    else prosedurList = list;
+
+                    renderTable(list, tableId, isDiagnosa);
+                    sendToEklaim(isDiagnosa);
+                });
+
+                // Saat unselect
+                $(selector).on('select2:unselect', function(e) {
+                    const id = e.params.data.id;
+                    let list = isDiagnosa;
+                    list = list.filter(d => d.code !== id);
+
+                    if (isDiagnosa) diagnosaList = list;
+
+                    renderTable(list, tableId, isDiagnosa);
+                    sendToEklaim(isDiagnosa);
+                });
+            }
+
+            function parseProcedureResponse(res) {
+                return res.expanded.map(item => ({
+                    code: item.code,
+                    desc: item.display,
+                    qty: item.multiplicity ? Number(item.multiplicity) : 1,
+                    status: item.validcode === "1" ? "Valid" : "Tidak Valid"
                 }));
-                renderTable(diagnosaList, '#tabel_diagnosa', true);
-            } catch (e) {
-                console.warn("⚠️ Gagal parsing logDiagnosa:", e);
             }
-        }
-
-        if (logProsedur) {
-            try {
-                const parsed = typeof logProsedur === 'string' ? JSON.parse(logProsedur) : logProsedur;
-                const expanded = parsed.expanded || [];
-                prosedurList = expanded.map(d => ({
-                    code: d.code,
-                    desc: d.display || d.description,
-                    qty: d.qty || 1,
-                    status: ''
-                }));
-                renderTable(prosedurList, '#tabel_prosedur', false);
-            } catch (e) {
-                console.warn("⚠️ Gagal parsing logProsedur:", e);
-            }
-        }
-    }
-    loadFromLog();
-
-    // =====================================================
-    // 🔹 INISIALISASI SELECT2
-    // =====================================================
-    initSelect2('#diagnosa_idrg', "{{ url('/api/icd10_idrg') }}", '#tabel_diagnosa', true);
-    initSelect2('#prosedur_idrg', "{{ url('/api/icd9_idrg') }}", '#tabel_prosedur', false);
-
-    function initSelect2(selector, url, tableId, isDiagnosa) {
-        $(selector).select2({
-            placeholder: 'Cari kode atau deskripsi...',
-            ajax: {
-                url: url,
-                dataType: 'json',
-                delay: 250,
-                data: params => ({ q: params.term }),
-                processResults: data => ({ results: data })
-            },
-            templateResult: item => {
-                if (!item.id) return item.text;
-                return $('<div>').append($('<b>').text(item.code)).append(' — ' + item.description);
-            },
-            templateSelection: item => item.text,
-            multiple: true
-        });
-
-        // Saat pilih item
-        $(selector).on('select2:select', function (e) {
-            const data = e.params.data;
-            let list = isDiagnosa ? diagnosaList : prosedurList;
-
-            if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
-                Swal.fire({ icon: 'warning', title: 'Tidak valid sebagai Primer', timer: 2500 });
-                $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                return;
-            }
-
-            if (list.some(d => d.code === data.code)) {
-                Swal.fire({ icon: 'info', title: 'Data sudah ada', timer: 1500 });
-                $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                return;
-            }
-
-            const item = {
-                code: data.code,
-                desc: data.description,
-                status: list.length === 0 ? 'Primer' : 'Sekunder',
-                qty: isDiagnosa ? undefined : 1
-            };
-            list.push(item);
-
-            if (isDiagnosa) diagnosaList = list;
-            else prosedurList = list;
-
-            renderTable(list, tableId, isDiagnosa);
-            sendToEklaim(isDiagnosa);
-        });
-
-        // Saat unselect
-        $(selector).on('select2:unselect', function (e) {
-            const id = e.params.data.id;
-            let list = isDiagnosa ? diagnosaList : prosedurList;
-            list = list.filter(d => d.code !== id);
-
-            if (isDiagnosa) diagnosaList = list;
-            else prosedurList = list;
-
-            renderTable(list, tableId, isDiagnosa);
-            sendToEklaim(isDiagnosa);
-        });
-    }
-
-    // =====================================================
-    // 🔹 RENDER TABEL
-    // =====================================================
-    function renderTable(list, tableId, isDiagnosa) {
-        const tbody = $(tableId + ' tbody');
-        tbody.empty();
-        if (!list.length) {
-            tbody.append(`<tr><td colspan="5" class="text-center text-muted">Belum ada data</td></tr>`);
-            return;
-        }
-        list.forEach((d, i) => {
-            tbody.append(`
+            // =====================================================
+            // 🔹 RENDER TABEL
+            // =====================================================
+            function renderTable(list, tableId, isDiagnosa) {
+                const tbody = $(tableId + ' tbody');
+                tbody.empty();
+                if (!list.length) {
+                    tbody.append(`<tr><td colspan="5" class="text-center text-muted">Belum ada data</td></tr>`);
+                    return;
+                }
+                list.forEach((d, i) => {
+                    tbody.append(`
                 <tr>
                     <td>${i + 1}</td>
                     <td>${d.code}</td>
                     <td>${d.desc}</td>
-                    ${!isDiagnosa ? `<td><input type="number" min="1" value="${d.qty}" data-code="${d.code}" class="form-control form-control-sm qty-input" style="width:80px"></td>` : ''}
+                    ${!isDiagnosa ? `<td><input type="number" min="1" value="${d.qty}" data-code="${d.code}" class="form-control form-control-sm qty-input" style="width:80px"  ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}></td>` : ''}
                     <td>${d.status}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="hapusItem('${d.code}', ${isDiagnosa})">X</button></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="hapusItem('${d.code}', ${isDiagnosa}, $(this).closest('tr').index())" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>X</button></td>
+
                 </tr>
             `);
-        });
-    }
-
-    // =====================================================
-    // 🔹 HAPUS ITEM
-    // =====================================================
-    window.hapusItem = function (code, isDiagnosa) {
-        let list = isDiagnosa ? diagnosaList : prosedurList;
-        list = list.filter(d => d.code !== code);
-
-        if (isDiagnosa) diagnosaList = list;
-        else prosedurList = list;
-
-        const selector = isDiagnosa ? '#diagnosa_idrg' : '#prosedur_idrg';
-        $(selector).val((($(selector).val()) || []).filter(v => v !== code)).trigger('change');
-
-        renderTable(list, isDiagnosa ? '#tabel_diagnosa' : '#tabel_prosedur', isDiagnosa);
-        sendToEklaim(isDiagnosa);
-    };
-
-    // =====================================================
-    // 🔹 UPDATE QTY
-    // =====================================================
-    $(document).on('change', '.qty-input', function () {
-        const code = $(this).data('code');
-        const qty = parseInt($(this).val()) || 1;
-        const item = prosedurList.find(p => p.code === code);
-        if (item) item.qty = qty;
-        sendToEklaim(false);
-    });
-
-    // =====================================================
-    // 🔹 KIRIM KE EKLAIM
-    // =====================================================
-    async function sendToEklaim(isDiagnosa) {
-        const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
-        if (!nomor_sep) return;
-
-        const endpoint = isDiagnosa
-            ? "{{ url('') }}/api/eklaim/idrg-diagnosa-set"
-            : "{{ url('') }}/api/eklaim/idrg-procedure-set";
-
-        const list = isDiagnosa ? diagnosaList : prosedurList;
-        const codes = list.map(d => d.code).join('#') || '#';
-
-        const payload = {
-            metadata: { method: isDiagnosa ? 'idrg_diagnosa_set' : 'idrg_procedure_set', nomor_sep },
-            data: { [isDiagnosa ? 'diagnosa' : 'procedure']: codes }
-        };
-
-        try {
-            const res = await $.ajax({
-                url: endpoint,
-                method: 'POST',
-                data: JSON.stringify(payload),
-                contentType: 'application/json'
-            });
-
-            if (res.metadata?.code === 200 || res.code === 200) {
-                await getFromEklaim(isDiagnosa);
-            }
-        } catch (err) {
-            console.error("❌ Error kirim:", err);
-        }
-    }
-
-    // =====================================================
-    // 🔹 GET DARI EKLAIM & SIMPAN LOG
-    // =====================================================
-    async function getFromEklaim(isDiagnosa) {
-        const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
-        const endpoint = isDiagnosa
-            ? "{{ url('') }}/api/eklaim/idrg-diagnosa-get"
-            : "{{ url('') }}/api/eklaim/idrg-procedure-get";
-
-        const payload = {
-            metadata: { method: isDiagnosa ? 'idrg_diagnosa_get' : 'idrg_procedure_get' },
-            data: { nomor_sep }
-        };
-
-        try {
-            const res = await $.ajax({
-                url: endpoint,
-                method: 'POST',
-                data: JSON.stringify(payload),
-                contentType: 'application/json'
-            });
-
-            const resultData = res.data || res.response?.data || null;
-
-            if (resultData) {
-                await $.ajax({
-                    url: updateLogURL,
-                    method: 'POST',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content'),
-                        nomor_sep,
-                        field: isDiagnosa ? 'diagnosa_idrg' : 'procedure_idrg',
-                        value: JSON.stringify(resultData)
-                    }
                 });
-                console.log("💾 Log diperbarui:", resultData);
             }
-        } catch (err) {
-            console.error("❌ Gagal GET dari e-Klaim:", err);
-        }
-    }
 
-});
+            // =====================================================
+            // 🔹 HAPUS ITEM
+            // =====================================================
+            window.hapusItem = function(code, isDiagnosa, rowIndex) {
+                let list;
+
+                // Pilih list yang sesuai, apakah itu diagnosa atau prosedur
+                if (isDiagnosa) {
+                    list = diagnosaList;
+                } else {
+                    list = prosedurList;
+                }
+
+                // Pastikan kita hanya menghapus item yang ada pada baris yang dipilih
+                const item = list[rowIndex];
+
+                if (!item || item.code !== code) {
+                    console.warn('Item yang ingin dihapus tidak ditemukan di baris yang dipilih:', code);
+                    return;
+                }
+
+                // Menghapus item berdasarkan baris yang dipilih
+                list.splice(rowIndex, 1);
+
+                // Memperbarui list yang sesuai setelah item dihapus
+                if (isDiagnosa) {
+                    diagnosaList = list; // Update diagnosaList jika ini diagnosa
+                } else {
+                    prosedurList = list; // Update prosedurList jika ini prosedur
+                }
+
+                const selector = isDiagnosa ? '#diagnosa_idrg' : '#prosedur_idrg';
+                // Memperbarui nilai selector dengan menghapus 'code' dari value yang ada
+                $(selector).val((($(selector).val()) || []).filter(v => v !== code)).trigger('change');
+
+                // Render ulang tabel dengan data yang telah diupdate
+                renderTable(list, isDiagnosa ? '#tabel_diagnosa' : '#tabel_prosedur', isDiagnosa);
+
+                // Kirimkan data terbaru ke eklaim setelah pembaruan
+                if (isDiagnosa) {
+                    sendToEklaim(true); // Jika diagnosa yang dihapus, kirim data diagnosa
+                } else {
+                    sendProcedureToEklaim(); // Jika prosedur yang dihapus, kirim data prosedur
+                }
+            };
 
 
 
 
 
-</script>
+            // =====================================================
+            // 🔹 KIRIM KE EKLAIM
+            // =====================================================
+            async function sendToEklaim(isDiagnosa) {
+                const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+                if (!nomor_sep) return;
+
+                const endpoint = isDiagnosa ?
+                    "{{ url('') }}/api/eklaim/idrg-diagnosa-set" :
+                    "{{ url('') }}/api/eklaim/idrg-procedure-set";
+
+                const list = isDiagnosa ? diagnosaList : prosedurList;
+                const codes = list.map(d => d.code).join('#') || '#';
+
+                const payload = {
+                    metadata: {
+                        method: isDiagnosa ? 'idrg_diagnosa_set' : 'idrg_procedure_set',
+                        nomor_sep
+                    },
+                    data: {
+                        [isDiagnosa ? 'diagnosa' : 'procedure']: codes
+                    }
+                };
+
+                try {
+                    const res = await $.ajax({
+                        url: endpoint,
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json'
+                    });
+
+                    if (res.metadata?.code === 200 || res.code === 200) {
+                        await getFromEklaim(isDiagnosa);
+                    }
+                } catch (err) {
+                    console.error("❌ Error kirim:", err);
+                }
+            }
+
+            async function sendProcedureToEklaim() {
+                const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+                if (!nomor_sep) return;
+
+                const endpoint = "{{ url('') }}/api/eklaim/idrg-procedure-set";
+
+                // 🔥 FORMAT RESMI INA-CBG
+                const procedure = prosedurList
+                    .map((p) =>
+                        `${p.code}+${p.qty}`) // Pastikan qty sesuai dengan prosedur berdasarkan urutan index
+                    .join('#') || '#'; // Gabungkan dengan '#' sebagai pemisah antar prosedur
+
+                const payload = {
+                    metadata: {
+                        method: 'idrg_procedure_set',
+                        nomor_sep
+                    },
+                    data: {
+                        procedure
+                    }
+                };
+
+                console.log('📤 PAYLOAD PROCEDURE', payload);
+
+                try {
+                    // Mengirimkan payload ke endpoint API
+                    const res = await $.ajax({
+                        url: endpoint,
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json'
+                    });
+
+                    console.log('✅ RESPONSE SET PROCEDURE', res);
+
+                    // ✅ JIKA SUKSES → LANGSUNG GET ULANG DATA PROCEDURE
+                    if (res?.metadata?.code === 200 || res?.code === 200) {
+                        await getFromEklaim(false); // false = procedure
+                    }
+
+                } catch (err) {
+                    console.error('❌ Gagal kirim procedure:', err);
+                }
+            }
+
+
+            // =====================================================
+            // 🔹 UPDATE QTY
+            // =====================================================
+            $(document).on('input change', '.qty-input', function() {
+                const code = $(this).data('code').toString().trim(); // Ambil kode dari data-attribute
+                const qty = Math.max(parseInt($(this).val()) || 1,
+                    1); // Ambil nilai qty dan pastikan minimal 1
+
+                // Cari item yang sesuai berdasarkan kode dan pastikan untuk mengupdate qty yang sesuai
+                const index = $(this).closest('tr').index(); // Ambil index dari baris input yang diubah
+                const item = prosedurList[index]; // Dapatkan item yang sesuai berdasarkan index baris
+
+                if (!item) {
+                    console.warn('PROCEDURE TIDAK DITEMUKAN:', code, prosedurList);
+                    return;
+                }
+
+                item.qty = qty; // Update qty sesuai dengan item yang diubah
+
+                console.log('UPDATE QTY', code, qty, 'Index:', index);
+                sendProcedureToEklaim(); // Kirim data setelah update qty
+            });
+
+
+
+            // =====================================================
+            // 🔹 GET DARI EKLAIM & SIMPAN LOG
+            // =====================================================
+            async function getFromEklaim(isDiagnosa) {
+                const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+                const endpoint = isDiagnosa ?
+                    "{{ url('') }}/api/eklaim/idrg-diagnosa-get" :
+                    "{{ url('') }}/api/eklaim/idrg-procedure-get";
+
+                const payload = {
+                    metadata: {
+                        method: isDiagnosa ? 'idrg_diagnosa_get' : 'idrg_procedure_get'
+                    },
+                    data: {
+                        nomor_sep
+                    }
+                };
+
+                try {
+                    const res = await $.ajax({
+                        url: endpoint,
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json'
+                    });
+
+                    const resultData = res.data || res.response?.data || null;
+
+                    if (resultData) {
+                        await $.ajax({
+                            url: updateLogURL,
+                            method: 'POST',
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content'),
+                                nomor_sep,
+                                field: isDiagnosa ? 'diagnosa_idrg' : 'procedure_idrg',
+                                value: JSON.stringify(resultData)
+                            }
+                        });
+                        console.log("💾 Log diperbarui:", resultData);
+                    }
+                } catch (err) {
+                    console.error("❌ Gagal GET dari e-Klaim:", err);
+                }
+            }
+
+        });
+    </script>
 
 
     <script>
@@ -2366,7 +2724,7 @@ $(document).ready(function () {
                 };
 
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/idrg-diagnosa-set',
+                    url: '{{ url('') }}/api/eklaim/idrg-diagnosa-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2377,7 +2735,7 @@ $(document).ready(function () {
                         let stringData = res.data;
                         // Kirim ke Laravel untuk update kolom diagnosa_idrg
                         $.ajax({
-                            url: '{{url("")}}/idrg/update-log',
+                            url: '{{ url('') }}/idrg/update-log',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2421,7 +2779,7 @@ $(document).ready(function () {
                     }
                 };
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/idrg-procedure-set',
+                    url: '{{ url('') }}/api/eklaim/idrg-procedure-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2433,7 +2791,7 @@ $(document).ready(function () {
 
                         // Kirim ke Laravel untuk update kolom procedure_idrg
                         $.ajax({
-                            url: '{{url("")}}/idrg/update-log',
+                            url: '{{ url('') }}/idrg/update-log',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2458,27 +2816,113 @@ $(document).ready(function () {
             });
         });
     </script>
+    {{-- inacbg --}}
+
+    <script>
+        const logDiagnosaInacbg = @json($log->diagnosa_inacbg ?? null);
+        const logProsedurInacbg = @json($log->procedure_inacbg ?? null);
+    </script>
 
     <script>
         $(document).ready(function() {
 
-            // ---------- Variabel global ----------
-            window.diagnosaListInacbg = [];
-            window.prosedurListInacbg = [];
-            window.diagnosaCodes = []; // daftar kode diagnosa aktif
+            // =====================================================
+            // 🔹 SETUP CSRF TOKEN GLOBAL
+            // =====================================================
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
 
-            // ---------- Fungsi Update Diagnosa Codes ----------
-            function updateDiagnosaCodes() {
-                window.diagnosaCodes = diagnosaListInacbg.map(d => d.code);
-                console.log('Diagnosa codes terbaru:', diagnosaCodes);
+            // =====================================================
+            // 🔹 VARIABEL GLOBAL
+            // =====================================================
+            let diagnosaListInacbg = [];
+            let prosedurListInacbg = [];
+            const updateLogURLInacbg = "{{ url('') }}/idrg/update-log";
+
+            // =====================================================
+            // 🔹 LOAD DATA DARI LOG DATABASE
+            // =====================================================
+            function loadFromLogInacbg() {
+                if (logDiagnosaInacbg) {
+                    try {
+                        const parsed = typeof logDiagnosaInacbg === 'string' ? JSON.parse(logDiagnosaInacbg) :
+                            logDiagnosaInacbg;
+                        const expanded = parsed.expanded || [];
+                        diagnosaListInacbg = expanded.map((d, i) => ({
+                            code: d.code,
+                            desc: d.display || d.description,
+                            status: i === 0 ? 'Primer' : 'Sekunder',
+                            metadata: d.metadata // Menyimpan metadata untuk keperluan pengecekan
+                        }));
+                        renderTableinacbg(diagnosaListInacbg, '#tabel_diagnosa_inacbg', true);
+                    } catch (e) {
+                        console.warn("⚠️ Gagal parsing logDiagnosaInacbg:", e);
+                    }
+                }
+
+                if (logProsedurInacbg) {
+                    try {
+                        const parsed = typeof logProsedurInacbg === 'string' ? JSON.parse(logProsedurInacbg) :
+                            logProsedurInacbg;
+                        const expanded = parsed.expanded || [];
+
+                        prosedurListInacbg = expanded.map((d, i) => ({
+                            code: d.code,
+                            desc: d.display || d.description,
+                            qty: d.multiplicity ? Number(d.multiplicity) : 1,
+                            status: i === 0 ? 'Primer' : 'Sekunder',
+                            metadata: d.metadata // Menyimpan metadata untuk keperluan pengecekan
+                        }));
+
+                        renderTableinacbg(prosedurListInacbg, '#tabel_prosedur_inacbg', false);
+
+                    } catch (e) {
+                        console.warn("⚠️ Gagal parsing logProsedur:", e);
+                    }
+                }
+            }
+            loadFromLogInacbg();
+
+            function renderTableinacbg(list, tableId, isDiagnosa) {
+                const tbody = $(tableId + ' tbody');
+                tbody.empty();
+
+                if (!list.length) {
+                    tbody.append(`<tr><td colspan="5" class="text-center text-muted">Belum ada data</td></tr>`);
+                    return;
+                }
+
+                list.forEach((d, i) => {
+                    let alertMessage = "";
+                    // Menambahkan pesan alert jika metadata menunjukkan "IM tidak berlaku"
+                    if (d.metadata && d.metadata.message === "IM tidak berlaku") {
+                        alertMessage =
+                            `<span class="text-danger">⚠️ ${d.metadata.message}</span>`; // Menampilkan peringatan dengan warna merah
+                    }
+
+                    tbody.append(`
+            <tr>
+                <td>${i + 1}</td>
+                <td>${d.code}</td>
+                <td>${d.desc} ${alertMessage}</td> <!-- Menambahkan alert di samping deskripsi -->
+                <td>${d.status}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="hapusIteminacbg('${d.code}', ${isDiagnosa}, $(this).closest('tr').index())" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>X</button></td>
+            </tr>
+        `);
+                });
             }
 
-            // ---------- Inisialisasi Select2 ----------
-            initSelect2('#diagnosa_inacbg', '{{ url('') }}/api/icd10', 'tabel_diagnosa_inacbg', true);
-            initSelect2('#prosedur_inacbg', '{{ url('') }}/api/icd9', 'tabel_prosedur_inacbg', false);
 
-            // ---------- Fungsi Select2 ----------
-            function initSelect2(selector, url, tableId, isDiagnosa) {
+            // =====================================================
+            // 🔹 INISIALISASI SELECT2
+            // =====================================================
+            initSelect2inacbg('#diagnosa_inacbg', "{{ url('/api/icd10') }}", '#tabel_diagnosa_inacbg', true);
+            initSelect2inacbg('#prosedur_inacbg', "{{ url('/api/icd9') }}", '#tabel_prosedur_inacbg', false);
+
+            function initSelect2inacbg(selector, url, tableId, isDiagnosa) {
                 $(selector).select2({
                     placeholder: 'Cari kode atau deskripsi...',
                     ajax: {
@@ -2492,335 +2936,377 @@ $(document).ready(function () {
                             results: data
                         })
                     },
-                    templateResult: function(item) {
+                    templateResult: item => {
                         if (!item.id) return item.text;
-                        return $('<div>')
-                            .append($('<b>').text(item.code))
-                            .append(' — ' + item.description);
+                        return $('<div>').append($('<b>').text(item.code)).append(' — ' + item
+                            .description);
                     },
                     templateSelection: item => item.text,
-                    multiple: true
+                    // Nonaktifkan multiple selection
+                    multiple: false,
+                    bootstrap4: true,
                 });
 
+                // Reset select2 setelah pemilihan item
+                $(selector).on('select2:select', function(e) {
+                    // Reset input setelah memilih
+                    $(selector).val(null).trigger('change');
+                });
                 // Saat pilih item
                 $(selector).on('select2:select', function(e) {
-                    let data = e.params.data;
+                    const data = e.params.data;
                     let list = isDiagnosa ? diagnosaListInacbg : prosedurListInacbg;
 
-                    // ---------- Validasi Diagnosa Primer ----------
-                    if (isDiagnosa && list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Tidak dapat dijadikan Primer',
-                            text: 'Diagnosa ini tidak valid sebagai primer (validcode!=1 atau accpdx!=Y)',
-                            timer: 2500
-                        });
-                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
-                        return;
-                    }
+                    // if (list.length === 0 && (data.validcode != 1 || data.accpdx !== 'Y')) {
+                    //     Swal.fire({
+                    //         icon: 'warning',
+                    //         title: 'Tidak valid sebagai Primer',
+                    //         timer: 2500
+                    //     });
+                    //     $(this).val(null).trigger('change');
+                    //     return;
+                    // }
 
-                    // ---------- Cegah duplikat ----------
-                    if (list.some(d => d.code === data.code)) {
+                    // 🔴 CEK DUPLIKASI → HANYA UNTUK DIAGNOSA
+                    if (isDiagnosa && list.some(d => d.code === data.code)) {
                         Swal.fire({
                             icon: 'info',
-                            title: 'Data sudah ada',
-                            text: 'Data ini sudah ditambahkan sebelumnya.',
-                            timer: 2000
+                            title: 'Diagnosa sudah ada',
+                            timer: 1500
                         });
-                        $(selector).val($(selector).val().filter(v => v !== data.id)).trigger('change');
+                        $(this).val(null).trigger('change');
                         return;
                     }
 
-                    // ---------- Deteksi IM tidak berlaku ----------
-                    if (data.im == 1) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Perhatian',
-                            html: `
-                            <div style="text-align:left">
-                                <b>${isDiagnosa ? 'Diagnosa' : 'Prosedur'}:</b><br>
-                                ${data.code} - ${data.description}<br>
-                                <span style="color:red;font-weight:bold;">(IM tidak berlaku pada item ini)</span>
-                            </div>
-                        `,
-                            confirmButtonText: 'OK'
-                        });
-                    }
-
-                    // ---------- Tambah item baru ----------
-                    let item = {
+                    const item = {
                         code: data.code,
                         desc: data.description,
-                        status: isDiagnosa && list.length === 0 ? 'Primer' : 'Sekunder',
-                        im: data.im || 0
+                        status: list.length === 0 ? 'Primer' : 'Sekunder',
+                        qty: isDiagnosa ? undefined : 1
                     };
-
-                    if (!isDiagnosa) item.qty = 1;
-
                     list.push(item);
+
                     if (isDiagnosa) diagnosaListInacbg = list;
                     else prosedurListInacbg = list;
 
-                    renderTable(list, '#' + tableId, isDiagnosa);
-                    if (isDiagnosa) updateDiagnosaCodes(); // <- update otomatis
+                    renderTableinacbg(list, tableId, isDiagnosa);
+                    sendToEklaiminacbg(isDiagnosa);
                 });
 
-                // Saat unselect item
+                // Saat unselect
                 $(selector).on('select2:unselect', function(e) {
-                    let id = e.params.data.id;
-                    let list = isDiagnosa ? diagnosaListInacbg : prosedurListInacbg;
-
+                    const id = e.params.data.id;
+                    let list = isDiagnosa;
                     list = list.filter(d => d.code !== id);
-                    if (isDiagnosa) {
-                        diagnosaListInacbg = list;
-                        if (diagnosaListInacbg.length > 0) {
-                            diagnosaListInacbg[0].status = 'Primer';
-                            diagnosaListInacbg.slice(1).forEach(d => d.status = 'Sekunder');
-                        }
-                    } else {
-                        prosedurListInacbg = list;
-                    }
 
-                    renderTable(list, '#' + tableId, isDiagnosa);
-                    if (isDiagnosa) updateDiagnosaCodes();
+                    if (isDiagnosa) diagnosaListInacbg = list;
+
+                    renderTableinacbg(list, tableId, isDiagnosa);
+                    sendToEklaiminacbg(isDiagnosa);
                 });
             }
 
-            // ---------- Render Tabel ----------
-            function renderTable(list, tableId, isDiagnosa) {
-                let tbody = $(tableId + ' tbody');
-                tbody.empty();
-
-                list.forEach((d, i) => {
-                    const rowClass = d.error_no ? 'table-danger' : '';
-                    const warningMsg = d.im == 1 ?
-                        `<br><span class="text-danger fw-bold">⚠ IM tidak berlaku</span>` :
-                        (d.error_no ? `<br><span class="text-danger">[${d.error_no}] ${d.message}</span>` :
-                            '');
-
-                    tbody.append(`
-                    <tr class="fade-highlight ${rowClass}">
-                        <td>${i + 1}</td>
-                        <td>${d.code}</td>
-                        <td>${d.desc}${warningMsg}</td>
-                        <td>${d.status}</td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm"
-                                onclick="hapusItemInacbg('${d.code}', '${tableId.replace('#','')}')">X</button>
-                        </td>
-                    </tr>
-                `);
-                });
+            function parseProcedureResponse(res) {
+                return res.expanded.map(item => ({
+                    code: item.code,
+                    desc: item.display,
+                    qty: item.multiplicity ? Number(item.multiplicity) : 1,
+                    status: item.validcode === "1" ? "Valid" : "Tidak Valid"
+                }));
             }
 
-            // ---------- Hapus Item ----------
-            window.hapusItemInacbg = function(code, table) {
-                let selector = table === 'tabel_diagnosa_inacbg' ? '#diagnosa_inacbg' : '#prosedur_inacbg';
-                let list = table === 'tabel_diagnosa_inacbg' ? diagnosaListInacbg : prosedurListInacbg;
 
-                // Hapus dari array
-                list = list.filter(d => d.code !== code);
+            // =====================================================
+            // 🔹 HAPUS ITEM
+            // =====================================================
+            window.hapusIteminacbg = function(code, isDiagnosa, rowIndex) {
+                let list;
 
-                // Update primer-sekunder
-                if (table === 'tabel_diagnosa_inacbg') {
-                    diagnosaListInacbg = list;
-                    if (diagnosaListInacbg.length > 0) {
-                        diagnosaListInacbg[0].status = 'Primer';
-                        diagnosaListInacbg.slice(1).forEach(d => d.status = 'Sekunder');
-                    }
+                // Pilih list yang sesuai, apakah itu diagnosa atau prosedur
+                if (isDiagnosa) {
+                    list = diagnosaListInacbg;
                 } else {
-                    prosedurListInacbg = list;
+                    list = prosedurListInacbg;
                 }
 
-                // Hapus dari select2
-                $(selector).val($(selector).val().filter(v => v !== code)).trigger('change');
+                // Pastikan kita hanya menghapus item yang ada pada baris yang dipilih
+                const item = list[rowIndex];
 
-                // Render ulang tabel
-                renderTable(list, '#' + table, table === 'tabel_diagnosa_inacbg');
+                if (!item || item.code !== code) {
+                    console.warn('Item yang ingin dihapus tidak ditemukan di baris yang dipilih:', code);
+                    return;
+                }
 
-                // Update daftar kode diagnosa
-                if (table === 'tabel_diagnosa_inacbg') updateDiagnosaCodes();
+                // Menghapus item berdasarkan baris yang dipilih
+                list.splice(rowIndex, 1);
+
+                // Memperbarui list yang sesuai setelah item dihapus
+                if (isDiagnosa) {
+                    diagnosaListInacbg = list; // Update diagnosaListInacbg jika ini diagnosa
+                } else {
+                    prosedurListInacbg = list; // Update prosedurListInacbg jika ini prosedur
+                }
+
+                const selector = isDiagnosa ? '#diagnosa_inacbg' : '#prosedur_inacbg';
+                // Memperbarui nilai selector dengan menghapus 'code' dari value yang ada
+                $(selector).val((($(selector).val()) || []).filter(v => v !== code)).trigger('change');
+
+                // Render ulang tabel dengan data yang telah diupdate
+                renderTableinacbg(list, isDiagnosa ? '#tabel_diagnosa_inacbg' : '#tabel_prosedur_inacbg',
+                    isDiagnosa);
+
+                // Kirimkan data terbaru ke eklaim setelah pembaruan
+                if (isDiagnosa) {
+                    sendToEklaiminacbg(true); // Jika diagnosa yang dihapus, kirim data diagnosa
+                } else {
+                    sendProcedureToEklaiminacbg(); // Jika prosedur yang dihapus, kirim data prosedur
+                }
             };
 
-            // ---------- Load Data dari Log ----------
-            let diagnosaLog = @json($log->diagnosa_inacbg ?? '');
-            let prosedurLog = @json($log->procedure_inacbg ?? '');
-            let imInvalidItems = [];
 
-            if (diagnosaLog && diagnosaLog.expanded) {
-                diagnosaListInacbg = diagnosaLog.expanded.map((d, i) => {
-                    const message = d.metadata?.message || '';
-                    const imInvalid = d.validcode == 0 || message.includes('IM tidak berlaku');
-                    if (imInvalid) {
-                        imInvalidItems.push({
-                            jenis: 'Diagnosa',
-                            code: d.code,
-                            desc: d.display,
-                            message: message || 'IM tidak berlaku'
+
+
+
+            // =====================================================
+            // 🔹 KIRIM KE EKLAIM
+            // =====================================================
+            async function sendToEklaiminacbg(isDiagnosa) {
+                const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+                if (!nomor_sep) return;
+
+                const endpoint = isDiagnosa ?
+                    "{{ url('') }}/api/eklaim/inacbg-diagnosa-set" :
+                    "{{ url('') }}/api/eklaim/inacbg-procedure-set";
+
+                const list = isDiagnosa ? diagnosaListInacbg : prosedurListInacbg;
+                const codes = list.map(d => d.code).join('#') || '#';
+
+                const payload = {
+                    metadata: {
+                        method: isDiagnosa ? 'inacbg_diagnosa_set' : 'inacbg_procedure_set',
+                        nomor_sep
+                    },
+                    data: {
+                        [isDiagnosa ? 'diagnosa' : 'procedure']: codes
+                    }
+                };
+
+                try {
+                    const res = await $.ajax({
+                        url: endpoint,
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json'
+                    });
+
+                    if (res.metadata?.code === 200 || res.code === 200) {
+                        await getFromEklaiminacbg(isDiagnosa);
+                    }
+                } catch (err) {
+                    console.error("❌ Error kirim:", err);
+                }
+            }
+
+            async function sendProcedureToEklaiminacbg() {
+                const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+                if (!nomor_sep) return;
+
+                const endpoint = "{{ url('') }}/api/eklaim/inacbg-procedure-set";
+
+                // 🔥 FORMAT RESMI INA-CBG
+                const procedure = prosedurList
+                    .map((p) =>
+                        `${p.code}+${p.qty}`) // Pastikan qty sesuai dengan prosedur berdasarkan urutan index
+                    .join('#') || '#'; // Gabungkan dengan '#' sebagai pemisah antar prosedur
+
+                const payload = {
+                    metadata: {
+                        method: 'inacbg_procedure_set',
+                        nomor_sep
+                    },
+                    data: {
+                        procedure
+                    }
+                };
+
+                console.log('📤 PAYLOAD PROCEDURE', payload);
+
+                try {
+                    // Mengirimkan payload ke endpoint API
+                    const res = await $.ajax({
+                        url: endpoint,
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json'
+                    });
+
+                    console.log('✅ RESPONSE SET PROCEDURE', res);
+
+                    // ✅ JIKA SUKSES → LANGSUNG GET ULANG DATA PROCEDURE
+                    if (res?.metadata?.code === 200 || res?.code === 200) {
+                        await getFromEklaiminacbg(false); // false = procedure
+                    }
+
+                } catch (err) {
+                    console.error('❌ Gagal kirim procedure:', err);
+                }
+            }
+            // =====================================================
+            // 🔹 GET DARI EKLAIM & SIMPAN LOG
+            // =====================================================
+            async function getFromEklaiminacbg(isDiagnosa) {
+                const nomor_sep = $('input[name="nomor_sep"]').val()?.trim();
+                const endpoint = isDiagnosa ?
+                    "{{ url('') }}/api/eklaim/inacbg-diagnosa-get" :
+                    "{{ url('') }}/api/eklaim/inacbg-procedure-get";
+
+                const payload = {
+                    metadata: {
+                        method: isDiagnosa ? 'inacbg_diagnosa_get' : 'inacbg_procedure_get'
+                    },
+                    data: {
+                        nomor_sep
+                    }
+                };
+
+                try {
+                    const res = await $.ajax({
+                        url: endpoint,
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json'
+                    });
+
+                    const resultData = res.data || res.response?.data || null;
+
+                    if (resultData) {
+                        await $.ajax({
+                            url: updateLogURLInacbg,
+                            method: 'POST',
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content'),
+                                nomor_sep,
+                                field: isDiagnosa ? 'diagnosa_inacbg' : 'procedure_inacbg',
+                                value: JSON.stringify(resultData)
+                            }
                         });
+                        console.log("💾 Log diperbarui:", resultData);
                     }
-                    return {
-                        code: d.code,
-                        desc: d.display + (imInvalid ? ' ⚠ IM tidak berlaku' : ''),
-                        status: i === 0 ? 'Primer' : 'Sekunder',
-                        im: imInvalid ? 1 : 0
-                    };
-                });
-
-                renderTable(diagnosaListInacbg, '#tabel_diagnosa_inacbg', true);
-                updateDiagnosaCodes();
+                } catch (err) {
+                    console.error("❌ Gagal GET dari e-Klaim:", err);
+                }
             }
 
-            if (prosedurLog && prosedurLog.expanded) {
-                prosedurListInacbg = prosedurLog.expanded.map((d) => {
-                    const message = d.metadata?.message || '';
-                    const imInvalid = d.validcode == 0 || message.includes('IM tidak berlaku');
-                    if (imInvalid) {
-                        imInvalidItems.push({
-                            jenis: 'Prosedur',
-                            code: d.code,
-                            desc: d.display,
-                            message: message || 'IM tidak berlaku'
+        });
+    </script>
+    {{-- import inacbg --}}
+    <script>
+        $('#btnImportInacbg').on('click', function() {
+            const nomor_sep = '{{ @$log->nomor_sep }}';
+            const btn = $(this);
+            btn.prop('disabled', true);
+
+            Swal.fire({
+                title: 'Proses Import iDRG → INA-CBG?',
+                text: "Pastikan hasil Final IDRG sudah benar.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    btn.prop('disabled', false);
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ url('') }}/api/eklaim/idrg-to-inacbg-import',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        metadata: {
+                            method: 'idrg_to_inacbg_import'
+                        },
+                        data: {
+                            nomor_sep: nomor_sep
+                        }
+                    }),
+                    beforeSend: () => {
+                        Swal.fire({
+                            title: 'Memproses...',
+                            text: 'Mengimpor data iDRG ke INA-CBG...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
                         });
-                    }
-                    return {
-                        code: d.code,
-                        desc: d.display + (imInvalid ? ' ⚠ IM tidak berlaku' : ''),
-                        status: 'Primer',
-                        im: imInvalid ? 1 : 0
-                    };
-                });
+                    },
+                    success: function(response) {
+                        Swal.close();
+                        console.log('Response INA-CBG Import:', response);
 
-                renderTable(prosedurListInacbg, '#tabel_prosedur_inacbg', false);
-            }
+                        if (response.metadata?.code !== 200) {
+                            btn.prop('disabled', false);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Import',
+                                text: response.metadata?.message ||
+                                    'Terjadi kesalahan saat proses import.'
+                            });
+                            return;
+                        }
 
-            // ---------- Gabungan Alert IM Tidak Berlaku ----------
-            if (imInvalidItems.length > 0) {
-                let htmlList = imInvalidItems.map(d =>
-                    `<b>${d.jenis}</b>: ${d.code} - ${d.desc}<br>[400] ${d.message}`
-                ).join('<br><br>');
-
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Perhatian: Terdapat Kode dengan IM Tidak Berlaku',
-                    html: `
-                    Terjadi kesalahan pada item berikut:<br><br>
-                    ${htmlList}
-                    <br><br><b>Periksa kembali kode sebelum klaim dikirim.</b>
-                `,
-                    confirmButtonText: 'Mengerti'
-                });
-            }
-
-            // ---------- Tombol Import ----------
-            $('#btnImportInacbg').on('click', function() {
-                const nomor_sep = '{{ @$log->nomor_sep }}';
-                const btn = $(this);
-                btn.prop('disabled', true);
-
-                Swal.fire({
-                    title: 'Proses Import iDRG → INA-CBG?',
-                    text: "Pastikan hasil Final IDRG sudah benar.",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Lanjutkan',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (!result.isConfirmed) {
-                        btn.prop('disabled', false);
-                        return;
-                    }
-
-                    $.ajax({
-                        url: '{{url("")}}/api/eklaim/idrg-to-inacbg-import',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            metadata: {
-                                method: 'idrg_to_inacbg_import'
+                        // === Simpan log hasil import ===
+                        $.ajax({
+                            url: '{{ url('') }}/inacbg/import/save-log',
+                            type: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
                             data: {
-                                nomor_sep: nomor_sep
-                            }
-                        }),
-                        beforeSend: () => {
-                            Swal.fire({
-                                title: 'Memproses...',
-                                text: 'Mengimpor data iDRG ke INA-CBG...',
-                                allowOutsideClick: false,
-                                didOpen: () => Swal.showLoading()
-                            });
-                        },
-                        success: function(response) {
-                            Swal.close();
-                            console.log('Response INA-CBG Import:', response);
-
-                            if (response.metadata?.code !== 200) {
+                                nomor_sep: nomor_sep,
+                                response_inacbg_import: JSON.stringify(
+                                    response)
+                            },
+                            beforeSend: () => {
+                                Swal.fire({
+                                    title: 'Menyimpan...',
+                                    text: 'Menyimpan hasil import ke log...',
+                                    allowOutsideClick: false,
+                                    didOpen: () => Swal
+                                        .showLoading()
+                                });
+                            },
+                            success: function() {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Import Selesai',
+                                    text: 'Data berhasil diimport dan disimpan. Halaman akan dimuat ulang.',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                                setTimeout(() => location.reload(),
+                                    2000);
+                            },
+                            error: function() {
                                 btn.prop('disabled', false);
                                 Swal.fire({
                                     icon: 'error',
-                                    title: 'Gagal Import',
-                                    text: response.metadata?.message ||
-                                        'Terjadi kesalahan saat proses import.'
+                                    title: 'Gagal Simpan Log',
+                                    text: 'Import berhasil, tapi gagal menyimpan log.'
                                 });
-                                return;
                             }
-
-                            // === Simpan log hasil import ===
-                            $.ajax({
-                                url: '{{url("")}}/inacbg/import/save-log',
-                                type: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                data: {
-                                    nomor_sep: nomor_sep,
-                                    response_inacbg_import: JSON.stringify(
-                                        response)
-                                },
-                                beforeSend: () => {
-                                    Swal.fire({
-                                        title: 'Menyimpan...',
-                                        text: 'Menyimpan hasil import ke log...',
-                                        allowOutsideClick: false,
-                                        didOpen: () => Swal
-                                            .showLoading()
-                                    });
-                                },
-                                success: function() {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Import Selesai',
-                                        text: 'Data berhasil diimport dan disimpan. Halaman akan dimuat ulang.',
-                                        showConfirmButton: false,
-                                        timer: 2000
-                                    });
-                                    setTimeout(() => location.reload(),
-                                        2000);
-                                },
-                                error: function() {
-                                    btn.prop('disabled', false);
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal Simpan Log',
-                                        text: 'Import berhasil, tapi gagal menyimpan log.'
-                                    });
-                                }
-                            });
-                        },
-                        error: function() {
-                            btn.prop('disabled', false);
-                            Swal.close();
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error Server',
-                                text: 'Tidak dapat terhubung ke server.'
-                            });
-                        }
-                    });
+                        });
+                    },
+                    error: function() {
+                        btn.prop('disabled', false);
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error Server',
+                            text: 'Tidak dapat terhubung ke server.'
+                        });
+                    }
                 });
             });
-
         });
     </script>
 
@@ -2853,7 +3339,7 @@ $(document).ready(function () {
                 };
 
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/inacbg-diagnosa-set',
+                    url: '{{ url('') }}/api/eklaim/inacbg-diagnosa-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2865,7 +3351,7 @@ $(document).ready(function () {
 
                         // Kirim ke Laravel untuk update log
                         $.ajax({
-                            url: '{{url("")}}/idrg/update-log',
+                            url: '{{ url('') }}/idrg/update-log',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,
@@ -2910,7 +3396,7 @@ $(document).ready(function () {
                 };
 
                 $.ajax({
-                    url: '{{url("")}}/api/eklaim/inacbg-procedure-set',
+                    url: '{{ url('') }}/api/eklaim/inacbg-procedure-set',
                     type: 'POST',
                     data: JSON.stringify(payload),
                     contentType: 'application/json',
@@ -2920,7 +3406,7 @@ $(document).ready(function () {
                         let stringData = res.data;
 
                         $.ajax({
-                            url: '{{url("")}}/idrg/update-log',
+                            url: '{{ url('') }}/idrg/update-log',
                             type: 'POST',
                             data: {
                                 nomor_sep: nomor_sep,

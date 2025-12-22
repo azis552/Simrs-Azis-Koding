@@ -67,7 +67,52 @@ class IcdController extends Controller
     }
 
 
+     public function icd10(Request $request)
+    {
+        $search = $request->get('q');
 
+        $data = DB::table('icd10_codes_inacbg')
+            ->select('code', 'description', 'system', 'validcode')
+            ->when($search, function ($query, $search) {
+                $query->where('code', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%");
+            })
+            ->limit(30)
+            ->get();
+
+        return response()->json($data->map(fn($d) => [
+            'id' => $d->code,
+            'code' => $d->code,
+            'description' => $d->description,
+            'system' => $d->system,
+            'validcode' => $d->validcode
+        ]));
+    }
+
+    // ==========================
+    // ICD-9 (Prosedur)
+    // ==========================
+    public function icd9(Request $request)
+    {
+        $search = $request->get('q');
+
+        $data = DB::table('icd9cm_codes_inacbg')
+            ->select('code', 'description', 'system', 'validcode')
+            ->when($search, function ($query, $search) {
+                $query->where('code', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%");
+            })
+            ->limit(30)
+            ->get();
+
+        return response()->json($data->map(fn($d) => [
+            'id' => $d->code,
+            'code' => $d->code,
+            'description' => $d->description,
+            'system' => $d->system,
+            'validcode' => $d->validcode
+        ]));
+    }
 
     /**
      * Display a listing of the resource.
