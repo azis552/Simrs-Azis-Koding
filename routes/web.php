@@ -64,7 +64,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::get('inacbg-rajal', [InacbgRajalController::class, 'index'])->name('inacbg-rajal.index');
     Route::post('inacbg-rajal', [InacbgRajalController::class, 'store'])->name('inacbg-rajal.store');
-    Route::post('inacbg-rajal/show', [InacbgRajalController::class, 'show'])->name('inacbg-rajal.show');
+    Route::get('inacbg-rajal/show', [InacbgRajalController::class, 'show'])->name('inacbg-rajal.show');
     Route::post('inacbg-Rajal/hapusklaim', [InacbgRajalController::class, 'hapusklaim'])->name('inacbg.hapusklaimrajal');
     Route::post('/idrg/update-log-rajal', [InacbgRajalController::class, 'updateLogRajal'])->name('idrg.updateLograjal');
     Route::post('/grouping-idrg-rajal', [EklaimController::class, 'groupingIdrg']);

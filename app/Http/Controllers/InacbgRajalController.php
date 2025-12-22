@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\LogEklaimRajal;
@@ -18,7 +17,7 @@ class InacbgRajalController extends Controller
     public function index(Request $request)
     {
         // Ambil parameter pencarian & urutan
-        $key = $request->get('key');
+        $key   = $request->get('key');
         $order = $request->get('order', 'reg_periksa.tgl_registrasi DESC');
 
         $query = DB::table('reg_periksa')
@@ -52,10 +51,7 @@ class InacbgRajalController extends Controller
 
         $data = $query->paginate(10)->withQueryString();
 
-
-
         return view('inacbg.rajal', compact('data'));
-
 
     }
 
@@ -67,15 +63,11 @@ class InacbgRajalController extends Controller
             return redirect()->back()->with('error', 'Parameter no_rawat diperlukan.');
         }
 
-        
-
         $sep = DB::table('bridging_sep')
             ->where('no_rawat', $no_rawat)
             ->where('jnspelayanan', '2')
             ->first();
         $log = LogEklaimRajal::where('nomor_sep', $sep->no_sep)->first();
-
-
 
         // Ambil data pasien dan rawat inap
         $pasien = DB::table('reg_periksa')
@@ -108,8 +100,7 @@ class InacbgRajalController extends Controller
             ->where('reg_periksa.no_rawat', $no_rawat)
             ->first();
 
-
-        if (!$pasien) {
+        if (! $pasien) {
             return redirect()->back()->with('error', 'Data pasien tidak ditemukan.');
         }
 
@@ -130,7 +121,6 @@ class InacbgRajalController extends Controller
             ->where('no_rawat', $no_rawat)
             ->first();
 
-
         $coder = DB::table('mapping_users')
             ->join('pegawai', 'mapping_users.id_pegawai', '=', 'pegawai.id')
             ->where('id_users', auth()->user()->id)
@@ -140,22 +130,22 @@ class InacbgRajalController extends Controller
             ->join('databarang', 'detail_pemberian_obat.kode_brng', '=', 'databarang.kode_brng')
             ->join('jenis', 'databarang.kdjns', '=', 'jenis.kdjns')
             ->selectRaw("
-            SUM(CASE 
-                WHEN jenis.nama REGEXP 'OBAT|Tablet|Syrup|Salep|Infus|Injeksi|Cairan|Suntik|Ampul|Elixir|OBAT LUAR|OBAT NON ORAL|OBAT ORAL' 
-                THEN detail_pemberian_obat.total 
-                ELSE 0 
+            SUM(CASE
+                WHEN jenis.nama REGEXP 'OBAT|Tablet|Syrup|Salep|Infus|Injeksi|Cairan|Suntik|Ampul|Elixir|OBAT LUAR|OBAT NON ORAL|OBAT ORAL'
+                THEN detail_pemberian_obat.total
+                ELSE 0
             END) AS total_obat,
 
-            SUM(CASE 
-                WHEN jenis.nama REGEXP 'BHP|NON BHP' 
-                THEN detail_pemberian_obat.total 
-                ELSE 0 
+            SUM(CASE
+                WHEN jenis.nama REGEXP 'BHP|NON BHP'
+                THEN detail_pemberian_obat.total
+                ELSE 0
             END) AS total_bhp,
 
-            SUM(CASE 
-                WHEN jenis.nama REGEXP 'ALKES' 
-                THEN detail_pemberian_obat.total 
-                ELSE 0 
+            SUM(CASE
+                WHEN jenis.nama REGEXP 'ALKES'
+                THEN detail_pemberian_obat.total
+                ELSE 0
             END) AS total_alkes
         ")
             ->where('detail_pemberian_obat.no_rawat', $no_rawat)
@@ -167,7 +157,7 @@ class InacbgRajalController extends Controller
 
         // Query gabungan (UNION ALL). Semua WHERE memakai placeholder ? (9 SELECT => 9 placeholders)
         $sql = <<<SQL
-            SELECT 
+            SELECT
                 rjdr.no_rawat,
                 jp.kd_jenis_prw AS kode_tindakan,
                 jp.nm_perawatan AS nm_perawatan,
@@ -183,7 +173,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 rjpr.no_rawat,
                 jp.kd_jenis_prw AS kode_tindakan,
                 jp.nm_perawatan AS nm_perawatan,
@@ -199,7 +189,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 rjdpr.no_rawat,
                 jp.kd_jenis_prw AS kode_tindakan,
                 jp.nm_perawatan AS nm_perawatan,
@@ -215,7 +205,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 ridr.no_rawat,
                 jpi.kd_jenis_prw AS kode_tindakan,
                 jpi.nm_perawatan AS nm_perawatan,
@@ -231,7 +221,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 ridpr.no_rawat,
                 jpi.kd_jenis_prw AS kode_tindakan,
                 jpi.nm_perawatan AS nm_perawatan,
@@ -247,7 +237,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 ripr.no_rawat,
                 jpi.kd_jenis_prw AS kode_tindakan,
                 jpi.nm_perawatan AS nm_perawatan,
@@ -263,7 +253,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 pl.no_rawat,
                 jpl.kd_jenis_prw AS kode_tindakan,
                 jpl.nm_perawatan AS nm_perawatan,
@@ -279,7 +269,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 pr.no_rawat,
                 jpr.kd_jenis_prw AS kode_tindakan,
                 jpr.nm_perawatan AS nm_perawatan,
@@ -295,7 +285,7 @@ class InacbgRajalController extends Controller
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 o.no_rawat,
                 o.kode_paket AS kode_tindakan,
                 p.nm_perawatan AS nm_perawatan,
@@ -359,7 +349,7 @@ class InacbgRajalController extends Controller
         });
 
         // Jika mau hasil akhir berupa array (bukan Collection)
-        $rekap = $formatted->toArray();
+        $rekap        = $formatted->toArray();
         $obatbhpalkes = (array) $obatbhpalkes;
 
         // Ambil total biaya kamar dari tabel kamar_inap
@@ -388,10 +378,10 @@ class InacbgRajalController extends Controller
         }
 
         // 🔹 Ubah format tanggal jika ada
-        if (!empty($input['tgl_masuk'])) {
+        if (! empty($input['tgl_masuk'])) {
             $input['tgl_masuk'] = Carbon::parse($input['tgl_masuk'])->format('Y-m-d H:i:s');
         }
-        if (!empty($input['tgl_pulang'])) {
+        if (! empty($input['tgl_pulang'])) {
             $input['tgl_pulang'] = Carbon::parse($input['tgl_pulang'])->format('Y-m-d H:i:s');
         }
 
@@ -399,54 +389,54 @@ class InacbgRajalController extends Controller
         $log = LogEklaimRajal::updateOrCreate(
             ['nomor_sep' => $input['nomor_sep']],
             [
-                'nomor_kartu' => $input['nomor_kartu'] ?? null,
-                'tgl_masuk' => $input['tgl_masuk'] ?? null,
-                'tgl_pulang' => $input['tgl_pulang'] ?? null,
-                'cara_masuk' => $input['cara_masuk'] ?? null,
-                'discharge_status' => $input['discharge_status'] ?? null,
-                'adl_sub_acute' => $input['adl_sub_acute'] ?? null,
-                'adl_chronic' => $input['adl_chronic'] ?? null,
-                'icu_indikator' => $input['icu_indikator'] ?? null,
-                'icu_los' => $input['icu_los'] ?? null,
-                'upgrade_class_ind' => $input['upgrade_class_ind'] ?? null,
-                'upgrade_class_los' => $input['upgrade_class_los'] ?? null,
-                'add_payment_pct' => $input['add_payment_pct'] ?? null,
-                'birth_weight' => $input['birth_weight'] ?? null,
-                'sistole' => $input['sistole'] ?? null,
-                'diastole' => $input['diastole'] ?? null,
-                'dializer_single_use' => $input['dializer_single_use'] ?? null,
-                'tb_indikator' => $input['tb_indikator'] ?? null,
-                'pemulasaraan_jenazah' => $input['pemulasaraan_jenazah'] ?? null,
-                'kantong_jenazah' => $input['kantong_jenazah'] ?? null,
-                'peti_jenazah' => $input['peti_jenazah'] ?? null,
-                'desinfektan_jenazah' => $input['desinfektan_jenazah'] ?? null,
-                'mobil_jenazah' => $input['mobil_jenazah'] ?? null,
+                'nomor_kartu'               => $input['nomor_kartu'] ?? null,
+                'tgl_masuk'                 => $input['tgl_masuk'] ?? null,
+                'tgl_pulang'                => $input['tgl_pulang'] ?? null,
+                'cara_masuk'                => $input['cara_masuk'] ?? null,
+                'discharge_status'          => $input['discharge_status'] ?? null,
+                'adl_sub_acute'             => $input['adl_sub_acute'] ?? null,
+                'adl_chronic'               => $input['adl_chronic'] ?? null,
+                'icu_indikator'             => $input['icu_indikator'] ?? null,
+                'icu_los'                   => $input['icu_los'] ?? null,
+                'upgrade_class_ind'         => $input['upgrade_class_ind'] ?? null,
+                'upgrade_class_los'         => $input['upgrade_class_los'] ?? null,
+                'add_payment_pct'           => $input['add_payment_pct'] ?? null,
+                'birth_weight'              => $input['birth_weight'] ?? null,
+                'sistole'                   => $input['sistole'] ?? null,
+                'diastole'                  => $input['diastole'] ?? null,
+                'dializer_single_use'       => $input['dializer_single_use'] ?? null,
+                'tb_indikator'              => $input['tb_indikator'] ?? null,
+                'pemulasaraan_jenazah'      => $input['pemulasaraan_jenazah'] ?? null,
+                'kantong_jenazah'           => $input['kantong_jenazah'] ?? null,
+                'peti_jenazah'              => $input['peti_jenazah'] ?? null,
+                'desinfektan_jenazah'       => $input['desinfektan_jenazah'] ?? null,
+                'mobil_jenazah'             => $input['mobil_jenazah'] ?? null,
                 'desinfektan_mobil_jenazah' => $input['desinfektan_mobil_jenazah'] ?? null,
-                'covid19_status_cd' => $input['covid19_status_cd'] ?? null,
-                'nomor_kartu_t' => $input['nomor_kartu_t'] ?? null,
-                'tarif_rs' => $input['tarif_rs'] ?? null,
-                'episodes' => $input['episodes'] ?? null,
-                'payor_id' => $input['payor_id'] ?? null,
-                'payor_cd' => $input['payor_cd'] ?? null,
-                'kode_tarif' => $input['kode_tarif'] ?? null,
-                'coder_nik' => $input['coder_nik'] ?? null,
-                'kelas_rawat' => $input['kelas_rawat'] ?? null,
-                'jenis_rawat' => $input['jenis_rawat'] ?? null,
-                'nomor_rm' => $input['nomor_rm'] ?? null,
-                'nama_pasien' => $input['nama_pasien'] ?? null,
-                'nama_dokter' => $input['nama_dokter'] ?? null,
-                'status' => 'proses klaim'
+                'covid19_status_cd'         => $input['covid19_status_cd'] ?? null,
+                'nomor_kartu_t'             => $input['nomor_kartu_t'] ?? null,
+                'tarif_rs'                  => $input['tarif_rs'] ?? null,
+                'episodes'                  => $input['episodes'] ?? null,
+                'payor_id'                  => $input['payor_id'] ?? null,
+                'payor_cd'                  => $input['payor_cd'] ?? null,
+                'kode_tarif'                => $input['kode_tarif'] ?? null,
+                'coder_nik'                 => $input['coder_nik'] ?? null,
+                'kelas_rawat'               => $input['kelas_rawat'] ?? null,
+                'jenis_rawat'               => $input['jenis_rawat'] ?? null,
+                'nomor_rm'                  => $input['nomor_rm'] ?? null,
+                'nama_pasien'               => $input['nama_pasien'] ?? null,
+                'nama_dokter'               => $input['nama_dokter'] ?? null,
+                'status'                    => 'proses klaim',
             ]
         );
 
         // 🔹 Kirim new_claim ke e-Klaim
         $payloadNew = [
-            'nomor_sep' => $input['nomor_sep'],
+            'nomor_sep'   => $input['nomor_sep'],
             'nomor_kartu' => $input['nomor_kartu'],
-            'nomor_rm' => $input['nomor_rm'],
+            'nomor_rm'    => $input['nomor_rm'],
             'nama_pasien' => $input['nama_pasien'],
-            'tgl_lahir' => date('Y-m-d H:i:s', strtotime($input['tgl_lahir'])),
-            'gender' => $input['gender'],
+            'tgl_lahir'   => date('Y-m-d H:i:s', strtotime($input['tgl_lahir'])),
+            'gender'      => $input['gender'],
         ];
 
         $responseNew = $this->eklaim->send('new_claim', $payloadNew);
@@ -455,10 +445,10 @@ class InacbgRajalController extends Controller
         // 🔹 Kirim set_claim_data
         $payloadSet = [
             'metadata' => [
-                'method' => 'set_claim_data',
+                'method'    => 'set_claim_data',
                 'nomor_sep' => $payloadNew['nomor_sep'] ?? null,
             ],
-            'data' => $input
+            'data'     => $input,
         ];
 
         $responseSet = $this->eklaim->send(
@@ -474,15 +464,19 @@ class InacbgRajalController extends Controller
 
         $log->update([
             'response_set_claim_data' => $responseSet,
-            'status' => $status
+            'status'                  => $status,
         ]);
 
         // 🔹 Kembali ke halaman show dengan pesan sesuai status
         $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-    
+
         return $status === 'proses klaim'
-            ? $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim')
-            : $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
+            ? redirect()
+            ->route('inacbg-rajal.show', ['no_rawat' => $input['no_rawat']])
+            ->with('success', 'Berhasil mengirim e-Klaim')
+            : redirect()
+            ->route('inacbg-rajal.show', ['no_rawat' => $input['no_rawat']])
+            ->with('error', 'Gagal mengirim e-Klaim');
     }
     public function hapusKlaim(Request $request)
     {
@@ -497,7 +491,7 @@ class InacbgRajalController extends Controller
 
         // Hapus log berdasarkan nomor rawat
         LogEklaimRajal::where('nomor_sep', $request->nomor_sep)->delete();
-   
+
         // Cek hasil respons dari e-Klaim
         $status = $response['metadata']['code'] ?? null;
 
@@ -517,9 +511,8 @@ class InacbgRajalController extends Controller
     public function updateLogRajal(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
-        $field = $request->input('field'); // diagnosa_idrg atau procedure_idrg
-        $value = $request->input('value');
-
+        $field     = $request->input('field'); // diagnosa_idrg atau procedure_idrg
+        $value     = $request->input('value');
 
         $simpan = DB::table('log_eklaim_rajal')
             ->where('nomor_sep', $nomor_sep)
@@ -537,51 +530,48 @@ class InacbgRajalController extends Controller
     public function saveFinalIdrgLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'                   => 'required|string|max:50',
             'response_idrg_grouper_final' => 'required|json',
         ]);
-
-
 
         $updated = DB::table('log_eklaim_rajal')
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
-                'status' => 'proses final idrg',
+                'status'                      => 'proses final idrg',
                 'response_idrg_grouper_final' => $request->response_idrg_grouper_final,
-                'updated_at' => now()
+                'updated_at'                  => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated ? 'Final IDRG berhasil disimpan' : 'Nomor SEP tidak ditemukan'
+            'status'  => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Final IDRG berhasil disimpan' : 'Nomor SEP tidak ditemukan',
         ]);
     }
     public function hapusFinalIdrg(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
 
-        if (!$nomor_sep) {
+        if (! $nomor_sep) {
             return response()->json(['status' => 'error', 'message' => 'Nomor SEP tidak ditemukan'], 400);
         }
 
         DB::table('log_eklaim_rajal')
             ->where('nomor_sep', $nomor_sep)
             ->update([
-                'procedure_inacbg' => null,
-                'diagnosa_inacbg' => null,
-                'response_grouping_idrg' => null,
-                'status' => 'proses klaim',
-                'response_idrg_grouper_final' => null
+                'procedure_inacbg'            => null,
+                'diagnosa_inacbg'             => null,
+                'response_grouping_idrg'      => null,
+                'status'                      => 'proses klaim',
+                'response_idrg_grouper_final' => null,
             ]);
 
         return response()->json(['status' => 'success', 'mes`sage' => 'Final IDRG berhasil dihapus']);
     }
 
-    
     public function saveImportInacbgLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'              => 'required|string|max:50',
             'response_inacbg_import' => 'required|json',
         ]);
 
@@ -589,32 +579,32 @@ class InacbgRajalController extends Controller
         $response = json_decode($request->response_inacbg_import, true);
 
         // Ambil objek diagnosa & procedure dari data INA-CBG
-        $diagnosaData = $response['data']['diagnosa'] ?? null;
+        $diagnosaData  = $response['data']['diagnosa'] ?? null;
         $procedureData = $response['data']['procedure'] ?? null;
 
         // Encode ke JSON string untuk disimpan di kolom LONGTEXT
-        $diagnosaJson = $diagnosaData ? json_encode($diagnosaData, JSON_UNESCAPED_UNICODE) : null;
+        $diagnosaJson  = $diagnosaData ? json_encode($diagnosaData, JSON_UNESCAPED_UNICODE) : null;
         $procedureJson = $procedureData ? json_encode($procedureData, JSON_UNESCAPED_UNICODE) : null;
 
         // Update ke tabel log_eklaim_rajal
         $updated = DB::table('log_eklaim_rajal')
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
-                'status' => 'proses final idrg',
+                'status'                 => 'proses final idrg',
                 'response_inacbg_import' => $request->response_inacbg_import,
-                'diagnosa_inacbg' => $diagnosaJson,
-                'procedure_inacbg' => $procedureJson,
-                'updated_at' => now(),
+                'diagnosa_inacbg'        => $diagnosaJson,
+                'procedure_inacbg'       => $procedureJson,
+                'updated_at'             => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated
+            'status'     => $updated ? 'success' : 'failed',
+            'message'    => $updated
                 ? 'Hasil import iDRG → INA-CBG berhasil disimpan'
                 : 'Nomor SEP tidak ditemukan pada log',
             'saved_data' => [
-                'nomor_sep' => $request->nomor_sep,
-                'diagnosa_inacbg' => $diagnosaJson,
+                'nomor_sep'        => $request->nomor_sep,
+                'diagnosa_inacbg'  => $diagnosaJson,
                 'procedure_inacbg' => $procedureJson,
             ],
         ]);
@@ -622,7 +612,7 @@ class InacbgRajalController extends Controller
     public function saveGroupingStage1Log(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'              => 'required|string|max:50',
             'response_inacbg_stage1' => 'required|json',
         ]);
 
@@ -630,7 +620,7 @@ class InacbgRajalController extends Controller
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
                 'response_inacbg_stage1' => $request->response_inacbg_stage1,
-                'updated_at' => now()
+                'updated_at'             => now(),
             ]);
 
         return response()->json(['status' => $updated ? 'success' : 'failed']);
@@ -638,7 +628,7 @@ class InacbgRajalController extends Controller
     public function saveGroupingStage2Log(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'              => 'required|string|max:50',
             'response_inacbg_stage2' => 'nullable|json',
         ]);
 
@@ -646,7 +636,7 @@ class InacbgRajalController extends Controller
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
                 'response_inacbg_stage2' => $request->response_inacbg_stage2,
-                'updated_at' => now()
+                'updated_at'             => now(),
             ]);
 
         return response()->json(['status' => $updated ? 'success' : 'failed']);
@@ -654,7 +644,7 @@ class InacbgRajalController extends Controller
     public function saveFinalInacbgLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'             => 'required|string|max:50',
             'response_inacbg_final' => 'required|json',
         ]);
 
@@ -662,24 +652,24 @@ class InacbgRajalController extends Controller
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
                 'response_inacbg_final' => $request->response_inacbg_final,
-                'updated_at' => now()
+                'updated_at'            => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
+            'status'  => $updated ? 'success' : 'failed',
             'message' => $updated
                 ? 'Log hasil Final INACBG berhasil disimpan.'
-                : 'Gagal menyimpan log Final INACBG.'
+                : 'Gagal menyimpan log Final INACBG.',
         ]);
     }
     public function reeditGroupingInacbg(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
 
-        if (!$nomor_sep) {
+        if (! $nomor_sep) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Nomor SEP tidak ditemukan'
+                'status'  => 'error',
+                'message' => 'Nomor SEP tidak ditemukan',
             ], 400);
         }
 
@@ -689,10 +679,10 @@ class InacbgRajalController extends Controller
             ->whereNotNull('response_inacbg_final')
             ->exists();
 
-        if (!$hasFinal) {
+        if (! $hasFinal) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Belum ada hasil Grouping Final (response_inacbg_final), re-edit tidak dapat dilakukan.'
+                'status'  => 'error',
+                'message' => 'Belum ada hasil Grouping Final (response_inacbg_final), re-edit tidak dapat dilakukan.',
             ], 400);
         }
 
@@ -702,14 +692,14 @@ class InacbgRajalController extends Controller
             ->update([
                 'response_inacbg_stage1' => null,
                 'response_inacbg_stage2' => null,
-                'response_inacbg_final' => null,
-                'updated_at' => now()
+                'response_inacbg_final'  => null,
+                'updated_at'             => now(),
             ]);
 
         // ✅ Kirim reedit ke e-Klaim
         $payload = [
             'metadata' => ['method' => 'inacbg_grouper_reedit'],
-            'data' => ['nomor_sep' => $nomor_sep]
+            'data'     => ['nomor_sep' => $nomor_sep],
         ];
 
         try {
@@ -717,22 +707,22 @@ class InacbgRajalController extends Controller
                 ->send('inacbg_grouper_reedit', $payload['data'], $payload['metadata']);
 
             return response()->json([
-                'status' => 'success',
-                'message' => 'Hasil grouping INA-CBG dihapus dan re-edit berhasil dikirim.',
-                'response' => $result
+                'status'   => 'success',
+                'message'  => 'Hasil grouping INA-CBG dihapus dan re-edit berhasil dikirim.',
+                'response' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Gagal memproses re-edit INA-CBG.',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
     public function saveClaimFinalLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'            => 'required|string|max:50',
             'response_claim_final' => 'required|json',
         ]);
 
@@ -740,24 +730,24 @@ class InacbgRajalController extends Controller
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
                 'response_claim_final' => $request->response_claim_final,
-                'updated_at' => now()
+                'updated_at'           => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
+            'status'  => $updated ? 'success' : 'failed',
             'message' => $updated
                 ? 'Log hasil Claim Final berhasil disimpan.'
-                : 'Gagal menyimpan log Claim Final.'
+                : 'Gagal menyimpan log Claim Final.',
         ]);
     }
     public function reeditClaim(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
 
-        if (!$nomor_sep) {
+        if (! $nomor_sep) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Nomor SEP tidak ditemukan'
+                'status'  => 'error',
+                'message' => 'Nomor SEP tidak ditemukan',
             ], 400);
         }
 
@@ -767,10 +757,10 @@ class InacbgRajalController extends Controller
             ->whereNotNull('response_claim_final')
             ->exists();
 
-        if (!$hasFinal) {
+        if (! $hasFinal) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Belum ada hasil Claim Final (response_claim_final), re-edit tidak dapat dilakukan.'
+                'status'  => 'error',
+                'message' => 'Belum ada hasil Claim Final (response_claim_final), re-edit tidak dapat dilakukan.',
             ], 400);
         }
 
@@ -779,13 +769,13 @@ class InacbgRajalController extends Controller
             ->where('nomor_sep', $nomor_sep)
             ->update([
                 'response_claim_final' => null,
-                'updated_at' => now()
+                'updated_at'           => now(),
             ]);
 
         // ✅ Payload reedit claim
         $payload = [
             'metadata' => ['method' => 'reedit_claim'],
-            'data' => ['nomor_sep' => $nomor_sep]
+            'data'     => ['nomor_sep' => $nomor_sep],
         ];
 
         try {
@@ -793,22 +783,22 @@ class InacbgRajalController extends Controller
                 ->send('reedit_claim', $payload['data'], $payload['metadata']);
 
             return response()->json([
-                'status' => 'success',
-                'message' => 'Claim final dihapus dan proses re-edit claim berhasil dikirim.',
-                'response' => $result
+                'status'   => 'success',
+                'message'  => 'Claim final dihapus dan proses re-edit claim berhasil dikirim.',
+                'response' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Gagal memproses re-edit claim.',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
     public function saveClaimSendLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'                      => 'required|string|max:50',
             'response_send_claim_individual' => 'required|json',
         ]);
 
@@ -816,16 +806,15 @@ class InacbgRajalController extends Controller
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
                 'response_send_claim_individual' => $request->response_send_claim_individual,
-                'updated_at' => now()
+                'updated_at'                     => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
+            'status'  => $updated ? 'success' : 'failed',
             'message' => $updated
                 ? 'Log hasil Kirim Claim Individual berhasil disimpan.'
-                : 'Gagal menyimpan log Kirim Claim Individual.'
+                : 'Gagal menyimpan log Kirim Claim Individual.',
         ]);
     }
-
 
 }
