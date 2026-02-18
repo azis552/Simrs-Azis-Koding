@@ -60,6 +60,9 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('/log/claim-send/save', [InacbgRanapController::class, 'saveClaimSendLog']);
 
+    Route::post('/delete-response-grouping-inacbg', [InacbgRanapController::class, 'deleteResponseGroupinginacbg']);
+    Route::post('/delete-response-grouping-idrg', [InacbgRanapController::class, 'deleteResponseGroupingIdrg']);
+
     // Inacbg Rajal
 
     Route::get('inacbg-rajal', [InacbgRajalController::class, 'index'])->name('inacbg-rajal.index');

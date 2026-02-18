@@ -2909,7 +2909,7 @@ function updateSelectedCmg(type) {
                 <td>${d.code}</td>
                 <td>${d.desc} ${alertMessage}</td> <!-- Menambahkan alert di samping deskripsi -->
                 <td>${d.status}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="hapusIteminacbg('${d.code}', ${isDiagnosa}, $(this).closest('tr').index())" ${(typeof isFinalIdrg !== 'undefined' && isFinalIdrg) ? 'disabled' : ''}>X</button></td>
+                <td><button class="btn btn-danger btn-sm" onclick="hapusIteminacbg('${d.code}', ${isDiagnosa}, $(this).closest('tr').index())" ${(typeof isFinalInacbg !== 'undefined' && isFinalInacbg) ? 'disabled' : ''}>X</button></td>
             </tr>
         `);
                 });
@@ -3113,10 +3113,9 @@ function updateSelectedCmg(type) {
 
                 const endpoint = "{{ url('') }}/api/eklaim/inacbg-procedure-set";
 
-                // 🔥 FORMAT RESMI INA-CBG
-                const procedure = prosedurList
-                    .map((p) =>
-                        `${p.code}+${p.qty}`) // Pastikan qty sesuai dengan prosedur berdasarkan urutan index
+                // 🔥 FORMAT RESMI INA-CBG TANPA qty
+                const procedure = prosedurListInacbg
+                    .map((p) => p.code) // Hanya ambil kode prosedur tanpa qty
                     .join('#') || '#'; // Gabungkan dengan '#' sebagai pemisah antar prosedur
 
                 const payload = {

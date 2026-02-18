@@ -868,6 +868,58 @@ class InacbgRanapController extends Controller
         ]);
     }
 
+    public function deleteResponseGroupinginacbg(Request $request)
+    {
+        $nomor_sep = $request->input('nomor_sep');
+
+        if (!$nomor_sep) {
+            return response()->json(['status' => 'error', 'message' => 'Nomor SEP tidak ditemukan'], 400);
+        }
+
+        DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $nomor_sep)
+            ->update(['response_idrg_grouper_final' => null,
+            'response_inacbg_final' => null,
+            'response_inacbg_import' => null,
+            'response_inacbg_stage1' => null,
+            'response_inacbg_stage2' => null,
+            'procedure_inacbg' => null,
+            'diagnosa_inacbg' => null,
+            'response_claim_final' => null,
+            'response_send_claim_individual' => null,
+            'status' => 'proses klaim'
+            ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Response grouping IDRG berhasil dihapus']);
+
+    }
+
+    public function deleteResponseGroupingIdrg(Request $request)
+    {
+        $nomor_sep = $request->input('nomor_sep');
+
+        if (!$nomor_sep) {
+            return response()->json(['status' => 'error', 'message' => 'Nomor SEP tidak ditemukan'], 400);
+        }
+
+        DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $nomor_sep)
+            ->update([
+            'response_grouping_idrg' => null,
+            'response_idrg_grouper_final' => null,
+            'response_inacbg_final' => null,
+            'response_inacbg_import' => null,
+            'response_inacbg_stage1' => null,
+            'response_inacbg_stage2' => null,
+            'procedure_inacbg' => null,
+            'diagnosa_inacbg' => null,
+            'response_claim_final' => null,
+            'response_send_claim_individual' => null,
+            'status' => 'proses klaim'
+            ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Response grouping IDRG berhasil dihapus']);
+    }
 
 
 

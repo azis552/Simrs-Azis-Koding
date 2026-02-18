@@ -19,7 +19,8 @@ class IcdController extends Controller
             ->select('code', 'description', 'system', 'validcode', 'accpdx', 'asterisk', 'im')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhere('code2', 'like', "%$search%");
             })
             ->limit(30)
             ->get();
@@ -48,7 +49,8 @@ class IcdController extends Controller
             ->select('code', 'description', 'system', 'validcode', 'accpdx', 'asterisk', 'im')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
+                    ->orWhere('description', 'like', "%$search%")
+                    ->orWhere('code2', 'like', "%$search%");
             })
             ->limit(30)
             ->get();
@@ -75,6 +77,7 @@ class IcdController extends Controller
             ->select('code', 'description', 'system', 'validcode')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
+                    ->orWhere('code2', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             })
             ->limit(30)
@@ -96,10 +99,11 @@ class IcdController extends Controller
     {
         $search = $request->get('q');
 
-        $data = DB::table('icd9cm_codes_inacbg')
+        $data = DB::table('icd9_codes_inacbg')
             ->select('code', 'description', 'system', 'validcode')
             ->when($search, function ($query, $search) {
                 $query->where('code', 'like', "%$search%")
+                    ->orWhere('code2', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             })
             ->limit(30)
