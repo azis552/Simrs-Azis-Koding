@@ -407,7 +407,7 @@
                                                     <td>{{ $obat->nm_pasien }}</td>
                                                     <td>
                                                         @if ($obat->telaah == null)
-                                                            <button type="button" class="btn btn-warning mb-3 btn-telaah"
+                                                            <button type="button" class="btn btn-warning  btn-telaah"
                                                                 data-toggle="modal" id="telaah"
                                                                 data-noresep="{{ $obat->no_resep }}"
                                                                 data-target="#staticBackdrop">
@@ -417,10 +417,12 @@
                                                             <form action="{{ route('obats.destroy', $obat->no_resep) }}" method="post">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <a href="{{ route('obats.show', $obat->no_resep) }}" class="btn btn-primary mb-3" target="_blank" >Print Telaah</a>
-                                                                <button type="submit" class="btn btn-danger mb-3">Hapus Telaah</button>
+                                                                <a href="{{ route('obats.show', $obat->no_resep) }}" class="btn btn-primary " target="_blank" >Print Telaah</a>
+                                                                <button type="submit" class="btn btn-danger">Hapus Telaah</button>
                                                             </form>
                                                         @endif
+
+                                                        <a href="{{ route('obat.validasi',$obat->no_resep) }}" class="btn btn-success">Ubah Obat</a>
 
                                                     </td>
                                                 </tr>
