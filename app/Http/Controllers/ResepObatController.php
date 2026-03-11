@@ -153,7 +153,7 @@ class ResepObatController extends Controller
             ->join('resep_dokter as det', 'res.no_resep', '=', 'det.no_resep')
             ->join('databarang as dat', 'det.kode_brng', '=', 'dat.kode_brng')
             ->where('res.no_resep', $id)
-            ->select('det.*','res.tgl_perawatan','res.jam', 'dat.nama_brng')
+            ->select('det.*', 'res.tgl_perawatan', 'res.jam', 'dat.nama_brng')
             ->get();
         $resep_obat = DB::table('resep_obat')
             ->where('no_resep', $id)
@@ -162,5 +162,31 @@ class ResepObatController extends Controller
         $data_obat = DB::table('databarang')
             ->get();
         return view('DataObat.dataObat', compact('obats', 'resep_obat', 'data_obat'));
+    }
+    public function updateJam(Request $request, $id)
+    {
+        $jam = $request->input('jam');
+        $tanggal = $request->input('tanggal');
+        $jam_old = $request->input('jam_old');
+        $tanggal_old = $request->input('tgl_perawatan_old');
+
+        DB::table('resep_obat')
+            ->where('no_resep', $id)
+            ->update([
+                'jam' => $jam,
+                'tgl_peresepan' => $tanggal,
+                'tgl_perawatan' => $tanggal,
+                'jam_peresepan' => $jam
+            ]);
+
+        DB::table('detail_pemberian_obat')
+            ->where('tgl_perawatan', $tanggal_old)
+            ->where('jam', $jam_old)
+            ->update([
+                'tgl_perawatan' => $tanggal,
+                'jam' => $jam
+            ]);
+
+        return redirect()->back()->with('success', 'Jam berhasil diperbarui.');
     }
 }

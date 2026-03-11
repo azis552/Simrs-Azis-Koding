@@ -22,6 +22,10 @@ Route::get('logout', [UserController::class, 'logout'])->name('users.logout');
 Route::post('logincheck', [UserController::class, 'logincheck'])->name('users.logincheck');
 
 Route::group(['middleware' => ['auth']], function () {
+    // Apotik bypass obat
+    Route::put('obats/{no_resep}/updatejam', [ResepObatController::class, 'updateJam'])->name('obats.updatejam');
+
+
     Route::post('users/mapping', [UserController::class, 'mapping'])->name('users.mapping');
     Route::resource('users', UserController::class);
     Route::resource('obats', ResepObatController::class);

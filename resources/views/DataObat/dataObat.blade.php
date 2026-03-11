@@ -11,7 +11,9 @@
                             <div class="card-block">
                                 <h4>Resep Obat</h4>
                                 <div class="dt-responsive table-responsive">
-                                    <form action="">
+                                    <form action="{{ route('obats.updatejam', $resep_obat->no_resep) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
                                         <div class="row">
                                             <div class="col">
                                                 <label for="">No Resep</label>
@@ -20,13 +22,15 @@
                                             </div>
                                             <div class="col">
                                                 <label for="">Tanggal Perawatan</label>
+                                                <input type="hidden" name="tgl_perawatan_old" value="{{ $resep_obat->tgl_perawatan }}">
                                                 <input type="date" class="form-control"
-                                                    value="{{ $resep_obat->tgl_perawatan }}">
+                                                    value="{{ $resep_obat->tgl_perawatan }}" name="tanggal">
                                             </div>
                                             <div class="col">
                                                 <label for="">Jam</label>
+                                                <input type="hidden" name="jam_old" value="{{ $resep_obat->jam }}">
                                                 <input type="time " step="1" class="form-control"
-                                                    value="{{ $resep_obat->jam }}">
+                                                    value="{{ $resep_obat->jam }}" name="jam">
                                             </div>
                                         </div>
                                         <button class="btn btn-primary" type="submit">Ubah Tanggal /Jam</button>
