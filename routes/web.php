@@ -23,8 +23,13 @@ Route::post('logincheck', [UserController::class, 'logincheck'])->name('users.lo
 
 Route::group(['middleware' => ['auth']], function () {
     // Apotik bypass obat
-    Route::put('obats/{no_resep}/updatejam', [ResepObatController::class, 'updateJam'])->name('obats.updatejam');
 
+
+Route::get("obat/{id}/validasi",                    [ResepObatController::class, 'obat'])->name('obat.validasi');
+Route::put('/obat/{no_resep}/updatejam',             [ResepObatController::class, 'updateJam'])->name('obats.updatejam');
+Route::post('/obat/{no_resep}/tambah',               [ResepObatController::class, 'tambahObat'])->name('obats.tambah');
+Route::patch('/obat/{no_resep}/{kode_brng}/kurang',  [ResepObatController::class, 'kurangObat'])->name('obats.kurang');
+Route::delete('/obat/{no_resep}/{kode_brng}/hapus',  [ResepObatController::class, 'hapusObat'])->name('obats.hapus');
 
     Route::post('users/mapping', [UserController::class, 'mapping'])->name('users.mapping');
     Route::resource('users', UserController::class);
@@ -35,7 +40,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/stok/{kode_brng}/riwayat', [ObatController::class, 'riwayat'])->name('stok.riwayat');
     // untuk cetak (versi print-friendly)
     Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
-    Route::get("obat/{id}/validasi",[ResepObatController::class, 'obat'])->name('obat.validasi');
+    
 
     // Inacbg Ranap
 

@@ -149,44 +149,133 @@ class ResepObatController extends Controller
 
     public function obat($id)
     {
-        $obats = DB::table('resep_obat as res')
-            ->join('resep_dokter as det', 'res.no_resep', '=', 'det.no_resep')
-            ->join('databarang as dat', 'det.kode_brng', '=', 'dat.kode_brng')
-            ->where('res.no_resep', $id)
-            ->select('det.*', 'res.tgl_perawatan', 'res.jam', 'dat.nama_brng')
-            ->get();
-        $resep_obat = DB::table('resep_obat')
-            ->where('no_resep', $id)
-            ->first();
+        $resep_obat = DB::table('resep_obat')->where('no_resep', $id)->first();
 
-        $data_obat = DB::table('databarang')
+        $obats = DB::table('resep_dokter as det')
+            ->join('databarang as dat', 'det.kode_brng', '=', 'dat.kode_brng')
+            ->where('det.no_resep', $id)
+            ->select('det.*', 'dat.nama_brng')
             ->get();
+
+        $data_obat = DB::table('databarang')->select('kode_brng', 'nama_brng')->get();
+        
+
         return view('DataObat.dataObat', compact('obats', 'resep_obat', 'data_obat'));
     }
-    public function updateJam(Request $request, $id)
+
+    public function updateJam(Request $request, $no_resep)
     {
-        $jam = $request->input('jam');
-        $tanggal = $request->input('tanggal');
-        $jam_old = $request->input('jam_old');
-        $tanggal_old = $request->input('tgl_perawatan_old');
+        $request->validate([
+            'tanggal' => 'required|date',
+            'jam' => 'required',
+        ]);
 
-        DB::table('resep_obat')
-            ->where('no_resep', $id)
-            ->update([
-                'jam' => $jam,
-                'tgl_peresepan' => $tanggal,
-                'tgl_perawatan' => $tanggal,
-                'jam_peresepan' => $jam
-            ]);
+        // Ambil data lama sebelum diupdate
+        $resep = DB::table('resep_obat')->where('no_resep', $no_resep)->first();
 
+        if (!$resep) {
+            return redirect()->route('obat.validasi', $no_resep)
+                ->with('error', 'Resep tidak ditemukan.');
+        }
+
+        $tgl_lama = $resep->tgl_perawatan;
+        $jam_lama = $resep->jam;
+
+        // Update resep_obat
+        DB::table('resep_obat')->where('no_resep', $no_resep)->update([
+            'tgl_perawatan' => $request->tanggal,
+            'tgl_peresepan' => $request->tanggal,
+            'jam' => $request->jam,
+            'jam_peresepan' => $request->jam,
+        ]);
+
+        // Update detail_pemberian_obat berdasarkan no_rawat + tanggal & jam lama
         DB::table('detail_pemberian_obat')
-            ->where('tgl_perawatan', $tanggal_old)
-            ->where('jam', $jam_old)
+            ->where('no_rawat', $resep->no_rawat)
+            ->where('tgl_perawatan', $tgl_lama)
+            ->where('jam', $jam_lama)
             ->update([
-                'tgl_perawatan' => $tanggal,
-                'jam' => $jam
+                'tgl_perawatan' => $request->tanggal,
+                'jam' => $request->jam,
             ]);
 
-        return redirect()->back()->with('success', 'Jam berhasil diperbarui.');
+        return redirect()->route('obat.validasi', $no_resep)
+            ->with('success', 'Tanggal dan jam berhasil diubah.');
+    }
+
+    public function tambahObat(Request $request, $no_resep)
+    {
+        $request->validate([
+            'kode_brng' => 'required',
+            'jml' => 'required|integer|min:1',
+        ]);
+
+        $exists = DB::table('resep_dokter')
+            ->where('no_resep', $no_resep)
+            ->where('kode_brng', $request->kode_brng)
+            ->first();
+
+        if ($exists) {
+            DB::table('resep_dokter')
+                ->where('no_resep', $no_resep)
+                ->where('kode_brng', $request->kode_brng)
+                ->update([
+                    'jml' => $exists->jml + $request->jml,
+                ]);
+        } else {
+            DB::table('resep_dokter')->insert([
+                'no_resep' => $no_resep,
+                'kode_brng' => $request->kode_brng,
+                'jml' => $request->jml,
+            ]);
+        }
+
+        return redirect()->route('obat.validasi', $no_resep)
+            ->with('success', 'Obat berhasil ditambahkan.');
+    }
+
+    public function kurangObat(Request $request, $no_resep, $kode_brng)
+    {
+        $obat = DB::table('resep_dokter')
+            ->where('no_resep', $no_resep)
+            ->where('kode_brng', $kode_brng)
+            ->first();
+
+        if (!$obat) {
+            return redirect()->route('obat.validasi', $no_resep)
+                ->with('error', 'Obat tidak ditemukan.');
+        }
+
+        if ($obat->jml <= 1) {
+            // Jika jumlah tinggal 1, hapus saja
+            DB::table('resep_dokter')
+                ->where('no_resep', $no_resep)
+                ->where('kode_brng', $kode_brng)
+                ->delete();
+
+            return redirect()->route('obat.validasi', $no_resep)
+                ->with('success', 'Obat dihapus karena jumlah sudah 0.');
+        }
+
+        DB::table('resep_dokter')
+            ->where('no_resep', $no_resep)
+            ->where('kode_brng', $kode_brng)
+            ->update([
+                'jml' => $obat->jml - 1,
+            ]);
+
+        return redirect()->route('obat.validasi', $no_resep)
+            ->with('success', 'Jumlah obat berhasil dikurangi.');
+    }
+
+    public function hapusObat($no_resep, $kode_brng)
+    {
+        DB::table('resep_dokter')
+            ->where('no_resep', $no_resep)
+            ->where('kode_brng', $kode_brng)
+            ->delete();
+
+        return redirect()->route('obat.validasi', $no_resep)
+            ->with('success', 'Obat berhasil dihapus.');
     }
 }
