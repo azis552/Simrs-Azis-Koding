@@ -156,12 +156,10 @@
                 &nbsp;&nbsp; Jam &nbsp;
                 <span class="underline-field">{{ $jam_meninggal }}</span>
             </p>
-            <p>di {{ $setting->nama_instansi ?? 'Rumah Sakit' }} dikarenakan Meninggal</p>
+            <p>di {{ $setting->nama_instansi ?? 'Rumah Sakit' }} dikarenakan {{ $keterangan }}
             <p>Demikian surat keterangan ini dibuat agar menjadikan maklum dan dapat</p>
             <p>sebagaimana mestinya</p>
-            @if(!empty($keterangan))
-                <p style="margin-top:6px;">Keterangan : {{ $keterangan }}</p>
-            @endif
+            
         </div>
     </div>
 
