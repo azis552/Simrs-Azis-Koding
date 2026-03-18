@@ -3,6 +3,8 @@
 use App\Http\Controllers\EklaimController;
 use App\Http\Controllers\InacbgRajalController;
 use App\Http\Controllers\InacbgRanapController;
+use App\Http\Controllers\KasirRalanController;
+use App\Http\Controllers\KasirRanapController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\ResepObatController;
 use App\Http\Controllers\TelaahObatController;
@@ -25,11 +27,11 @@ Route::group(['middleware' => ['auth']], function () {
     // Apotik bypass obat
 
 
-Route::get("obat/{id}/validasi",                    [ResepObatController::class, 'obat'])->name('obat.validasi');
-Route::put('/obat/{no_resep}/updatejam',             [ResepObatController::class, 'updateJam'])->name('obats.updatejam');
-Route::post('/obat/{no_resep}/tambah',               [ResepObatController::class, 'tambahObat'])->name('obats.tambah');
-Route::patch('/obat/{no_resep}/{kode_brng}/kurang',  [ResepObatController::class, 'kurangObat'])->name('obats.kurang');
-Route::delete('/obat/{no_resep}/{kode_brng}/hapus',  [ResepObatController::class, 'hapusObat'])->name('obats.hapus');
+    Route::get("obat/{id}/validasi", [ResepObatController::class, 'obat'])->name('obat.validasi');
+    Route::put('/obat/{no_resep}/updatejam', [ResepObatController::class, 'updateJam'])->name('obats.updatejam');
+    Route::post('/obat/{no_resep}/tambah', [ResepObatController::class, 'tambahObat'])->name('obats.tambah');
+    Route::patch('/obat/{no_resep}/{kode_brng}/kurang', [ResepObatController::class, 'kurangObat'])->name('obats.kurang');
+    Route::delete('/obat/{no_resep}/{kode_brng}/hapus', [ResepObatController::class, 'hapusObat'])->name('obats.hapus');
 
     Route::post('users/mapping', [UserController::class, 'mapping'])->name('users.mapping');
     Route::resource('users', UserController::class);
@@ -40,7 +42,7 @@ Route::delete('/obat/{no_resep}/{kode_brng}/hapus',  [ResepObatController::class
     Route::get('/stok/{kode_brng}/riwayat', [ObatController::class, 'riwayat'])->name('stok.riwayat');
     // untuk cetak (versi print-friendly)
     Route::get('/stok/{kode_brng}/riwayat/cetak', [ObatController::class, 'cetakRiwayat'])->name('stok.riwayat.cetak');
-    
+
 
     // Inacbg Ranap
 
@@ -100,6 +102,67 @@ Route::delete('/obat/{no_resep}/{kode_brng}/hapus',  [ResepObatController::class
     Route::post('/reedit-claim-rajal', [InacbgRajalController::class, 'reeditClaim']);
 
     Route::post('/log/claim-send/save-rajal', [InacbgRajalController::class, 'saveClaimSendLog']);
+
+    // Kasir Ralan
+    Route::prefix('kasir/ralan')->name('kasir.ralan.')->group(function () {
+        Route::get('/', [KasirRalanController::class, 'index'])->name('index');
+        Route::put('/{no_rawat}/status', [KasirRalanController::class, 'setStatus'])
+            ->name('status')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/billing', [KasirRalanController::class, 'billing'])
+            ->name('billing')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/pemberian-obat', [KasirRalanController::class, 'pemberianObat'])
+            ->name('pemberian-obat')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/tindakan', [KasirRalanController::class, 'tindakan'])
+            ->name('tindakan')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/lab', [KasirRalanController::class, 'lab'])
+            ->name('lab')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/radiologi', [KasirRalanController::class, 'radiologi'])
+            ->name('radiologi')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/diagnosa', [KasirRalanController::class, 'diagnosa'])
+            ->name('diagnosa')
+            ->where('no_rawat', '.*');
+
+        // Surat-surat
+        Route::get('/{no_rawat}/surat/kematian', [KasirRalanController::class, 'suratKematian'])
+            ->name('surat.kematian')
+            ->where('no_rawat', '.*');
+        Route::post('/{no_rawat}/surat/kematian/cetak', [KasirRalanController::class, 'cetakSuratKematian'])
+            ->name('surat.kematian.cetak')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/sakit', [KasirRalanController::class, 'suratSakit'])
+            ->name('surat.sakit')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/sehat', [KasirRalanController::class, 'suratSehat'])
+            ->name('surat.sehat')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/kontrol', [KasirRalanController::class, 'suratKontrol'])
+            ->name('surat.kontrol')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/rujukan', [KasirRalanController::class, 'suratRujukan'])
+            ->name('surat.rujukan')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/persetujuan', [KasirRalanController::class, 'suratPersetujuan'])
+            ->name('surat.persetujuan')
+            ->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/pulang-paksa', [KasirRalanController::class, 'suratPulangPaksa'])
+            ->name('surat.pulang-paksa')
+            ->where('no_rawat', '.*');
+    });
+
+    // Kasir Ranap
+    Route::prefix('kasir/ranap')->name('kasir.ranap.')->group(function () {
+        Route::get('/', [KasirRanapController::class, 'index'])->name('index');
+        Route::put('/{no_rawat}/status', [KasirRanapController::class, 'setStatus'])->name('status')->where('no_rawat', '.*');
+        Route::get('/{no_rawat}/surat/kematian', [KasirRanapController::class, 'suratKematian'])->name('surat.kematian')->where('no_rawat', '.*');
+        Route::post('/{no_rawat}/surat/kematian/cetak', [KasirRanapController::class, 'cetakSuratKematian'])->name('surat.kematian.cetak')->where('no_rawat', '.*');
+    });
+
 
 });
 

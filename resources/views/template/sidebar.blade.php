@@ -184,7 +184,7 @@
                 <div class="pcoded-navigatio-lavel" data-i18n="nav.category.other">Perawatan</div>
                 <ul class="pcoded-item pcoded-left-item">
                     <li>
-                        <a href="index.html">
+                        <a href="{{ route('kasir.ralan.index') }}">
                             <span class="pcoded-micon"><i class="ti-home"></i><b>D</b></span>
                             <span class="pcoded-mtext" data-i18n="nav.dash.main">Rajal</span>
                             <span class="pcoded-mcaret"></span>
@@ -194,7 +194,7 @@
                 </ul>
                 <ul class="pcoded-item pcoded-left-item">
                     <li>
-                        <a href="index.html">
+                        <a href="{{ route('kasir.ranap.index') }}">
                             <span class="pcoded-micon"><i class="ti-home"></i><b>D</b></span>
                             <span class="pcoded-mtext" data-i18n="nav.dash.main">Ranap</span>
                             <span class="pcoded-mcaret"></span>
