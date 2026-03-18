@@ -31,42 +31,39 @@
                                 </h4>
 
                                 {{-- Form Ubah Tanggal / Jam --}}
-<div class="mb-4">
-    <h5 class="mb-3">
-        <i class="bi bi-clock me-1"></i> Ubah Tanggal / Jam
-    </h5>
-    <form action="{{ route('obats.updatejam', $resep_obat->no_resep) }}" method="POST">
-        @csrf
-        @method('PUT')
-        <div class="row g-3 align-items-end">
-            <div class="col-md-2">
-                <label class="form-label">No Resep</label>
-                <input type="text" class="form-control"
-                    value="{{ $resep_obat->no_resep }}" readonly>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">No Rawat</label>
-                <input type="text" class="form-control"
-                    value="{{ $resep_obat->no_rawat }}" readonly>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Tanggal Perawatan</label>
-                <input type="date" class="form-control"
-                    name="tanggal" value="{{ $resep_obat->tgl_perawatan }}" required>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Jam</label>
-                <input type="time" step="1" class="form-control"
-                    name="jam" value="{{ $resep_obat->jam }}" required>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100" type="submit">
-                    <i class="bi bi-save me-1"></i> Simpan
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
+                                <div class="mb-4">
+                                    <h5 class="mb-3">
+                                        <i class="bi bi-clock me-1"></i> Ubah Tanggal / Jam
+                                    </h5>
+                                    <form action="{{ route('obats.updatejam', $resep_obat->no_resep) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-md-2">
+                                                <label class="form-label">No Resep</label>
+                                                <input type="text" class="form-control" value="{{ $resep_obat->no_resep }}" readonly>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label">No Rawat</label>
+                                                <input type="text" class="form-control" value="{{ $resep_obat->no_rawat }}" readonly>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Tanggal Perawatan</label>
+                                                <input type="date" class="form-control" name="tanggal" value="{{ $resep_obat->tgl_perawatan }}" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Jam</label>
+                                                <input type="time" step="1" class="form-control" name="jam" value="{{ $resep_obat->jam }}" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-primary w-100" type="submit">
+                                                    <i class="bi bi-save me-1"></i> Simpan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
                                 <hr class="my-4">
 
                                 {{-- Form Tambah Obat --}}
@@ -77,7 +74,9 @@
                                     <form action="{{ route('obats.tambah', $resep_obat->no_resep) }}" method="POST">
                                         @csrf
                                         <div class="row g-3 align-items-end">
-                                            <div class="col-md-5">
+
+                                            {{-- Nama Obat --}}
+                                            <div class="col-md-3">
                                                 <label class="form-label">Nama Obat</label>
                                                 <select name="kode_brng" id="obat-select" class="form-select" required>
                                                     <option value="">Pilih Obat</option>
@@ -86,16 +85,41 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-md-3">
+
+                                            {{-- Jumlah --}}
+                                            <div class="col-md-1">
                                                 <label class="form-label">Jumlah</label>
-                                                <input type="number" class="form-control" name="jml" min="1" value="1"
-                                                    required>
+                                                <input type="number" class="form-control" name="jml" min="1" value="1" required>
                                             </div>
+
+                                            {{-- Aturan Pakai Dropdown --}}
                                             <div class="col-md-3">
+                                                <label class="form-label">Aturan Pakai</label>
+                                                <select name="aturan_pakai" id="aturan-select-tambah" class="form-select">
+                                                    <option value="">-- Pilih dari master --</option>
+                                                    @foreach ($data_aturan_pakai as $ap)
+                                                        <option value="{{ $ap }}">{{ $ap }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            {{-- Atau input manual --}}
+                                            <div class="col-md-3">
+                                                <label class="form-label">
+                                                    atau ketik manual
+                                                    <small class="text-muted">(otomatis simpan ke master)</small>
+                                                </label>
+                                                <input type="text" class="form-control" name="aturan_manual"
+                                                    placeholder="cth: 3 x 1 sesudah makan">
+                                            </div>
+
+                                            {{-- Tombol --}}
+                                            <div class="col-md-2">
                                                 <button class="btn btn-success w-100" type="submit">
                                                     <i class="bi bi-plus me-1"></i> Tambah
                                                 </button>
                                             </div>
+
                                         </div>
                                     </form>
                                 </div>
@@ -110,59 +134,89 @@
                                     <table class="table table-bordered table-striped align-middle">
                                         <thead class="table-dark">
                                             <tr>
-                                                <th style="width: 50px">No</th>
+                                                <th style="width:45px" class="text-center">No</th>
                                                 <th>Nama Obat</th>
-                                                <th class="text-center" style="width: 180px">Jumlah</th>
-                                                <th class="text-center" style="width: 100px">Hapus</th>
+                                                <th class="text-center" style="width:130px">Jumlah</th>
+                                                <th>Aturan Pakai</th>
+                                                <th class="text-center" style="width:70px">Hapus</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse($obats as $r)
                                                 <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $r->nama_brng }}</td>
-                                                    <td class="text-center">
-                                                        <div class="d-flex justify-content-center align-items-center gap-2">
+                                                    <td class="text-center">{{ $loop->iteration }}</td>
+                                                    <td>{{ $r->nama_brng ?? '-' }}</td>
 
-                                                            {{-- Tombol Kurang --}}
-                                                            <form
-                                                                action="{{ route('obats.kurang', [$resep_obat->no_resep, $r->kode_brng]) }}"
-                                                                method="POST">
+                                                    {{-- Jumlah + / - --}}
+                                                    <td class="text-center p-1">
+                                                        <div class="d-flex justify-content-center align-items-center gap-1">
+                                                            <form action="{{ route('obats.kurang', [$resep_obat->no_resep, $r->kode_brng]) }}" method="POST" class="m-0">
                                                                 @csrf
                                                                 @method('PATCH')
-                                                                <button type="submit" class="btn btn-warning btn-sm"
-                                                                    title="Kurangi jumlah"
+                                                                <button type="submit" class="btn btn-warning btn-sm px-2"
                                                                     onclick="return confirm('Kurangi jumlah {{ addslashes($r->nama_brng) }}?')">
                                                                     <i class="bi bi-dash"></i>
                                                                 </button>
                                                             </form>
 
-                                                            {{-- Jumlah --}}
-                                                            <span class="fw-bold fs-6 px-2">{{ $r->jml }}</span>
+                                                            <span class="fw-bold mx-1" style="min-width:24px;display:inline-block;text-align:center">
+                                                                {{ $r->jml }}
+                                                            </span>
 
-                                                            {{-- Tombol Tambah +1 --}}
-                                                            <form action="{{ route('obats.tambah', $resep_obat->no_resep) }}"
-                                                                method="POST">
+                                                            <form action="{{ route('obats.tambah', $resep_obat->no_resep) }}" method="POST" class="m-0">
                                                                 @csrf
-                                                                <input type="hidden" name="kode_brng"
-                                                                    value="{{ $r->kode_brng }}">
+                                                                <input type="hidden" name="kode_brng" value="{{ $r->kode_brng }}">
                                                                 <input type="hidden" name="jml" value="1">
-                                                                <button type="submit" class="btn btn-success btn-sm"
-                                                                    title="Tambah 1">
+                                                                <input type="hidden" name="aturan_pakai" value="{{ $r->aturan ?? '' }}">
+                                                                <input type="hidden" name="aturan_manual" value="">
+                                                                <button type="submit" class="btn btn-success btn-sm px-2">
                                                                     <i class="bi bi-plus"></i>
                                                                 </button>
                                                             </form>
-
                                                         </div>
                                                     </td>
-                                                    <td class="text-center">
-                                                        <form
-                                                            action="{{ route('obats.hapus', [$resep_obat->no_resep, $r->kode_brng]) }}"
-                                                            method="POST">
+
+                                                    {{-- Aturan Pakai inline edit --}}
+                                                    <td class="p-1">
+                                                        <form action="{{ route('obats.updateaturan', [$resep_obat->no_resep, $r->kode_brng]) }}"
+                                                            method="POST" class="m-0">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <div class="d-flex gap-1 align-items-center">
+
+                                                                {{-- Dropdown master --}}
+                                                                <select name="aturan_pakai"
+                                                                    class="form-select form-select-sm aturan-select-inline"
+                                                                    style="min-width:180px">
+                                                                    <option value="">-- Pilih --</option>
+                                                                    @foreach ($data_aturan_pakai as $ap)
+                                                                        <option value="{{ $ap }}"
+                                                                            @if(($r->aturan ?? '') === $ap) selected @endif>
+                                                                            {{ $ap }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+
+                                                                {{-- Input manual --}}
+                                                                <input type="text" name="aturan_manual"
+                                                                    class="form-control form-control-sm"
+                                                                    style="min-width:150px"
+                                                                    placeholder="atau ketik manual..."
+                                                                    value="">
+
+                                                                <button type="submit" class="btn btn-primary btn-sm px-2 flex-shrink-0" title="Simpan">
+                                                                    <i class="bi bi-save"></i>
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </td>
+
+                                                    {{-- Hapus --}}
+                                                    <td class="text-center p-1">
+                                                        <form action="{{ route('obats.hapus', [$resep_obat->no_resep, $r->kode_brng]) }}" method="POST" class="m-0">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                                title="Hapus obat"
+                                                            <button type="submit" class="btn btn-danger btn-sm px-2"
                                                                 onclick="return confirm('Hapus obat {{ addslashes($r->nama_brng) }} dari resep?')">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
@@ -171,7 +225,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4" class="text-center text-muted py-4">
+                                                    <td colspan="5" class="text-center text-muted py-4">
                                                         <i class="bi bi-inbox me-2"></i>
                                                         Belum ada obat dalam resep ini.
                                                     </td>
@@ -195,9 +249,42 @@
 @section('script')
     <script>
         $(document).ready(function () {
+            // Select2 untuk dropdown nama obat di form tambah
             $('#obat-select').select2({
                 theme: 'bootstrap-5',
                 width: '100%'
+            });
+
+            // Select2 untuk dropdown aturan pakai di form tambah
+            $('#aturan-select-tambah').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                allowClear: true,
+                placeholder: '-- Pilih dari master --'
+            });
+
+            // Jika dropdown dipilih, kosongkan input manual (dan sebaliknya)
+            $('#aturan-select-tambah').on('change', function () {
+                if ($(this).val()) {
+                    $('input[name="aturan_manual"]').first().val('');
+                }
+            });
+            $('input[name="aturan_manual"]').first().on('input', function () {
+                if ($(this).val()) {
+                    $('#aturan-select-tambah').val('').trigger('change');
+                }
+            });
+
+            // Jika input manual di tabel diisi, kosongkan dropdown di baris yang sama (dan sebaliknya)
+            $('table tbody').on('input', 'input[name="aturan_manual"]', function () {
+                if ($(this).val()) {
+                    $(this).closest('form').find('select[name="aturan_pakai"]').val('');
+                }
+            });
+            $('table tbody').on('change', 'select[name="aturan_pakai"]', function () {
+                if ($(this).val()) {
+                    $(this).closest('form').find('input[name="aturan_manual"]').val('');
+                }
             });
         });
     </script>
