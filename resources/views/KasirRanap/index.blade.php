@@ -41,12 +41,12 @@
                                         <label>Status</label>
                                         <select name="status" class="form-control">
                                             <option value="-" {{ request('status','-') == '-' ? 'selected' : '' }}>Belum Pulang</option>
-                                            <option value="Sehat"      {{ request('status') == 'Sehat' ? 'selected' : '' }}>Sehat</option>
-                                            <option value="Rujuk"      {{ request('status') == 'Rujuk' ? 'selected' : '' }}>Rujuk</option>
-                                            <option value="APS"        {{ request('status') == 'APS' ? 'selected' : '' }}>APS</option>
-                                            <option value="Meninggal"  {{ request('status') == 'Meninggal' ? 'selected' : '' }}>Meninggal</option>
-                                            <option value="Sembuh"     {{ request('status') == 'Sembuh' ? 'selected' : '' }}>Sembuh</option>
-                                            <option value="Membaik"    {{ request('status') == 'Membaik' ? 'selected' : '' }}>Membaik</option>
+                                            <option value="Sehat"        {{ request('status') == 'Sehat' ? 'selected' : '' }}>Sehat</option>
+                                            <option value="Rujuk"        {{ request('status') == 'Rujuk' ? 'selected' : '' }}>Rujuk</option>
+                                            <option value="APS"          {{ request('status') == 'APS' ? 'selected' : '' }}>APS</option>
+                                            <option value="Meninggal"    {{ request('status') == 'Meninggal' ? 'selected' : '' }}>Meninggal</option>
+                                            <option value="Sembuh"       {{ request('status') == 'Sembuh' ? 'selected' : '' }}>Sembuh</option>
+                                            <option value="Membaik"      {{ request('status') == 'Membaik' ? 'selected' : '' }}>Membaik</option>
                                             <option value="Pulang Paksa" {{ request('status') == 'Pulang Paksa' ? 'selected' : '' }}>Pulang Paksa</option>
                                         </select>
                                     </div>
@@ -72,6 +72,7 @@
                                 <table class="table table-striped table-bordered nowrap">
                                     <thead>
                                         <tr>
+                                            <th>Aksi</th>
                                             <th>No</th>
                                             <th>No. Rawat</th>
                                             <th>No. RM</th>
@@ -82,12 +83,61 @@
                                             <th>Tgl. Masuk</th>
                                             <th>Lama</th>
                                             <th>Status</th>
-                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @forelse($pasiens as $p)
                                             <tr>
+                                                <td>
+                                                    {{-- Surat Kematian selalu tampil --}}
+                                                    <a href="{{ route('kasir.ranap.surat.kematian', $p->no_rawat) }}"
+                                                        class="btn btn-dark btn-sm mb-1">
+                                                        <i class="feather icon-file-text"></i> Surat Kematian
+                                                    </a>
+
+                                                    {{-- Dropdown Lainnya --}}
+                                                    <div class="btn-group mb-1">
+                                                        <button type="button"
+                                                            class="btn btn-warning btn-sm dropdown-toggle"
+                                                            data-toggle="dropdown"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false">
+                                                            <i class="feather icon-more-horizontal"></i> Lainnya
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-right">
+
+                                                            <h6 class="dropdown-header">Set Status Pulang</h6>
+                                                            @foreach([
+                                                                ['Sehat',        'Sehat'],
+                                                                ['Rujuk',        'Rujuk'],
+                                                                ['APS',          'APS'],
+                                                                ['+',            'Plus (+)'],
+                                                                ['Meninggal',    'Meninggal'],
+                                                                ['Sembuh',       'Sembuh'],
+                                                                ['Membaik',      'Membaik'],
+                                                                ['Pulang Paksa', 'Pulang Paksa'],
+                                                                ['-',            'Belum Pulang (-)'],
+                                                            ] as [$val, $label])
+                                                                @if($p->stts_pulang !== $val)
+                                                                    <form action="{{ route('kasir.ranap.status', $p->no_rawat) }}"
+                                                                        method="POST"
+                                                                        @if($val === 'Meninggal')
+                                                                            onsubmit="return confirm('Tandai {{ addslashes($p->nm_pasien) }} sebagai Meninggal?')"
+                                                                        @endif>
+                                                                        @csrf
+                                                                        @method('PUT')
+                                                                        <input type="hidden" name="status" value="{{ $val }}">
+                                                                        <button type="submit" class="dropdown-item">
+                                                                            <i class="feather icon-toggle-right mr-2"></i>{{ $label }}
+                                                                        </button>
+                                                                    </form>
+                                                                @endif
+                                                            @endforeach
+
+                                                        </div>
+                                                    </div>
+                                                </td>
+
                                                 <td>{{ $loop->iteration + ($pasiens->currentPage() - 1) * $pasiens->perPage() }}</td>
                                                 <td>{{ $p->no_rawat }}</td>
                                                 <td>{{ $p->no_rkm_medis }}</td>
@@ -120,56 +170,6 @@
                                                     <span class="{{ $statusClass }}">
                                                         {{ $p->stts_pulang == '-' ? 'Dirawat' : $p->stts_pulang }}
                                                     </span>
-                                                </td>
-                                                <td>
-                                                    {{-- Surat Kematian selalu tampil --}}
-                                                    <a href="{{ route('kasir.ranap.surat.kematian', $p->no_rawat) }}"
-                                                        class="btn btn-dark btn-sm mb-1">
-                                                        <i class="feather icon-file-text"></i> Surat Kematian
-                                                    </a>
-
-                                                    {{-- Dropdown Lainnya --}}
-                                                    <div class="btn-group mb-1">
-                                                        <button type="button"
-                                                            class="btn btn-warning btn-sm dropdown-toggle"
-                                                            data-toggle="dropdown"
-                                                            aria-haspopup="true"
-                                                            aria-expanded="false">
-                                                            <i class="feather icon-more-horizontal"></i> Lainnya
-                                                        </button>
-                                                        <div class="dropdown-menu dropdown-menu-right">
-
-                                                            {{-- Set Status Pulang (mengacu Java SetStatus menu) --}}
-                                                            <h6 class="dropdown-header">Set Status Pulang</h6>
-                                                            @foreach([
-                                                                ['Sehat',        'Sehat'],
-                                                                ['Rujuk',        'Rujuk'],
-                                                                ['APS',          'APS'],
-                                                                ['+',            'Plus (+)'],
-                                                                ['Meninggal',    'Meninggal'],
-                                                                ['Sembuh',       'Sembuh'],
-                                                                ['Membaik',      'Membaik'],
-                                                                ['Pulang Paksa', 'Pulang Paksa'],
-                                                                ['-',            'Belum Pulang (-)'],
-                                                            ] as [$val, $label])
-                                                                @if($p->stts_pulang !== $val)
-                                                                    <form action="{{ route('kasir.ranap.status', $p->no_rawat) }}"
-                                                                        method="POST"
-                                                                        @if($val === 'Meninggal')
-                                                                            onsubmit="return confirm('Tandai {{ addslashes($p->nm_pasien) }} sebagai Meninggal?')"
-                                                                        @endif>
-                                                                        @csrf
-                                                                        @method('PUT')
-                                                                        <input type="hidden" name="status" value="{{ $val }}">
-                                                                        <button type="submit" class="dropdown-item">
-                                                                            <i class="feather icon-toggle-right mr-2"></i>{{ $label }}
-                                                                        </button>
-                                                                    </form>
-                                                                @endif
-                                                            @endforeach
-
-                                                        </div>
-                                                    </div>
                                                 </td>
                                             </tr>
                                         @empty
