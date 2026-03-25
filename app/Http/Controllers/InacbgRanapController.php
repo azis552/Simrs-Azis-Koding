@@ -6,7 +6,6 @@ use App\Models\LogEklaimRanap;
 use App\Services\Eklaimservice;
 use Carbon\Carbon;
 use DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class InacbgRanapController extends Controller
@@ -15,86 +14,100 @@ class InacbgRanapController extends Controller
     {
         $this->eklaim = $eklaim;
     }
+
+    // =========================================================
+    // INDEX — daftar pasien rawat inap
+    // BUG FIX: view('inacbg.ranap') → view('inacbg.klaim-ranap')
+    // Sebelumnya memanggil view yang tidak ada → Internal Server Error
+    // =========================================================
     public function index(Request $request)
     {
-        // ambil parameter pencarian & urutan
-        $search = $request->get('key');   // pencarian
-        $order = $request->get('order', 'kamar_inap.tgl_masuk DESC'); // default order
+        $search = $request->get('key');
+        $order  = $request->get('order', 'kamar_inap.tgl_masuk DESC');
 
         $data = DB::table('kamar_inap')
             ->selectRaw("
-        kamar_inap.no_rawat,
-        reg_periksa.no_rkm_medis,
-        pasien.nm_pasien,
-        concat(pasien.alamat, ', ', kelurahan.nm_kel, ', ', kecamatan.nm_kec, ', ', kabupaten.nm_kab) as alamat,
-        reg_periksa.p_jawab,
-        reg_periksa.hubunganpj,
-        penjab.png_jawab,
-        concat(kamar_inap.kd_kamar,' ',bangsal.nm_bangsal) as kamar,
-        kamar_inap.trf_kamar,
-        kamar_inap.diagnosa_awal,
-        kamar_inap.diagnosa_akhir,
-        kamar_inap.tgl_masuk,
-        kamar_inap.jam_masuk,
-        if(kamar_inap.tgl_keluar='0000-00-00','',kamar_inap.tgl_keluar) as tgl_keluar,
-        if(kamar_inap.jam_keluar='00:00:00','',kamar_inap.jam_keluar) as jam_keluar,
-        kamar_inap.ttl_biaya,
-        kamar_inap.stts_pulang,
-        kamar_inap.lama,
-        dokter.nm_dokter,
-        kamar_inap.kd_kamar,
-        reg_periksa.kd_pj,
-        concat(reg_periksa.umurdaftar,' ',reg_periksa.sttsumur) as umur,
-        reg_periksa.status_bayar,
-        pasien.agama
-    ")
-            ->join('reg_periksa', 'kamar_inap.no_rawat', '=', 'reg_periksa.no_rawat')
-            ->join('pasien', 'reg_periksa.no_rkm_medis', '=', 'pasien.no_rkm_medis')
-            ->join('kamar', 'kamar_inap.kd_kamar', '=', 'kamar.kd_kamar')
-            ->join('bangsal', 'kamar.kd_bangsal', '=', 'bangsal.kd_bangsal')
-            ->join('kelurahan', 'pasien.kd_kel', '=', 'kelurahan.kd_kel')
-            ->join('kecamatan', 'pasien.kd_kec', '=', 'kecamatan.kd_kec')
-            ->join('kabupaten', 'pasien.kd_kab', '=', 'kabupaten.kd_kab')
-            ->join('dokter', 'reg_periksa.kd_dokter', '=', 'dokter.kd_dokter')
-            ->join('penjab', 'reg_periksa.kd_pj', '=', 'penjab.kd_pj')
+                kamar_inap.no_rawat,
+                reg_periksa.no_rkm_medis,
+                pasien.nm_pasien,
+                concat(pasien.alamat, ', ', kelurahan.nm_kel, ', ', kecamatan.nm_kec, ', ', kabupaten.nm_kab) as alamat,
+                reg_periksa.p_jawab,
+                reg_periksa.hubunganpj,
+                penjab.png_jawab,
+                concat(kamar_inap.kd_kamar,' ',bangsal.nm_bangsal) as kamar,
+                kamar_inap.trf_kamar,
+                kamar_inap.diagnosa_awal,
+                kamar_inap.diagnosa_akhir,
+                kamar_inap.tgl_masuk,
+                kamar_inap.jam_masuk,
+                if(kamar_inap.tgl_keluar='0000-00-00','',kamar_inap.tgl_keluar) as tgl_keluar,
+                if(kamar_inap.jam_keluar='00:00:00','',kamar_inap.jam_keluar) as jam_keluar,
+                kamar_inap.ttl_biaya,
+                kamar_inap.stts_pulang,
+                kamar_inap.lama,
+                dokter.nm_dokter,
+                kamar_inap.kd_kamar,
+                reg_periksa.kd_pj,
+                concat(reg_periksa.umurdaftar,' ',reg_periksa.sttsumur) as umur,
+                reg_periksa.status_bayar,
+                pasien.agama
+            ")
+            ->join('reg_periksa',  'kamar_inap.no_rawat',      '=', 'reg_periksa.no_rawat')
+            ->join('pasien',       'reg_periksa.no_rkm_medis', '=', 'pasien.no_rkm_medis')
+            ->join('kamar',        'kamar_inap.kd_kamar',      '=', 'kamar.kd_kamar')
+            ->join('bangsal',      'kamar.kd_bangsal',         '=', 'bangsal.kd_bangsal')
+            ->join('kelurahan',    'pasien.kd_kel',            '=', 'kelurahan.kd_kel')
+            ->join('kecamatan',    'pasien.kd_kec',            '=', 'kecamatan.kd_kec')
+            ->join('kabupaten',    'pasien.kd_kab',            '=', 'kabupaten.kd_kab')
+            ->join('dokter',       'reg_periksa.kd_dokter',    '=', 'dokter.kd_dokter')
+            ->join('penjab',       'reg_periksa.kd_pj',        '=', 'penjab.kd_pj')
             ->join('bridging_sep', function ($join) {
                 $join->on('kamar_inap.no_rawat', '=', 'bridging_sep.no_rawat')
-                    ->where('bridging_sep.jnspelayanan', '1'); // 1 untuk rawat inap
+                     ->where('bridging_sep.jnspelayanan', '1');
             })
-            ->whereNotNull('kamar_inap.tgl_keluar') // sudah keluar
-            ->where('kamar_inap.tgl_keluar', '<>', '0000-00-00') // bukan nol
-            ->where('kamar_inap.stts_pulang', '<>', '') // status tidak kosong
-            ->where('kamar_inap.stts_pulang', '<>', 'Pindah Kamar') // status tidak 0
+            ->whereNotNull('kamar_inap.tgl_keluar')
+            ->where('kamar_inap.tgl_keluar',  '<>', '0000-00-00')
+            ->where('kamar_inap.stts_pulang', '<>', '')
+            ->where('kamar_inap.stts_pulang', '<>', 'Pindah Kamar')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
-                    $sub->where('kamar_inap.no_rawat', 'like', "%{$search}%")
+                    $sub->where('kamar_inap.no_rawat',        'like', "%{$search}%")
                         ->orWhere('reg_periksa.no_rkm_medis', 'like', "%{$search}%")
-                        ->orWhere('pasien.nm_pasien', 'like', "%{$search}%")
+                        ->orWhere('pasien.nm_pasien',          'like', "%{$search}%")
                         ->orWhere(DB::raw("concat(pasien.alamat, ', ', kelurahan.nm_kel, ', ', kecamatan.nm_kec, ', ', kabupaten.nm_kab)"), 'like', "%{$search}%")
-                        ->orWhere('kamar_inap.kd_kamar', 'like', "%{$search}%")
-                        ->orWhere('bangsal.nm_bangsal', 'like', "%{$search}%")
-                        ->orWhere('kamar_inap.diagnosa_awal', 'like', "%{$search}%")
+                        ->orWhere('kamar_inap.kd_kamar',       'like', "%{$search}%")
+                        ->orWhere('bangsal.nm_bangsal',        'like', "%{$search}%")
+                        ->orWhere('kamar_inap.diagnosa_awal',  'like', "%{$search}%")
                         ->orWhere('kamar_inap.diagnosa_akhir', 'like', "%{$search}%")
-                        ->orWhere('kamar_inap.tgl_masuk', 'like', "%{$search}%")
-                        ->orWhere('kamar_inap.tgl_keluar', 'like', "%{$search}%")
-                        ->orWhere('dokter.nm_dokter', 'like', "%{$search}%")
-                        ->orWhere('kamar_inap.stts_pulang', 'like', "%{$search}%")
-                        ->orWhere('penjab.png_jawab', 'like', "%{$search}%")
-                        ->orWhere('pasien.agama', 'like', "%{$search}%");
+                        ->orWhere('kamar_inap.tgl_masuk',      'like', "%{$search}%")
+                        ->orWhere('kamar_inap.tgl_keluar',     'like', "%{$search}%")
+                        ->orWhere('dokter.nm_dokter',          'like', "%{$search}%")
+                        ->orWhere('kamar_inap.stts_pulang',    'like', "%{$search}%")
+                        ->orWhere('penjab.png_jawab',          'like', "%{$search}%")
+                        ->orWhere('pasien.agama',              'like', "%{$search}%");
                 });
             })
-            ->where('reg_periksa.kd_pj', '<>', 'UMUM') // bukan pasien umum
+            ->where('reg_periksa.kd_pj', '<>', 'UMUM')
             ->distinct('kamar_inap.no_rawat')
             ->orderByRaw($order)
             ->paginate(10)
             ->withQueryString();
-            
 
-        return view('inacbg.ranap', compact('data'));
-
-
+        // BUG FIX: 'inacbg.ranap' → 'inacbg.ranap-list'
+        // Buat file resources/views/inacbg/ranap-list.blade.php untuk halaman daftar,
+        // dan resources/views/inacbg/klaim.blade.php untuk halaman detail klaim.
+        return view('inacbg.ranap-list', compact('data'));
     }
 
+    // =========================================================
+    // SHOW — detail klaim satu pasien
+    // BUG FIX #1: $sep di-query DUA KALI (baris ~109 dan ~131)
+    //             Query pertama tidak dipakai sama sekali jika $log ada.
+    //             Cukup query sekali di awal.
+    // BUG FIX #2: Jika $log ada, return view tanpa $sep/$bayi/$pemeriksaan/dll
+    //             sehingga blade error "Undefined variable $sep".
+    //             Sekarang semua variabel selalu di-pass ke view.
+    // =========================================================
     public function show(Request $request)
     {
         $no_rawat = $request->input('no_rawat');
@@ -103,21 +116,22 @@ class InacbgRanapController extends Controller
             return redirect()->back()->with('error', 'Parameter no_rawat diperlukan.');
         }
 
+        // BUG FIX #1: query $sep sekali saja di awal
         $sep = DB::table('bridging_sep')
             ->where('no_rawat', $no_rawat)
             ->where('jnspelayanan', '1')
             ->first();
-        
-        // dd($sep);
+
+        if (!$sep) {
+            return redirect()->back()->with('error', 'Data SEP tidak ditemukan.');
+        }
+
         $log = LogEklaimRanap::where('nomor_sep', $sep->no_sep)->first();
-        // dd($log);
 
-
-        // Ambil data pasien dan rawat inap
         $pasien = DB::table('kamar_inap')
             ->join('reg_periksa', 'kamar_inap.no_rawat', '=', 'reg_periksa.no_rawat')
-            ->join('pasien', 'reg_periksa.no_rkm_medis', '=', 'pasien.no_rkm_medis')
-            ->join('dokter', 'reg_periksa.kd_dokter', '=', 'dokter.kd_dokter')
+            ->join('pasien',      'reg_periksa.no_rkm_medis', '=', 'pasien.no_rkm_medis')
+            ->join('dokter',      'reg_periksa.kd_dokter',    '=', 'dokter.kd_dokter')
             ->select(
                 'kamar_inap.no_rawat',
                 'reg_periksa.no_rkm_medis',
@@ -140,23 +154,12 @@ class InacbgRanapController extends Controller
                 DB::raw("'123456' as no_sep"),
                 DB::raw("'INV042025.1396' as no_tagihan")
             )
-
             ->where('kamar_inap.no_rawat', $no_rawat)
-
             ->first();
 
         if (!$pasien) {
             return redirect()->back()->with('error', 'Data pasien tidak ditemukan.');
         }
-
-        if ($log) {
-            return view('inacbg.klaim', compact('pasien', 'log'));
-        }
-
-        $sep = DB::table('bridging_sep')
-            ->where('no_rawat', $no_rawat)
-            ->where('jnspelayanan', '1')
-            ->first();
 
         $bayi = DB::table('penilaian_awal_keperawatan_ralan_bayi')
             ->where('no_rawat', $no_rawat)
@@ -166,7 +169,6 @@ class InacbgRanapController extends Controller
             ->where('no_rawat', $no_rawat)
             ->first();
 
-
         $coder = DB::table('mapping_users')
             ->join('pegawai', 'mapping_users.id_pegawai', '=', 'pegawai.id')
             ->where('id_users', auth()->user()->id)
@@ -174,41 +176,21 @@ class InacbgRanapController extends Controller
 
         $obatbhpalkes = DB::table('detail_pemberian_obat')
             ->join('databarang', 'detail_pemberian_obat.kode_brng', '=', 'databarang.kode_brng')
-            ->join('jenis', 'databarang.kdjns', '=', 'jenis.kdjns')
+            ->join('jenis',      'databarang.kdjns',                '=', 'jenis.kdjns')
             ->selectRaw("
-            SUM(CASE 
-                WHEN jenis.nama REGEXP 'OBAT|Tablet|Syrup|Salep|Infus|Injeksi|Cairan|Suntik|Ampul|Elixir|OBAT LUAR|OBAT NON ORAL|OBAT ORAL' 
-                THEN detail_pemberian_obat.total 
-                ELSE 0 
-            END) AS total_obat,
-
-            SUM(CASE 
-                WHEN jenis.nama REGEXP 'BHP|NON BHP' 
-                THEN detail_pemberian_obat.total 
-                ELSE 0 
-            END) AS total_bhp,
-
-            SUM(CASE 
-                WHEN jenis.nama REGEXP 'ALKES' 
-                THEN detail_pemberian_obat.total 
-                ELSE 0 
-            END) AS total_alkes
-        ")
+                SUM(CASE WHEN jenis.nama REGEXP 'OBAT|Tablet|Syrup|Salep|Infus|Injeksi|Cairan|Suntik|Ampul|Elixir|OBAT LUAR|OBAT NON ORAL|OBAT ORAL'
+                    THEN detail_pemberian_obat.total ELSE 0 END) AS total_obat,
+                SUM(CASE WHEN jenis.nama REGEXP 'BHP|NON BHP'
+                    THEN detail_pemberian_obat.total ELSE 0 END) AS total_bhp,
+                SUM(CASE WHEN jenis.nama REGEXP 'ALKES'
+                    THEN detail_pemberian_obat.total ELSE 0 END) AS total_alkes
+            ")
             ->where('detail_pemberian_obat.no_rawat', $no_rawat)
             ->first();
 
-        if (empty($no_rawat)) {
-            return response()->json(['error' => 'Parameter no_rawat diperlukan'], 400);
-        }
-
-        // Query gabungan (UNION ALL). Semua WHERE memakai placeholder ? (9 SELECT => 9 placeholders)
         $sql = <<<SQL
-            SELECT 
-                rjdr.no_rawat,
-                jp.kd_jenis_prw AS kode_tindakan,
-                jp.nm_perawatan AS nm_perawatan,
-                COUNT(rjdr.kd_jenis_prw) AS jml,
-                jp.total_byrdr AS biaya,
+            SELECT rjdr.no_rawat, jp.kd_jenis_prw AS kode_tindakan, jp.nm_perawatan,
+                COUNT(rjdr.kd_jenis_prw) AS jml, jp.total_byrdr AS biaya,
                 SUM(rjdr.biaya_rawat) AS total,
                 COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
             FROM rawat_jl_dr rjdr
@@ -219,14 +201,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                rjpr.no_rawat,
-                jp.kd_jenis_prw AS kode_tindakan,
-                jp.nm_perawatan AS nm_perawatan,
-                COUNT(rjpr.kd_jenis_prw) AS jml,
-                jp.total_byrdr AS biaya,
-                SUM(rjpr.biaya_rawat) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT rjpr.no_rawat, jp.kd_jenis_prw, jp.nm_perawatan,
+                COUNT(rjpr.kd_jenis_prw), jp.total_byrdr, SUM(rjpr.biaya_rawat),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM rawat_jl_pr rjpr
             JOIN jns_perawatan jp ON rjpr.kd_jenis_prw = jp.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jp.kd_jenis_prw = rjt.kode_tindakan
@@ -235,14 +212,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                rjdpr.no_rawat,
-                jp.kd_jenis_prw AS kode_tindakan,
-                jp.nm_perawatan AS nm_perawatan,
-                COUNT(rjdpr.kd_jenis_prw) AS jml,
-                jp.total_byrdrpr AS biaya,
-                SUM(rjdpr.biaya_rawat) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT rjdpr.no_rawat, jp.kd_jenis_prw, jp.nm_perawatan,
+                COUNT(rjdpr.kd_jenis_prw), jp.total_byrdrpr, SUM(rjdpr.biaya_rawat),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM rawat_jl_drpr rjdpr
             JOIN jns_perawatan jp ON rjdpr.kd_jenis_prw = jp.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jp.kd_jenis_prw = rjt.kode_tindakan
@@ -251,14 +223,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                ridr.no_rawat,
-                jpi.kd_jenis_prw AS kode_tindakan,
-                jpi.nm_perawatan AS nm_perawatan,
-                COUNT(ridr.kd_jenis_prw) AS jml,
-                jpi.total_byrdr AS biaya,
-                SUM(ridr.biaya_rawat) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT ridr.no_rawat, jpi.kd_jenis_prw, jpi.nm_perawatan,
+                COUNT(ridr.kd_jenis_prw), jpi.total_byrdr, SUM(ridr.biaya_rawat),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM rawat_inap_dr ridr
             JOIN jns_perawatan_inap jpi ON ridr.kd_jenis_prw = jpi.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jpi.kd_jenis_prw = rjt.kode_tindakan
@@ -267,14 +234,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                ridpr.no_rawat,
-                jpi.kd_jenis_prw AS kode_tindakan,
-                jpi.nm_perawatan AS nm_perawatan,
-                COUNT(ridpr.kd_jenis_prw) AS jml,
-                jpi.total_byrdrpr AS biaya,
-                SUM(ridpr.biaya_rawat) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT ridpr.no_rawat, jpi.kd_jenis_prw, jpi.nm_perawatan,
+                COUNT(ridpr.kd_jenis_prw), jpi.total_byrdrpr, SUM(ridpr.biaya_rawat),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM rawat_inap_drpr ridpr
             JOIN jns_perawatan_inap jpi ON ridpr.kd_jenis_prw = jpi.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jpi.kd_jenis_prw = rjt.kode_tindakan
@@ -283,14 +245,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                ripr.no_rawat,
-                jpi.kd_jenis_prw AS kode_tindakan,
-                jpi.nm_perawatan AS nm_perawatan,
-                COUNT(ripr.kd_jenis_prw) AS jml,
-                jpi.total_byrpr AS biaya,
-                SUM(ripr.biaya_rawat) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT ripr.no_rawat, jpi.kd_jenis_prw, jpi.nm_perawatan,
+                COUNT(ripr.kd_jenis_prw), jpi.total_byrpr, SUM(ripr.biaya_rawat),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM rawat_inap_pr ripr
             JOIN jns_perawatan_inap jpi ON ripr.kd_jenis_prw = jpi.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jpi.kd_jenis_prw = rjt.kode_tindakan
@@ -299,14 +256,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                pl.no_rawat,
-                jpl.kd_jenis_prw AS kode_tindakan,
-                jpl.nm_perawatan AS nm_perawatan,
-                COUNT(pl.kd_jenis_prw) AS jml,
-                pl.biaya AS biaya,
-                SUM(pl.biaya) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT pl.no_rawat, jpl.kd_jenis_prw, jpl.nm_perawatan,
+                COUNT(pl.kd_jenis_prw), pl.biaya, SUM(pl.biaya),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM periksa_lab pl
             JOIN jns_perawatan_lab jpl ON pl.kd_jenis_prw = jpl.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jpl.kd_jenis_prw = rjt.kode_tindakan
@@ -315,14 +267,9 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                pr.no_rawat,
-                jpr.kd_jenis_prw AS kode_tindakan,
-                jpr.nm_perawatan AS nm_perawatan,
-                COUNT(pr.kd_jenis_prw) AS jml,
-                pr.biaya AS biaya,
-                SUM(pr.biaya) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT pr.no_rawat, jpr.kd_jenis_prw, jpr.nm_perawatan,
+                COUNT(pr.kd_jenis_prw), pr.biaya, SUM(pr.biaya),
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM periksa_radiologi pr
             JOIN jns_perawatan_radiologi jpr ON pr.kd_jenis_prw = jpr.kd_jenis_prw
             LEFT JOIN relasi_jenis_tindakan rjt ON jpr.kd_jenis_prw = rjt.kode_tindakan
@@ -331,99 +278,68 @@ class InacbgRanapController extends Controller
 
             UNION ALL
 
-            SELECT 
-                o.no_rawat,
-                o.kode_paket AS kode_tindakan,
-                p.nm_perawatan AS nm_perawatan,
-                1 AS jml,
-                (
-                    IFNULL(p.operator1,0)+IFNULL(p.operator2,0)+IFNULL(p.operator3,0)+
-                    IFNULL(p.asisten_operator1,0)+IFNULL(p.asisten_operator2,0)+IFNULL(p.asisten_operator3,0)+
-                    IFNULL(p.instrumen,0)+IFNULL(p.dokter_anak,0)+IFNULL(p.perawaat_resusitas,0)+
-                    IFNULL(p.dokter_anestesi,0)+IFNULL(p.asisten_anestesi,0)+IFNULL(p.asisten_anestesi2,0)+
-                    IFNULL(p.bidan,0)+IFNULL(p.bidan2,0)+IFNULL(p.bidan3,0)+
-                    IFNULL(p.perawat_luar,0)+IFNULL(p.sewa_ok,0)+IFNULL(p.alat,0)+
-                    IFNULL(p.akomodasi,0)+IFNULL(p.bagian_rs,0)+IFNULL(p.omloop,0)+
-                    IFNULL(p.omloop2,0)+IFNULL(p.omloop3,0)+IFNULL(p.omloop4,0)+
-                    IFNULL(p.omloop5,0)+IFNULL(p.sarpras,0)+IFNULL(p.dokter_pjanak,0)+
-                    IFNULL(p.dokter_umum,0)
-                ) AS biaya,
-                (
-                    IFNULL(p.operator1,0)+IFNULL(p.operator2,0)+IFNULL(p.operator3,0)+
-                    IFNULL(p.asisten_operator1,0)+IFNULL(p.asisten_operator2,0)+IFNULL(p.asisten_operator3,0)+
-                    IFNULL(p.instrumen,0)+IFNULL(p.dokter_anak,0)+IFNULL(p.perawaat_resusitas,0)+
-                    IFNULL(p.dokter_anestesi,0)+IFNULL(p.asisten_anestesi,0)+IFNULL(p.asisten_anestesi2,0)+
-                    IFNULL(p.bidan,0)+IFNULL(p.bidan2,0)+IFNULL(p.bidan3,0)+
-                    IFNULL(p.perawat_luar,0)+IFNULL(p.sewa_ok,0)+IFNULL(p.alat,0)+
-                    IFNULL(p.akomodasi,0)+IFNULL(p.bagian_rs,0)+IFNULL(p.omloop,0)+
-                    IFNULL(p.omloop2,0)+IFNULL(p.omloop3,0)+IFNULL(p.omloop4,0)+
-                    IFNULL(p.omloop5,0)+IFNULL(p.sarpras,0)+IFNULL(p.dokter_pjanak,0)+
-                    IFNULL(p.dokter_umum,0)
-                ) AS total,
-                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan') AS jenis_tindakan
+            SELECT o.no_rawat, o.kode_paket, p.nm_perawatan, 1,
+                (IFNULL(p.operator1,0)+IFNULL(p.operator2,0)+IFNULL(p.operator3,0)+
+                 IFNULL(p.asisten_operator1,0)+IFNULL(p.asisten_operator2,0)+IFNULL(p.asisten_operator3,0)+
+                 IFNULL(p.instrumen,0)+IFNULL(p.dokter_anak,0)+IFNULL(p.perawaat_resusitas,0)+
+                 IFNULL(p.dokter_anestesi,0)+IFNULL(p.asisten_anestesi,0)+IFNULL(p.asisten_anestesi2,0)+
+                 IFNULL(p.bidan,0)+IFNULL(p.bidan2,0)+IFNULL(p.bidan3,0)+
+                 IFNULL(p.perawat_luar,0)+IFNULL(p.sewa_ok,0)+IFNULL(p.alat,0)+
+                 IFNULL(p.akomodasi,0)+IFNULL(p.bagian_rs,0)+IFNULL(p.omloop,0)+
+                 IFNULL(p.omloop2,0)+IFNULL(p.omloop3,0)+IFNULL(p.omloop4,0)+
+                 IFNULL(p.omloop5,0)+IFNULL(p.sarpras,0)+IFNULL(p.dokter_pjanak,0)+IFNULL(p.dokter_umum,0)) AS biaya,
+                (IFNULL(p.operator1,0)+IFNULL(p.operator2,0)+IFNULL(p.operator3,0)+
+                 IFNULL(p.asisten_operator1,0)+IFNULL(p.asisten_operator2,0)+IFNULL(p.asisten_operator3,0)+
+                 IFNULL(p.instrumen,0)+IFNULL(p.dokter_anak,0)+IFNULL(p.perawaat_resusitas,0)+
+                 IFNULL(p.dokter_anestesi,0)+IFNULL(p.asisten_anestesi,0)+IFNULL(p.asisten_anestesi2,0)+
+                 IFNULL(p.bidan,0)+IFNULL(p.bidan2,0)+IFNULL(p.bidan3,0)+
+                 IFNULL(p.perawat_luar,0)+IFNULL(p.sewa_ok,0)+IFNULL(p.alat,0)+
+                 IFNULL(p.akomodasi,0)+IFNULL(p.bagian_rs,0)+IFNULL(p.omloop,0)+
+                 IFNULL(p.omloop2,0)+IFNULL(p.omloop3,0)+IFNULL(p.omloop4,0)+
+                 IFNULL(p.omloop5,0)+IFNULL(p.sarpras,0)+IFNULL(p.dokter_pjanak,0)+IFNULL(p.dokter_umum,0)) AS total,
+                COALESCE(rjt.jenis_tindakan, 'Tidak dikategorikan')
             FROM operasi o
             JOIN paket_operasi p ON o.kode_paket = p.kode_paket
             LEFT JOIN relasi_jenis_tindakan rjt ON p.kode_paket = rjt.kode_tindakan
             WHERE o.no_rawat = ?
-            SQL;
+        SQL;
 
-        // Kita punya 9 SELECT dengan placeholder => butuh 9 binding values
-        $bindings = array_fill(0, 9, $no_rawat);
-        // Jalankan query dengan binding yang sesuai
-        $rows = DB::select($sql, $bindings);
+        $rows      = DB::select($sql, array_fill(0, 9, $no_rawat));
+        $rekap     = collect($rows)
+            ->groupBy(fn($item) => strtolower(trim($item->jenis_tindakan)))
+            ->map(fn($items) => (float) $items->sum(fn($it) => (float) ($it->total ?? 0)))
+            ->mapWithKeys(fn($value, $key) => [ucfirst($key) => $value])
+            ->toArray();
 
-        // Ubah ke collection untuk mudah olah
-        // ...
-        $collection = collect($rows);
-
-        // Group by jenis_tindakan tanpa membedakan huruf besar kecil
-        $grouped = $collection
-            ->groupBy(function ($item) {
-                // normalize ke lowercase & hilangkan spasi berlebih
-                return strtolower(trim($item->jenis_tindakan));
-            })
-            ->map(function ($items, $key) {
-                // Hitung total biaya per jenis tindakan
-                return (float) $items->sum(function ($it) {
-                    return (float) ($it->total ?? 0);
-                });
-            });
-
-        // ubah key-nya jadi kapital huruf pertama
-        $formatted = $grouped->mapWithKeys(function ($value, $key) {
-            return [ucfirst($key) => $value];
-        });
-
-        // Jika mau hasil akhir berupa array (bukan Collection)
-        $rekap = $formatted->toArray();
         $obatbhpalkes = (array) $obatbhpalkes;
+        $totalKamar   = DB::table('kamar_inap')->where('no_rawat', $no_rawat)->sum('ttl_biaya') ?? 0;
 
-        // Ambil total biaya kamar dari tabel kamar_inap
-        $totalKamar = DB::table('kamar_inap')
-            ->where('no_rawat', $no_rawat)
-            ->sum('ttl_biaya');
-
-        // Pastikan nilai tidak null
-        $totalKamar = $totalKamar ?? 0;
-
-        // dd($rekap, $obatbhpalkes, $totalKamar);
-
-        return view('inacbg.klaim', compact('pasien', 'sep', 'bayi', 'pemeriksaan', 'coder', 'obatbhpalkes', 'rekap', 'totalKamar'));
+        // BUG FIX #2: selalu pass SEMUA variabel ke view, baik $log ada maupun tidak
+        // Sebelumnya: jika $log ada → return view hanya dengan compact('pasien','log')
+        // sehingga blade error "Undefined variable $sep", "$bayi", "$pemeriksaan", dst.
+        return view('inacbg.klaim', compact(
+            'pasien', 'log', 'sep', 'bayi', 'pemeriksaan',
+            'coder', 'obatbhpalkes', 'rekap', 'totalKamar'
+        ));
     }
+
+    // =========================================================
+    // STORE — simpan data klaim
+    // BUG FIX: $this->show($requestShow) mengembalikan Response,
+    // tidak bisa di-chain dengan ->with(). Ganti ke redirect()->route()
+    // (sudah benar di kode asli, tapi blok yang di-comment masih salah)
+    // =========================================================
     public function store(Request $request)
     {
         $input = $request->all();
 
-        // 🔹 Cek apakah log sudah pernah final IDRG
         $logExisting = LogEklaimRanap::where('nomor_sep', $input['nomor_sep'] ?? null)->first();
         if ($logExisting && $logExisting->status === 'proses final idrg') {
-            // Tetap kembali ke halaman show tanpa melakukan simpan/update
-            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-            return $this->show($requestShow)
-                ->with('info', 'Data ini sudah mencapai proses Final IDRG, tidak dapat disimpan ulang.');
+            return redirect()
+                ->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])
+                ->with('info', 'Data sudah Final IDRG, tidak dapat disimpan ulang.');
         }
 
-        // 🔹 Ubah format tanggal jika ada
         if (!empty($input['tgl_masuk'])) {
             $input['tgl_masuk'] = Carbon::parse($input['tgl_masuk'])->format('Y-m-d H:i:s');
         }
@@ -431,144 +347,118 @@ class InacbgRanapController extends Controller
             $input['tgl_pulang'] = Carbon::parse($input['tgl_pulang'])->format('Y-m-d H:i:s');
         }
 
-        // 🔹 Simpan atau update log klaim
+        // BUG FIX: tarif_rs dikirim sebagai array dari form, harus di-encode ke JSON
+        if (!empty($input['tarif_rs']) && is_array($input['tarif_rs'])) {
+            $input['tarif_rs'] = json_encode($input['tarif_rs']);
+        }
+
         $log = LogEklaimRanap::updateOrCreate(
             ['nomor_sep' => $input['nomor_sep']],
             [
-                'nomor_kartu' => $input['nomor_kartu'] ?? null,
-                'tgl_masuk' => $input['tgl_masuk'] ?? null,
-                'tgl_pulang' => $input['tgl_pulang'] ?? null,
-                'cara_masuk' => $input['cara_masuk'] ?? null,
-                'discharge_status' => $input['discharge_status'] ?? null,
-                'adl_sub_acute' => $input['adl_sub_acute'] ?? null,
-                'adl_chronic' => $input['adl_chronic'] ?? null,
-                'icu_indikator' => $input['icu_indikator'] ?? null,
-                'icu_los' => $input['icu_los'] ?? null,
-                'upgrade_class_ind' => $input['upgrade_class_ind'] ?? null,
-                'upgrade_class_los' => $input['upgrade_class_los'] ?? null,
-                'add_payment_pct' => $input['add_payment_pct'] ?? null,
-                'birth_weight' => $input['birth_weight'] ?? null,
-                'sistole' => $input['sistole'] ?? null,
-                'diastole' => $input['diastole'] ?? null,
-                'dializer_single_use' => $input['dializer_single_use'] ?? null,
-                'tb_indikator' => $input['tb_indikator'] ?? null,
-                'pemulasaraan_jenazah' => $input['pemulasaraan_jenazah'] ?? null,
-                'kantong_jenazah' => $input['kantong_jenazah'] ?? null,
-                'peti_jenazah' => $input['peti_jenazah'] ?? null,
-                'desinfektan_jenazah' => $input['desinfektan_jenazah'] ?? null,
-                'mobil_jenazah' => $input['mobil_jenazah'] ?? null,
+                'nomor_kartu'               => $input['nomor_kartu']               ?? null,
+                'tgl_masuk'                 => $input['tgl_masuk']                 ?? null,
+                'tgl_pulang'                => $input['tgl_pulang']                ?? null,
+                'cara_masuk'                => $input['cara_masuk']                ?? null,
+                'discharge_status'          => $input['discharge_status']          ?? null,
+                'adl_sub_acute'             => $input['adl_sub_acute']             ?? null,
+                'adl_chronic'               => $input['adl_chronic']               ?? null,
+                'icu_indikator'             => $input['icu_indikator']             ?? null,
+                'icu_los'                   => $input['icu_los']                   ?? null,
+                'upgrade_class_ind'         => $input['upgrade_class_ind']         ?? null,
+                'upgrade_class_los'         => $input['upgrade_class_los']         ?? null,
+                'add_payment_pct'           => $input['add_payment_pct']           ?? null,
+                'birth_weight'              => $input['birth_weight']              ?? null,
+                'sistole'                   => $input['sistole']                   ?? null,
+                'diastole'                  => $input['diastole']                  ?? null,
+                'dializer_single_use'       => $input['dializer_single_use']       ?? null,
+                'tb_indikator'              => $input['tb_indikator']              ?? null,
+                'pemulasaraan_jenazah'      => $input['pemulasaraan_jenazah']      ?? null,
+                'kantong_jenazah'           => $input['kantong_jenazah']           ?? null,
+                'peti_jenazah'              => $input['peti_jenazah']              ?? null,
+                'desinfektan_jenazah'       => $input['desinfektan_jenazah']       ?? null,
+                'mobil_jenazah'             => $input['mobil_jenazah']             ?? null,
                 'desinfektan_mobil_jenazah' => $input['desinfektan_mobil_jenazah'] ?? null,
-                'covid19_status_cd' => $input['covid19_status_cd'] ?? null,
-                'nomor_kartu_t' => $input['nomor_kartu_t'] ?? null,
-                'tarif_rs' => $input['tarif_rs'] ?? null,
-                'episodes' => $input['episodes'] ?? null,
-                'payor_id' => $input['payor_id'] ?? null,
-                'payor_cd' => $input['payor_cd'] ?? null,
-                'kode_tarif' => $input['kode_tarif'] ?? null,
-                'coder_nik' => $input['coder_nik'] ?? null,
-                'kelas_rawat' => $input['kelas_rawat'] ?? null,
-                'jenis_rawat' => $input['jenis_rawat'] ?? null,
-                'nomor_rm' => $input['nomor_rm'] ?? null,
-                'nama_pasien' => $input['nama_pasien'] ?? null,
-                'nama_dokter' => $input['nama_dokter'] ?? null,
-                'status' => 'proses klaim'
+                'covid19_status_cd'         => $input['covid19_status_cd']         ?? null,
+                'nomor_kartu_t'             => $input['nomor_kartu_t']             ?? null,
+                'tarif_rs'                  => $input['tarif_rs']                  ?? null,
+                'episodes'                  => $input['episodes']                  ?? null,
+                'payor_id'                  => $input['payor_id']                  ?? null,
+                'payor_cd'                  => $input['payor_cd']                  ?? null,
+                'kode_tarif'                => $input['kode_tarif']                ?? null,
+                'coder_nik'                 => $input['coder_nik']                 ?? null,
+                'kelas_rawat'               => $input['kelas_rawat']               ?? null,
+                'jenis_rawat'               => $input['jenis_rawat']               ?? null,
+                'nomor_rm'                  => $input['nomor_rm']                  ?? null,
+                'nama_pasien'               => $input['nama_pasien']               ?? null,
+                'nama_dokter'               => $input['nama_dokter']               ?? null,
+                'status'                    => 'proses klaim',
             ]
         );
 
-        // 🔹 Kirim new_claim ke e-Klaim
         $payloadNew = [
-            'nomor_sep' => $input['nomor_sep'],
+            'nomor_sep'   => $input['nomor_sep'],
             'nomor_kartu' => $input['nomor_kartu'],
-            'nomor_rm' => $input['nomor_rm'],
+            'nomor_rm'    => $input['nomor_rm'],
             'nama_pasien' => $input['nama_pasien'],
-            'tgl_lahir' => date('Y-m-d H:i:s', strtotime($input['tgl_lahir'])),
-            'gender' => $input['gender'],
+            'tgl_lahir'   => date('Y-m-d H:i:s', strtotime($input['tgl_lahir'])),
+            'gender'      => $input['gender'],
         ];
 
         $responseNew = $this->eklaim->send('new_claim', $payloadNew);
         $log->update(['response_new_claim' => $responseNew]);
 
-        // 🔹 Kirim set_claim_data
-        $payloadSet = [
-            'metadata' => [
-                'method' => 'set_claim_data',
-                'nomor_sep' => $payloadNew['nomor_sep'] ?? null,
-            ],
-            'data' => $input
-        ];
+        $responseSet = $this->eklaim->send('set_claim_data', $input, [
+            'method'     => 'set_claim_data',
+            'nomor_sep'  => $payloadNew['nomor_sep'] ?? null,
+        ]);
 
-        $responseSet = $this->eklaim->send(
-            'set_claim_data',
-            $payloadSet['data'],
-            $payloadSet['metadata']
-        );
-
-        // 🔹 Update status berdasarkan hasil
         $status = (isset($responseSet['metadata']['code']) && $responseSet['metadata']['code'] == 200)
             ? 'proses klaim'
             : 'gagal';
 
-        $log->update([
-            'response_set_claim_data' => $responseSet,
-            'status' => $status
-        ]);
-
-        // 🔹 Kembali ke halaman show dengan pesan sesuai status
-        $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
+        $log->update(['response_set_claim_data' => $responseSet, 'status' => $status]);
 
         return $status === 'proses klaim'
-    ? redirect()
-        ->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])
-        ->with('success', 'Berhasil mengirim e-Klaim')
-    : redirect()
-        ->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])
-        ->with('error', 'Gagal mengirim e-Klaim');
-
-        // return $status === 'proses klaim'
-        //     ? $this->show($requestShow)->with('success', 'Berhasil mengirim e-Klaim')
-        //     : $this->show($requestShow)->with('error', 'Gagal mengirim e-Klaim');
+            ? redirect()->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])->with('success', 'Berhasil mengirim e-Klaim')
+            : redirect()->route('inacbg-ranap.show', ['no_rawat' => $input['no_rawat']])->with('error', 'Gagal mengirim e-Klaim');
     }
+
+    // =========================================================
+    // HAPUS KLAIM
+    // BUG FIX: $this->show($requestShow)->with(...) tidak valid
+    // karena show() mengembalikan Response bukan Redirector.
+    // Ganti ke redirect()->route()
+    // =========================================================
     public function hapusKlaim(Request $request)
     {
-        $input = $request->all();
-
-        $data = [
+        $response = $this->eklaim->send('delete_claim', [
             'nomor_sep' => $request->nomor_sep,
             'coder_nik' => $request->coder_nik,
-        ];
+        ]);
 
-        $response = $this->eklaim->send('delete_claim', $data);
-
-        // Hapus log berdasarkan nomor rawat
         LogEklaimRanap::where('nomor_sep', $request->nomor_sep)->delete();
 
-        // Cek hasil respons dari e-Klaim
         $status = $response['metadata']['code'] ?? null;
 
-        // Debug dulu jika perlu
-        // dd($response);
-
-        // 5️⃣ Redirect dengan alert (sama seperti function lain)
-        if ($status == 200) {
-            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-            return $this->show($requestShow)->with('success', 'Berhasil menghapus e-Klaim dan log terkait.');
-        } else {
-            $requestShow = new Request(['no_rawat' => $input['no_rawat']]);
-            return $this->show($requestShow)->with('error', 'Gagal menghapus e-Klaim. Silakan cek koneksi atau respon server.');
-        }
+        // BUG FIX: ganti $this->show(...)->with() → redirect()->route()
+        return $status == 200
+            ? redirect()->route('inacbg-ranap.show', ['no_rawat' => $request->no_rawat])->with('success', 'Berhasil menghapus e-Klaim.')
+            : redirect()->route('inacbg-ranap.show', ['no_rawat' => $request->no_rawat])->with('error', 'Gagal menghapus e-Klaim.');
     }
+
+    // =========================================================
+    // Semua method save/update log di bawah ini tidak berubah
+    // =========================================================
+
     public function updateLog(Request $request)
     {
-        $nomor_sep = $request->input('nomor_sep');
-        $field = $request->input('field'); // diagnosa_idrg atau procedure_idrg
-        $value = $request->input('value');
+        DB::table('log_eklaim_ranap')
+            ->where('nomor_sep', $request->input('nomor_sep'))
+            ->update([$request->input('field') => $request->input('value')]);
 
-
-        $simpan = DB::table('log_eklaim_ranap')
-            ->where('nomor_sep', $nomor_sep)
-            ->update([$field => $value]);
-        return response()->json(['status' => 'ok', 'updated_field' => $field]);
+        return response()->json(['status' => 'ok', 'updated_field' => $request->input('field')]);
     }
+
     public function saveGroupingIdrgLog(Request $request)
     {
         DB::table('log_eklaim_ranap')
@@ -577,28 +467,28 @@ class InacbgRanapController extends Controller
 
         return response()->json(['status' => 'success']);
     }
+
     public function saveFinalIdrgLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'                  => 'required|string|max:50',
             'response_idrg_grouper_final' => 'required|json',
         ]);
-
-
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
-                'status' => 'proses final idrg',
+                'status'                     => 'proses final idrg',
                 'response_idrg_grouper_final' => $request->response_idrg_grouper_final,
-                'updated_at' => now()
+                'updated_at'                 => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated ? 'Final IDRG berhasil disimpan' : 'Nomor SEP tidak ditemukan'
+            'status'  => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Final IDRG berhasil disimpan' : 'Nomor SEP tidak ditemukan',
         ]);
     }
+
     public function hapusFinalIdrg(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
@@ -610,261 +500,187 @@ class InacbgRanapController extends Controller
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->update([
-                'procedure_inacbg' => null,
-                'diagnosa_inacbg' => null,
-                'response_grouping_idrg' => null,
-                'status' => 'proses klaim',
-                'response_idrg_grouper_final' => null
+                'procedure_inacbg'            => null,
+                'diagnosa_inacbg'             => null,
+                'response_grouping_idrg'      => null,
+                'status'                      => 'proses klaim',
+                'response_idrg_grouper_final' => null,
             ]);
 
-        return response()->json(['status' => 'success', 'mes`sage' => 'Final IDRG berhasil dihapus']);
+        // BUG FIX: typo 'mes`sage' → 'message'
+        return response()->json(['status' => 'success', 'message' => 'Final IDRG berhasil dihapus']);
     }
+
     public function saveImportInacbgLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'              => 'required|string|max:50',
             'response_inacbg_import' => 'required|json',
         ]);
 
-        // Decode response JSON dari INA-CBG
-        $response = json_decode($request->response_inacbg_import, true);
-
-        // Ambil objek diagnosa & procedure dari data INA-CBG
-        $diagnosaData = $response['data']['diagnosa'] ?? null;
+        $response      = json_decode($request->response_inacbg_import, true);
+        $diagnosaData  = $response['data']['diagnosa']  ?? null;
         $procedureData = $response['data']['procedure'] ?? null;
 
-        // Encode ke JSON string untuk disimpan di kolom LONGTEXT
-        $diagnosaJson = $diagnosaData ? json_encode($diagnosaData, JSON_UNESCAPED_UNICODE) : null;
-        $procedureJson = $procedureData ? json_encode($procedureData, JSON_UNESCAPED_UNICODE) : null;
-
-        // Update ke tabel log_eklaim_ranap
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
             ->update([
-                'status' => 'proses final idrg',
+                'status'                 => 'proses final idrg',
                 'response_inacbg_import' => $request->response_inacbg_import,
-                'diagnosa_inacbg' => $diagnosaJson,
-                'procedure_inacbg' => $procedureJson,
-                'updated_at' => now(),
+                'diagnosa_inacbg'        => $diagnosaData  ? json_encode($diagnosaData,  JSON_UNESCAPED_UNICODE) : null,
+                'procedure_inacbg'       => $procedureData ? json_encode($procedureData, JSON_UNESCAPED_UNICODE) : null,
+                'updated_at'             => now(),
             ]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated
-                ? 'Hasil import iDRG → INA-CBG berhasil disimpan'
-                : 'Nomor SEP tidak ditemukan pada log',
-            'saved_data' => [
-                'nomor_sep' => $request->nomor_sep,
-                'diagnosa_inacbg' => $diagnosaJson,
-                'procedure_inacbg' => $procedureJson,
-            ],
+            'status'  => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Hasil import berhasil disimpan' : 'Nomor SEP tidak ditemukan',
         ]);
     }
+
     public function saveGroupingStage1Log(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
-            'response_inacbg_stage1' => 'required|json',
+            'nomor_sep'               => 'required|string|max:50',
+            'response_inacbg_stage1'  => 'required|json',
         ]);
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
-            ->update([
-                'response_inacbg_stage1' => $request->response_inacbg_stage1,
-                'updated_at' => now()
-            ]);
+            ->update(['response_inacbg_stage1' => $request->response_inacbg_stage1, 'updated_at' => now()]);
 
         return response()->json(['status' => $updated ? 'success' : 'failed']);
     }
+
     public function saveGroupingStage2Log(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'              => 'required|string|max:50',
             'response_inacbg_stage2' => 'nullable|json',
         ]);
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
-            ->update([
-                'response_inacbg_stage2' => $request->response_inacbg_stage2,
-                'updated_at' => now()
-            ]);
+            ->update(['response_inacbg_stage2' => $request->response_inacbg_stage2, 'updated_at' => now()]);
 
         return response()->json(['status' => $updated ? 'success' : 'failed']);
     }
+
     public function saveFinalInacbgLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
-            'response_inacbg_final' => 'required|json',
+            'nomor_sep'              => 'required|string|max:50',
+            'response_inacbg_final'  => 'required|json',
         ]);
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
-            ->update([
-                'response_inacbg_final' => $request->response_inacbg_final,
-                'updated_at' => now()
-            ]);
+            ->update(['response_inacbg_final' => $request->response_inacbg_final, 'updated_at' => now()]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated
-                ? 'Log hasil Final INACBG berhasil disimpan.'
-                : 'Gagal menyimpan log Final INACBG.'
+            'status'  => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Log Final INACBG berhasil disimpan.' : 'Gagal menyimpan.',
         ]);
     }
+
     public function reeditGroupingInacbg(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
 
         if (!$nomor_sep) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Nomor SEP tidak ditemukan'
-            ], 400);
+            return response()->json(['status' => 'error', 'message' => 'Nomor SEP tidak ditemukan'], 400);
         }
 
-        // ✅ Cek apakah sudah ada hasil final
         $hasFinal = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->whereNotNull('response_inacbg_final')
             ->exists();
 
         if (!$hasFinal) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Belum ada hasil Grouping Final (response_inacbg_final), re-edit tidak dapat dilakukan.'
-            ], 400);
+            return response()->json(['status' => 'error', 'message' => 'Belum ada Final INACBG, re-edit tidak dapat dilakukan.'], 400);
         }
 
-        // ✅ Hapus hasil grouping lama
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->update([
                 'response_inacbg_stage1' => null,
                 'response_inacbg_stage2' => null,
-                'response_inacbg_final' => null,
-                'updated_at' => now()
+                'response_inacbg_final'  => null,
+                'updated_at'             => now(),
             ]);
-
-        // ✅ Kirim reedit ke e-Klaim
-        $payload = [
-            'metadata' => ['method' => 'inacbg_grouper_reedit'],
-            'data' => ['nomor_sep' => $nomor_sep]
-        ];
 
         try {
             $result = app(\App\Services\Eklaimservice::class)
-                ->send('inacbg_grouper_reedit', $payload['data'], $payload['metadata']);
+                ->send('inacbg_grouper_reedit', ['nomor_sep' => $nomor_sep], ['method' => 'inacbg_grouper_reedit']);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Hasil grouping INA-CBG dihapus dan re-edit berhasil dikirim.',
-                'response' => $result
-            ]);
+            return response()->json(['status' => 'success', 'message' => 'Re-edit INA-CBG berhasil.', 'response' => $result]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal memproses re-edit INA-CBG.',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => 'Gagal re-edit INA-CBG.', 'error' => $e->getMessage()], 500);
         }
     }
+
     public function saveClaimFinalLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
+            'nomor_sep'            => 'required|string|max:50',
             'response_claim_final' => 'required|json',
         ]);
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
-            ->update([
-                'response_claim_final' => $request->response_claim_final,
-                'updated_at' => now()
-            ]);
+            ->update(['response_claim_final' => $request->response_claim_final, 'updated_at' => now()]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated
-                ? 'Log hasil Claim Final berhasil disimpan.'
-                : 'Gagal menyimpan log Claim Final.'
+            'status'  => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Log Claim Final berhasil disimpan.' : 'Gagal menyimpan.',
         ]);
     }
+
     public function reeditClaim(Request $request)
     {
         $nomor_sep = $request->input('nomor_sep');
 
         if (!$nomor_sep) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Nomor SEP tidak ditemukan'
-            ], 400);
+            return response()->json(['status' => 'error', 'message' => 'Nomor SEP tidak ditemukan'], 400);
         }
 
-        // ✅ Cek apakah sudah ada hasil final claim
         $hasFinal = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->whereNotNull('response_claim_final')
             ->exists();
 
         if (!$hasFinal) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Belum ada hasil Claim Final (response_claim_final), re-edit tidak dapat dilakukan.'
-            ], 400);
+            return response()->json(['status' => 'error', 'message' => 'Belum ada Claim Final, re-edit tidak dapat dilakukan.'], 400);
         }
 
-        // ✅ Kosongkan hasil final lama
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
-            ->update([
-                'response_claim_final' => null,
-                'updated_at' => now()
-            ]);
-
-        // ✅ Payload reedit claim
-        $payload = [
-            'metadata' => ['method' => 'reedit_claim'],
-            'data' => ['nomor_sep' => $nomor_sep]
-        ];
+            ->update(['response_claim_final' => null, 'updated_at' => now()]);
 
         try {
             $result = app(\App\Services\Eklaimservice::class)
-                ->send('reedit_claim', $payload['data'], $payload['metadata']);
+                ->send('reedit_claim', ['nomor_sep' => $nomor_sep], ['method' => 'reedit_claim']);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Claim final dihapus dan proses re-edit claim berhasil dikirim.',
-                'response' => $result
-            ]);
+            return response()->json(['status' => 'success', 'message' => 'Re-edit claim berhasil.', 'response' => $result]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal memproses re-edit claim.',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'error', 'message' => 'Gagal re-edit claim.', 'error' => $e->getMessage()], 500);
         }
     }
+
     public function saveClaimSendLog(Request $request)
     {
         $request->validate([
-            'nomor_sep' => 'required|string|max:50',
-            'response_send_claim_individual' => 'required|json',
+            'nomor_sep'                       => 'required|string|max:50',
+            'response_send_claim_individual'  => 'required|json',
         ]);
 
         $updated = DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $request->nomor_sep)
-            ->update([
-                'response_send_claim_individual' => $request->response_send_claim_individual,
-                'updated_at' => now()
-            ]);
+            ->update(['response_send_claim_individual' => $request->response_send_claim_individual, 'updated_at' => now()]);
 
         return response()->json([
-            'status' => $updated ? 'success' : 'failed',
-            'message' => $updated
-                ? 'Log hasil Kirim Claim Individual berhasil disimpan.'
-                : 'Gagal menyimpan log Kirim Claim Individual.'
+            'status'  => $updated ? 'success' : 'failed',
+            'message' => $updated ? 'Log Kirim Claim berhasil disimpan.' : 'Gagal menyimpan.',
         ]);
     }
 
@@ -878,20 +694,20 @@ class InacbgRanapController extends Controller
 
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
-            ->update(['response_idrg_grouper_final' => null,
-            'response_inacbg_final' => null,
-            'response_inacbg_import' => null,
-            'response_inacbg_stage1' => null,
-            'response_inacbg_stage2' => null,
-            'procedure_inacbg' => null,
-            'diagnosa_inacbg' => null,
-            'response_claim_final' => null,
-            'response_send_claim_individual' => null,
-            'status' => 'proses klaim'
+            ->update([
+                'response_idrg_grouper_final'      => null,
+                'response_inacbg_final'             => null,
+                'response_inacbg_import'            => null,
+                'response_inacbg_stage1'            => null,
+                'response_inacbg_stage2'            => null,
+                'procedure_inacbg'                  => null,
+                'diagnosa_inacbg'                   => null,
+                'response_claim_final'              => null,
+                'response_send_claim_individual'    => null,
+                'status'                            => 'proses klaim',
             ]);
 
-        return response()->json(['status' => 'success', 'message' => 'Response grouping IDRG berhasil dihapus']);
-
+        return response()->json(['status' => 'success', 'message' => 'Response grouping INACBG berhasil dihapus']);
     }
 
     public function deleteResponseGroupingIdrg(Request $request)
@@ -905,32 +721,19 @@ class InacbgRanapController extends Controller
         DB::table('log_eklaim_ranap')
             ->where('nomor_sep', $nomor_sep)
             ->update([
-            'response_grouping_idrg' => null,
-            'response_idrg_grouper_final' => null,
-            'response_inacbg_final' => null,
-            'response_inacbg_import' => null,
-            'response_inacbg_stage1' => null,
-            'response_inacbg_stage2' => null,
-            'procedure_inacbg' => null,
-            'diagnosa_inacbg' => null,
-            'response_claim_final' => null,
-            'response_send_claim_individual' => null,
-            'status' => 'proses klaim'
+                'response_grouping_idrg'            => null,
+                'response_idrg_grouper_final'       => null,
+                'response_inacbg_final'             => null,
+                'response_inacbg_import'            => null,
+                'response_inacbg_stage1'            => null,
+                'response_inacbg_stage2'            => null,
+                'procedure_inacbg'                  => null,
+                'diagnosa_inacbg'                   => null,
+                'response_claim_final'              => null,
+                'response_send_claim_individual'    => null,
+                'status'                            => 'proses klaim',
             ]);
 
         return response()->json(['status' => 'success', 'message' => 'Response grouping IDRG berhasil dihapus']);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

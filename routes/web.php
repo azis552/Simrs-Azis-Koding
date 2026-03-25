@@ -33,6 +33,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::patch('/obat/{no_resep}/{kode_brng}/kurang', [ResepObatController::class, 'kurangObat'])->name('obats.kurang');
     Route::delete('/obat/{no_resep}/{kode_brng}/hapus', [ResepObatController::class, 'hapusObat'])->name('obats.hapus');
     Route::patch('/obat/{no_resep}/{kode_brng}/updateaturan', [ResepObatController::class, 'updateAturanPakai'])->name('obats.updateaturan');
+    Route::put('/obat/{no_resep}/updatedokter', [ResepObatController::class, 'updateDokter'])->name('obats.updatedokter');
     Route::post('users/mapping', [UserController::class, 'mapping'])->name('users.mapping');
     Route::resource('users', UserController::class);
     Route::resource('obats', ResepObatController::class);
